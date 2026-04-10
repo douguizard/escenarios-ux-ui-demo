@@ -1,0 +1,75 @@
+/* ═══════════════════════════════════════════════════════════════
+   NAOWEE ESCENARIOS — Shell (sidebar + header + layout)
+   Extracted from digitacion/dashboard.html to avoid per-file duplication.
+   Depends on design-system.css (tokens).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --naranja:#FF7500; --azul:#002B5B;
+  --text-primary:#282834; --text-secondary:#646587;
+  --accent:#d74009;
+  --green:#1f8923; --green-bg:#e6f4e7; --green-border:#b7dfb9;
+  --surface:#ffffff; --bg:#ffffff;
+  --border:#e7e9f3; --border-dark:#d0d4e6;
+  --blue-info:#1f78d1; --blue-bg:#eef5ff;
+  --sidebar-w:274px; --header-h:88px;
+  --radius-sm:6px; --radius-md:8px; --radius-lg:12px; --radius-xl:20px; --radius-full:9999px;
+  --font:'Inter',sans-serif;
+  --shadow-card:0 0 2px rgba(145,158,171,.2),0 12px 24px -4px rgba(145,158,171,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text-primary);font-size:14px}
+
+/* SHELL */
+.shell{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;transition:width .2s,min-width .2s}
+.sidebar-logo{height:var(--header-h);display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.burger-btn{background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;border-radius:var(--radius-sm);transition:background .15s,transform .2s}
+.burger-btn:hover{background:rgba(0,0,0,.06)}
+.burger-btn:active{transform:scale(.9)}
+.burger-btn svg{transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar.collapsed .burger-btn svg{transform:rotate(180deg)}
+.naowee-logo{height:33px;flex-shrink:0}
+.sidebar-nav{flex:1;padding:24px 0 10px;display:flex;flex-direction:column;gap:10px}
+.nav-section{font-size:12px;font-weight:600;color:#b5b9d4;letter-spacing:0;padding:0 12px;line-height:16px}
+.nav-row{display:flex;align-items:center;gap:12px;height:44px;padding:0 20px 0 0;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s;position:relative}
+.nav-row:hover{background:#f5f6fa}
+.nav-row .icon{width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-left:28px}
+.nav-row .lbl{flex:1;font-size:14px;font-weight:600;color:var(--text-primary)}
+.nav-row .nav-arrow{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:.7}
+.active-bar{position:absolute;left:4px;top:8px;width:4px;height:28px;background:var(--accent);border-radius:25px}
+.nav-row.active{background:transparent}
+.nav-row.active:hover{background:transparent}
+.nav-row.active .lbl{color:var(--accent)}
+.sidebar-bottom{padding:8px 0;border-top:1px solid var(--border)}
+.sidebar.collapsed{width:72px;min-width:72px;overflow:hidden}
+.sidebar.collapsed .naowee-logo,.sidebar.collapsed .lbl,.sidebar.collapsed .nav-arrow,.sidebar.collapsed .nav-section,.sidebar.collapsed .sidebar-bottom .lbl{display:none}
+.sidebar.collapsed .sidebar-logo{justify-content:center;padding:0}
+.sidebar.collapsed .nav-row{justify-content:center;padding:0}
+.sidebar.collapsed .nav-row .icon{margin-left:0}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOP HEADER */
+.top-header{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:0 24px;flex-shrink:0}
+.user-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:var(--radius-full);padding:6px 12px 6px 6px;cursor:pointer}
+.ava{position:relative}
+.ava-ring{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ava-dot{position:absolute;bottom:0;right:0;width:8px;height:8px;background:var(--green);border:2px solid #fff;border-radius:50%}
+.user-info{display:flex;flex-direction:column;gap:1px}
+.user-name{font-size:13px;font-weight:700;color:var(--text-primary)}
+.user-role{font-size:11px;color:var(--text-secondary)}
+
+/* PAGE */
+.page{flex:1;overflow-y:auto;overflow-x:hidden;padding:28px 32px 40px}
+.page-title{font-size:24px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text-secondary);margin-bottom:24px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{width:72px;min-width:72px;overflow:hidden}
+  .sidebar .naowee-logo,.sidebar .lbl,.sidebar .nav-arrow,.sidebar .nav-section{display:none}
+}
