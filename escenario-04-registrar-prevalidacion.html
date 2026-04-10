@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SUID – Pre-validación (1/3)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared/design-system.css"/>
+<link rel="stylesheet" href="shared/transitions.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--naowee-font-family,'Inter',sans-serif);
+  background:var(--naowee-color-background-default,#fff);
+  color:var(--naowee-color-text-primary,#282834);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══ SHELL ═══ */
+.auth-shell{min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden}
+.auth-shell::before{
+  content:'';position:absolute;right:-280px;bottom:-280px;width:720px;height:720px;
+  background:radial-gradient(circle,rgba(255,117,0,.10) 0%,rgba(255,117,0,0) 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ═══ HEADER ═══ */
+.auth-header{
+  padding:40px 40px 0 40px;display:flex;align-items:flex-start;justify-content:space-between;
+  position:relative;z-index:10;gap:24px;
+}
+.auth-header__logos{display:flex;align-items:center;gap:24px}
+.logo-naowee{height:33px;width:auto;display:block}
+.logo-sep{width:1px;height:32px;background:var(--naowee-color-border-default,#d0d4e6)}
+.logo-ministerio{height:46px;width:auto;display:block}
+.logo-colombia{height:48px;width:auto;display:block}
+.auth-header__actions{
+  padding-top:12px;font-size:16px;line-height:24px;
+  color:var(--naowee-color-text-secondary,#646587);text-align:right;
+}
+.auth-header__actions a{
+  color:var(--naowee-color-text-accent,#d74009);
+  font-weight:600;text-decoration:underline;margin-left:4px;
+}
+.auth-header__actions a:hover{color:#b03507}
+
+/* ═══ MAIN ═══ */
+.auth-main{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:60px 24px 40px 24px;position:relative;z-index:1;
+}
+
+.wizard-form{
+  width:100%;max-width:528px;display:flex;flex-direction:column;gap:72px;
+}
+
+/* Title + Form group (gap 56px between text and fields) */
+.wizard-title-block{display:flex;flex-direction:column;gap:56px}
+
+.wizard-heading{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.wizard-step{
+  font-size:14px;font-weight:400;line-height:18px;
+  color:var(--naowee-color-text-secondary,#646587);
+}
+.wizard-title{
+  font-size:32px;font-weight:600;line-height:40px;letter-spacing:0;
+  color:var(--naowee-color-text-primary,#282834);
+}
+.wizard-subtitle{
+  font-size:16px;line-height:24px;
+  color:var(--naowee-color-text-secondary,#646587);
+}
+
+/* Form fields (gap 24px) */
+.wizard-fields{display:flex;flex-direction:column;gap:24px}
+.wizard-fields__label{
+  font-size:12px;font-weight:600;line-height:16px;letter-spacing:.2px;
+  color:var(--naowee-color-text-disabled,#9c9ebf);
+  text-transform:uppercase;
+}
+.wizard-row{display:flex;gap:16px}
+.wizard-row .naowee-textfield{flex:1;min-width:0}
+
+/* Dropdown label helper (added in page, DS label is usually inside component) */
+.naowee-dropdown-wrap{display:flex;flex-direction:column;width:100%}
+.naowee-dropdown-wrap__label{
+  font-size:14px;font-weight:400;line-height:18px;color:var(--naowee-color-text-primary,#282834);
+  padding-bottom:2px;
+}
+.naowee-dropdown-wrap__label .req{color:var(--naowee-color-text-primary,#282834);margin-left:2px}
+/* Row flex fix for DS dropdown */
+.wizard-row .naowee-dropdown-wrap{flex:1;min-width:0}
+
+/* Message transition (extends naowee-message from DS) */
+.naowee-message{transition:background .25s ease}
+.naowee-message__icon{transition:background .25s ease}
+
+/* ═══ SIGUIENTE BUTTON (344px fixed) ═══ */
+.wizard-cta{width:344px;max-width:100%;align-self:center}
+
+/* ═══ HELP ═══ */
+.wizard-help{
+  padding-top:48px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;
+}
+.wizard-help__title{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:12px;font-weight:600;line-height:16px;letter-spacing:.2px;
+  color:var(--naowee-color-text-disabled,#9c9ebf);text-transform:uppercase;
+}
+.wizard-help__text{font-size:16px;line-height:24px;color:var(--naowee-color-text-secondary,#646587);max-width:440px}
+.wizard-help__link{
+  color:var(--naowee-color-text-accent,#d74009);text-decoration:underline;
+  font-size:12px;font-weight:600;
+}
+
+/* Responsive */
+@media(max-width:640px){
+  .auth-header{padding:24px 20px 0 20px;flex-wrap:wrap}
+  .auth-header__logos{gap:12px}
+  .logo-sep,.logo-ministerio,.logo-colombia{display:none}
+  .auth-header__actions{padding-top:0;font-size:14px}
+  .wizard-title{font-size:24px;line-height:32px}
+  .wizard-row{flex-direction:column}
+  .wizard-cta{width:100%}
+  .wizard-form{gap:48px}
+}
+</style>
+</head>
+<body>
+
+<div class="auth-shell">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="auth-header">
+    <div class="auth-header__logos">
+      <img src="shared/logos/naowee.svg" alt="Naowee" class="logo-naowee"/>
+      <div class="logo-sep"></div>
+      <img src="shared/logos/ministerio.svg" alt="Ministerio del Deporte Colombia" class="logo-ministerio"/>
+      <div class="logo-sep"></div>
+      <img src="shared/logos/colombia.svg" alt="Comité Olímpico Colombiano" class="logo-colombia"/>
+    </div>
+    <div class="auth-header__actions">
+      ¿Ya tienes una cuenta? <a href="escenario-01-login.html">Inicia sesión</a>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="auth-main">
+    <form class="wizard-form" id="prevalidacionForm" novalidate>
+
+      <!-- Title + Form (gap 56px) -->
+      <div class="wizard-title-block">
+
+        <!-- Heading -->
+        <div class="wizard-heading">
+          <span class="wizard-step">1 de 3</span>
+          <h1 class="wizard-title">Datos de pre-validación</h1>
+          <p class="wizard-subtitle">Completa la información requerida para verificar la unicidad de la sede o escenario.</p>
+        </div>
+
+        <!-- Fields (gap 24px) -->
+        <div class="wizard-fields">
+
+          <div class="wizard-fields__label">DATOS BÁSICOS</div>
+
+          <!-- Nombre del escenario -->
+          <div class="naowee-textfield" id="fldNombre">
+            <label class="naowee-textfield__label naowee-textfield__label--required" for="nombre">Nombre del escenario</label>
+            <div class="naowee-textfield__input-wrap">
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                class="naowee-textfield__input"
+                placeholder="Centro deportivo Prado"
+                minlength="5"
+                autocomplete="off"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Row: Departamento + Municipio -->
+          <div class="wizard-row">
+
+            <div class="naowee-dropdown" id="departamentoDD">
+              <label class="naowee-dropdown__label" for="depTrigger">Departamento <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+              <button type="button" class="naowee-dropdown__trigger" id="depTrigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="naowee-dropdown__placeholder" id="depValue">Selecciona departamento</span>
+                <span class="naowee-dropdown__controls">
+                  <span class="naowee-dropdown__chevron">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </span>
+                </span>
+              </button>
+              <div class="naowee-dropdown__menu" role="listbox" id="depMenu"></div>
+            </div>
+
+            <div class="naowee-dropdown naowee-dropdown--disabled" id="municipioDD">
+              <label class="naowee-dropdown__label" for="mpioTrigger">Municipio <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+              <button type="button" class="naowee-dropdown__trigger" id="mpioTrigger" aria-haspopup="listbox" aria-expanded="false" disabled>
+                <span class="naowee-dropdown__placeholder" id="mpioValue">Selecciona municipio</span>
+                <span class="naowee-dropdown__controls">
+                  <span class="naowee-dropdown__chevron">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </span>
+                </span>
+              </button>
+              <div class="naowee-dropdown__menu" role="listbox" id="mpioMenu"></div>
+            </div>
+
+          </div>
+
+          <!-- Número de registro catastral (NUMERIC ONLY) -->
+          <div class="naowee-textfield" id="fldCatastral">
+            <label class="naowee-textfield__label naowee-textfield__label--required" for="catastral">Número de registro catastral</label>
+            <div class="naowee-textfield__input-wrap">
+              <input
+                type="text"
+                id="catastral"
+                name="catastral"
+                class="naowee-textfield__input"
+                placeholder="080010101000000010901900000012"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="off"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Correo electrónico (with email validation) -->
+          <div class="naowee-textfield" id="fldCorreo">
+            <label class="naowee-textfield__label naowee-textfield__label--required" for="correo">Correo electrónico</label>
+            <div class="naowee-textfield__input-wrap">
+              <input
+                type="email"
+                id="correo"
+                name="correo"
+                class="naowee-textfield__input"
+                placeholder="mariana.rodriguez@gmail.com"
+                autocomplete="email"
+                required
+              />
+              <div class="naowee-textfield__check" id="correoCheck" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1f8923" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              </div>
+            </div>
+            <div class="naowee-textfield__helper" id="correoHelper" style="display:none;font-size:12px;padding-top:4px;color:var(--naowee-color-text-secondary,#646587)">Correo electrónico registrado en la plataforma.</div>
+          </div>
+
+          <!-- Message (uses DS naowee-message component) -->
+          <div class="naowee-message naowee-message--informative" id="wizardInfo">
+            <div class="naowee-message__header">
+              <div class="naowee-message__icon" id="wizardInfoIcon">
+                <!-- Icon changes via JS: info (default) or check (success) -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16.01"/>
+                </svg>
+              </div>
+              <div class="naowee-message__body" id="wizardInfoText" style="white-space:normal;overflow:visible">
+                Usa un correo electrónico que ya esté registrado en la plataforma. Esto nos permitirá validar tu acceso y continuar con el registro. <strong>¿Aún no estás registrado?</strong>
+              </div>
+            </div>
+            <button type="button" class="naowee-message__action" id="wizardInfoBtn" onclick="alert('Registro ciudadano — Próximamente')">
+              Ir al registro ciudadano.
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Siguiente button -->
+      <button
+        type="submit"
+        class="naowee-btn naowee-btn--loud naowee-btn--large wizard-cta"
+        id="siguienteBtn"
+        data-action="next"
+        disabled
+      >
+        <span id="siguienteLabel">Siguiente</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+
+      <!-- Help -->
+      <div class="wizard-help">
+        <div class="wizard-help__title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          ¿NECESITAS AYUDA?
+        </div>
+        <p class="wizard-help__text">Si tienes dudas o problemas con el registro, puedes comunicarte con el equipo de soporte</p>
+        <a href="mailto:soporte@naowee.com" class="wizard-help__link">soporte@naowee.com</a>
+      </div>
+
+    </form>
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DEPARTMENTS & MUNICIPALITIES DATASET (subset para demo)
+   ═══════════════════════════════════════════════════════════════ */
+const COLOMBIA = {
+  'Amazonas': ['Leticia','Puerto Nariño'],
+  'Antioquia': ['Medellín','Bello','Envigado','Itagüí','Sabaneta','Rionegro','Apartadó','Turbo'],
+  'Arauca': ['Arauca','Saravena','Tame','Arauquita'],
+  'Atlántico': ['Barranquilla','Soledad','Malambo','Puerto Colombia','Galapa','Sabanalarga','Santo Tomás','Baranoa'],
+  'Bogotá D.C.': ['Bogotá'],
+  'Bolívar': ['Cartagena','Magangué','Turbaco','El Carmen de Bolívar','Arjona'],
+  'Boyacá': ['Tunja','Duitama','Sogamoso','Chiquinquirá','Paipa'],
+  'Caldas': ['Manizales','Villamaría','Chinchiná','La Dorada','Riosucio'],
+  'Caquetá': ['Florencia','San Vicente del Caguán','Puerto Rico','La Montañita'],
+  'Casanare': ['Yopal','Aguazul','Villanueva','Tauramena','Paz de Ariporo'],
+  'Cauca': ['Popayán','Santander de Quilichao','Puerto Tejada','Patía','Piendamó'],
+  'Cesar': ['Valledupar','Aguachica','Bosconia','Codazzi','La Jagua de Ibirico'],
+  'Chocó': ['Quibdó','Istmina','Tadó','Condoto','Riosucio'],
+  'Córdoba': ['Montería','Lorica','Cereté','Sahagún','Tierralta','Planeta Rica'],
+  'Cundinamarca': ['Soacha','Zipaquirá','Chía','Facatativá','Girardot','Fusagasugá','Mosquera','Madrid','Cajicá'],
+  'Guainía': ['Inírida'],
+  'Guaviare': ['San José del Guaviare','Calamar','El Retorno'],
+  'Huila': ['Neiva','Pitalito','Garzón','La Plata','Campoalegre'],
+  'La Guajira': ['Riohacha','Maicao','Uribia','Manaure','San Juan del Cesar'],
+  'Magdalena': ['Santa Marta','Ciénaga','Fundación','El Banco','Plato'],
+  'Meta': ['Villavicencio','Acacías','Granada','Puerto López','Cumaral'],
+  'Nariño': ['Pasto','Ipiales','Tumaco','Túquerres','La Unión'],
+  'Norte de Santander': ['Cúcuta','Ocaña','Pamplona','Villa del Rosario','Los Patios'],
+  'Putumayo': ['Mocoa','Puerto Asís','Orito','Valle del Guamuez','Puerto Caicedo'],
+  'Quindío': ['Armenia','Calarcá','Montenegro','La Tebaida','Quimbaya'],
+  'Risaralda': ['Pereira','Dosquebradas','Santa Rosa de Cabal','La Virginia','Belén de Umbría'],
+  'San Andrés y Providencia': ['San Andrés','Providencia'],
+  'Santander': ['Bucaramanga','Floridablanca','Girón','Piedecuesta','Barrancabermeja','San Gil'],
+  'Sucre': ['Sincelejo','Corozal','Sampués','San Marcos','Tolú'],
+  'Tolima': ['Ibagué','Espinal','Melgar','Honda','Chaparral'],
+  'Valle del Cauca': ['Cali','Palmira','Buenaventura','Tuluá','Cartago','Buga','Yumbo','Jamundí'],
+  'Vaupés': ['Mitú','Carurú'],
+  'Vichada': ['Puerto Carreño','La Primavera','Cumaribo']
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   DROPDOWN BEHAVIOR
+   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   DROPDOWN (uses real .naowee-dropdown component from DS)
+   ═══════════════════════════════════════════════════════════════ */
+const _triggerWired = new WeakSet();
+
+function initDropdown(ddId, options, onSelect, disabled){
+  const dd = document.getElementById(ddId);
+  const trigger = dd.querySelector('.naowee-dropdown__trigger');
+  const menu = dd.querySelector('.naowee-dropdown__menu');
+  const valueSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+
+  // Populate menu
+  menu.innerHTML = '';
+  options.forEach(opt => {
+    const el = document.createElement('div');
+    el.className = 'naowee-dropdown__option';
+    el.setAttribute('role','option');
+    el.textContent = opt;
+    el.addEventListener('click', () => {
+      // Swap placeholder → value (swap class names, keep the same element for ID continuity)
+      valueSpan.textContent = opt;
+      valueSpan.className = 'naowee-dropdown__value';
+      menu.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+      el.classList.add('naowee-dropdown__option--selected');
+      dd.classList.remove('naowee-dropdown--open');
+      trigger.setAttribute('aria-expanded','false');
+      onSelect(opt);
+    });
+    menu.appendChild(el);
+  });
+
+  // Toggle listener: wire only once per trigger
+  if(!_triggerWired.has(trigger)){
+    _triggerWired.add(trigger);
+    trigger.addEventListener('click', (e) => {
+      if(dd.classList.contains('naowee-dropdown--disabled')) return;
+      e.stopPropagation();
+      document.querySelectorAll('.naowee-dropdown--open').forEach(other => {
+        if(other !== dd) other.classList.remove('naowee-dropdown--open');
+      });
+      dd.classList.toggle('naowee-dropdown--open');
+      trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+    });
+  }
+
+  if(disabled){
+    dd.classList.add('naowee-dropdown--disabled');
+    trigger.disabled = true;
+  } else {
+    dd.classList.remove('naowee-dropdown--disabled');
+    trigger.disabled = false;
+  }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.naowee-dropdown')){
+    document.querySelectorAll('.naowee-dropdown--open').forEach(dd => {
+      dd.classList.remove('naowee-dropdown--open');
+      dd.querySelector('.naowee-dropdown__trigger')?.setAttribute('aria-expanded','false');
+    });
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   SIMULATED REGISTERED EMAILS (demo only)
+   ═══════════════════════════════════════════════════════════════ */
+const REGISTERED_EMAILS = [
+  'mariana.rodriguez@gmail.com',
+  'iveth@gmail.com',
+  'dvargas@naowee.com',
+  'admin@naowee.com',
+  'carlos.lopez@naowee.com',
+  'test@test.com'
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM STATE
+   ═══════════════════════════════════════════════════════════════ */
+const state = {
+  nombre: '',
+  departamento: '',
+  municipio: '',
+  catastral: '',
+  correo: '',
+  emailState: 'empty' // 'empty' | 'invalid' | 'registered' | 'available'
+};
+
+// Initialize Departamento dropdown
+initDropdown('departamentoDD', Object.keys(COLOMBIA), (dep) => {
+  state.departamento = dep;
+  state.municipio = '';
+  // Reset municipio value span back to placeholder + repopulate
+  const mpioValue = document.getElementById('mpioValue');
+  mpioValue.textContent = 'Selecciona municipio';
+  mpioValue.className = 'naowee-dropdown__placeholder';
+  initDropdown('municipioDD', COLOMBIA[dep], (mpio) => {
+    state.municipio = mpio;
+    validate();
+  }, false);
+  validate();
+});
+
+// Initialize empty Municipio (disabled)
+initDropdown('municipioDD', [], () => {}, true);
+
+/* ═══════════════════════════════════════════════════════════════
+   FIELD VALIDATION (per field type)
+   ═══════════════════════════════════════════════════════════════ */
+
+// Nombre: text, min 5 chars
+const nombreInput = document.getElementById('nombre');
+const fldNombre = document.getElementById('fldNombre');
+nombreInput.addEventListener('input', (e) => {
+  state.nombre = e.target.value.trim();
+  if(state.nombre && state.nombre.length < 5){
+    fldNombre.classList.add('naowee-textfield--error');
+  } else {
+    fldNombre.classList.remove('naowee-textfield--error');
+  }
+  validate();
+});
+
+// Catastral: NUMERIC ONLY (filter non-digits in real time)
+const catastralInput = document.getElementById('catastral');
+const fldCatastral = document.getElementById('fldCatastral');
+catastralInput.addEventListener('input', (e) => {
+  // Strip non-digit characters immediately
+  const cleaned = e.target.value.replace(/\D/g, '');
+  if(cleaned !== e.target.value){
+    e.target.value = cleaned;
+  }
+  state.catastral = cleaned;
+  if(state.catastral && state.catastral.length < 10){
+    fldCatastral.classList.add('naowee-textfield--caution');
+  } else {
+    fldCatastral.classList.remove('naowee-textfield--caution');
+  }
+  validate();
+});
+// Block non-numeric keys on paste as safety
+catastralInput.addEventListener('keypress', (e) => {
+  if(!/[0-9]/.test(e.key) && e.key.length === 1){ e.preventDefault(); }
+});
+
+// Correo: email format + registered/available check
+const correoInput = document.getElementById('correo');
+const fldCorreo = document.getElementById('fldCorreo');
+const correoCheck = document.getElementById('correoCheck');
+const correoHelper = document.getElementById('correoHelper');
+const wizardInfo = document.getElementById('wizardInfo');
+const wizardInfoIcon = document.getElementById('wizardInfoIcon');
+const wizardInfoText = document.getElementById('wizardInfoText');
+const wizardInfoBtn = document.getElementById('wizardInfoBtn');
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg>';
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>';
+
+correoInput.addEventListener('input', (e) => {
+  state.correo = e.target.value.trim();
+
+  if(!state.correo){
+    state.emailState = 'empty';
+  } else if(!emailRegex.test(state.correo)){
+    state.emailState = 'invalid';
+  } else {
+    state.emailState = REGISTERED_EMAILS.includes(state.correo.toLowerCase())
+      ? 'registered'
+      : 'available';
+  }
+  updateEmailUI();
+  validate();
+});
+
+function setMessageVariant(variant){
+  // variant: 'informative' | 'positive' | 'caution' | 'negative'
+  wizardInfo.classList.remove('naowee-message--informative','naowee-message--positive','naowee-message--caution','naowee-message--negative');
+  wizardInfo.classList.add('naowee-message--' + variant);
+  wizardInfoIcon.innerHTML = variant === 'positive' ? ICON_CHECK : ICON_INFO;
+}
+
+function updateEmailUI(){
+  // Reset field states
+  fldCorreo.classList.remove('naowee-textfield--active','naowee-textfield--error','naowee-textfield--validated');
+  correoCheck.style.display = 'none';
+  correoHelper.style.display = 'none';
+
+  switch(state.emailState){
+    case 'empty':
+      setMessageVariant('informative');
+      wizardInfoText.innerHTML = 'Usa un correo electrónico que ya esté registrado en la plataforma. Esto nos permitirá validar tu acceso y continuar con el registro. <strong>¿Aún no estás registrado?</strong>';
+      wizardInfoBtn.textContent = 'Ir al registro ciudadano.';
+      wizardInfoBtn.onclick = () => alert('Registro ciudadano — Próximamente');
+      wizardInfoBtn.style.display = '';
+      break;
+
+    case 'invalid':
+      fldCorreo.classList.add('naowee-textfield--error');
+      break;
+
+    case 'registered':
+      fldCorreo.classList.add('naowee-textfield--validated');
+      correoCheck.style.display = 'flex';
+      correoHelper.textContent = 'Correo electrónico registrado en la plataforma.';
+      correoHelper.style.display = 'block';
+      setMessageVariant('informative');
+      wizardInfoText.innerHTML = 'Este correo ya está registrado en la plataforma. <strong>Inicia sesión para continuar con el registro del escenario.</strong>';
+      wizardInfoBtn.style.display = 'none';
+      break;
+
+    case 'available':
+      fldCorreo.classList.add('naowee-textfield--validated');
+      correoCheck.style.display = 'flex';
+      correoHelper.textContent = 'Nuevo correo. Continuarás como registro ciudadano.';
+      correoHelper.style.display = 'block';
+      setMessageVariant('positive');
+      wizardInfoText.innerHTML = 'Este correo no está registrado. <strong>Puedes continuar con el registro del escenario y tu cuenta se creará al finalizar.</strong>';
+      wizardInfoBtn.style.display = 'none';
+      break;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VALIDATE & ENABLE SIGUIENTE
+   ═══════════════════════════════════════════════════════════════ */
+const siguienteBtn = document.getElementById('siguienteBtn');
+const siguienteLabel = document.getElementById('siguienteLabel');
+
+function validate(){
+  const basicOk = state.nombre.length >= 5
+    && state.departamento
+    && state.municipio
+    && state.catastral.length >= 10;
+
+  if(state.emailState === 'registered'){
+    // Email already registered → button becomes "Iniciar sesión"
+    siguienteLabel.textContent = 'Iniciar sesión';
+    siguienteBtn.disabled = false;
+    siguienteBtn.dataset.action = 'login';
+  } else if(state.emailState === 'available'){
+    // New email → allow continue to next step
+    siguienteLabel.textContent = 'Siguiente';
+    siguienteBtn.disabled = !basicOk;
+    siguienteBtn.dataset.action = 'next';
+  } else {
+    // Empty or invalid email
+    siguienteLabel.textContent = 'Siguiente';
+    siguienteBtn.disabled = true;
+    siguienteBtn.dataset.action = 'next';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBMIT
+   ═══════════════════════════════════════════════════════════════ */
+document.getElementById('prevalidacionForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const action = siguienteBtn.dataset.action;
+  if(action === 'login'){
+    window.wizardNavigate
+      ? window.wizardNavigate('escenario-01-login.html')
+      : (window.location.href = 'escenario-01-login.html');
+  } else {
+    window.wizardNavigate
+      ? window.wizardNavigate('escenario-05-registrar-georreferenciacion.html')
+      : (window.location.href = 'escenario-05-registrar-georreferenciacion.html');
+  }
+});
+</script>
+<script src="shared/transitions.js"></script>
+
+</body>
+</html>

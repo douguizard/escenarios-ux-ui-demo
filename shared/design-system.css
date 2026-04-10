@@ -653,6 +653,8 @@
   transform: none;
 }
 .naowee-btn--loud svg { stroke: var(--naowee-color-icon-inverse); color: var(--naowee-color-icon-inverse); }
+.naowee-btn--loud:disabled svg,
+.naowee-btn--loud[disabled] svg { stroke: var(--naowee-color-icon-disabled); color: var(--naowee-color-icon-disabled); }
 
 /* ── Hierarchy: Quiet (Secondary) ── */
 .naowee-btn--quiet {
@@ -670,6 +672,8 @@
   transform: none;
 }
 .naowee-btn--quiet svg { stroke: var(--naowee-color-icon-accent); color: var(--naowee-color-icon-accent); }
+.naowee-btn--quiet:disabled svg,
+.naowee-btn--quiet[disabled] svg { stroke: var(--naowee-color-icon-disabled); color: var(--naowee-color-icon-disabled); }
 
 /* ── Hierarchy: Mute (Ghost/Tertiary) ── */
 .naowee-btn--mute {
