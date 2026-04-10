@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SUID – Datos de propiedad (2/3)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared/design-system.css"/>
+<link rel="stylesheet" href="shared/transitions.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--naowee-font-family,'Inter',sans-serif);
+  background:var(--naowee-color-background-default,#fff);
+  color:var(--naowee-color-text-primary,#282834);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══ SHELL ═══ */
+.auth-shell{min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden}
+.auth-shell::before{
+  content:'';position:absolute;right:-280px;bottom:-280px;width:720px;height:720px;
+  background:radial-gradient(circle,rgba(255,117,0,.10) 0%,rgba(255,117,0,0) 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ═══ HEADER ═══ */
+.auth-header{
+  padding:40px 40px 0 40px;display:flex;align-items:flex-start;justify-content:space-between;
+  position:relative;z-index:10;gap:24px;
+}
+.auth-header__logos{display:flex;align-items:center;gap:24px}
+.logo-naowee{height:33px;width:auto;display:block}
+.logo-sep{width:1px;height:32px;background:var(--naowee-color-border-default,#d0d4e6)}
+.logo-ministerio{height:46px;width:auto;display:block}
+.logo-colombia{height:48px;width:auto;display:block}
+.auth-header__actions{
+  padding-top:12px;font-size:16px;line-height:24px;
+  color:var(--naowee-color-text-secondary,#646587);text-align:right;
+}
+.auth-header__actions a{
+  color:var(--naowee-color-text-accent,#d74009);
+  font-weight:600;text-decoration:underline;margin-left:4px;
+}
+.auth-header__actions a:hover{color:#b03507}
+
+/* ═══ MAIN ═══ */
+.auth-main{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:60px 24px 40px 24px;position:relative;z-index:1;
+}
+
+.wizard-form{width:100%;max-width:528px;display:flex;flex-direction:column;gap:72px}
+.wizard-title-block{display:flex;flex-direction:column;gap:56px}
+
+.wizard-heading{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.wizard-step{font-size:14px;line-height:18px;color:var(--naowee-color-text-secondary,#646587)}
+.wizard-title{
+  font-size:32px;font-weight:600;line-height:40px;letter-spacing:0;
+  color:var(--naowee-color-text-primary,#282834);
+}
+.wizard-subtitle{font-size:16px;line-height:24px;color:var(--naowee-color-text-secondary,#646587)}
+
+.wizard-fields{display:flex;flex-direction:column;gap:24px}
+.wizard-fields__label{
+  font-size:12px;font-weight:600;line-height:16px;letter-spacing:.2px;
+  color:var(--naowee-color-text-disabled,#9c9ebf);
+  text-transform:uppercase;
+}
+.wizard-row{display:flex;gap:16px}
+.wizard-row > .naowee-textfield,
+.wizard-row > .naowee-dropdown{flex:1;min-width:0}
+
+/* ═══ FOOTER BUTTON GROUP (Volver + Siguiente, 344px fixed, centered) ═══ */
+.wizard-footer{display:flex;justify-content:center}
+.wizard-footer__group{display:flex;gap:8px;width:344px;max-width:100%}
+.wizard-footer__group .naowee-btn{flex:1}
+
+/* Responsive */
+@media(max-width:640px){
+  .auth-header{padding:24px 20px 0 20px;flex-wrap:wrap}
+  .auth-header__logos{gap:12px}
+  .logo-sep,.logo-ministerio,.logo-colombia{display:none}
+  .auth-header__actions{padding-top:0;font-size:14px}
+  .wizard-title{font-size:24px;line-height:32px}
+  .wizard-row{flex-direction:column}
+  .wizard-footer__group{width:100%}
+  .wizard-form{gap:48px}
+}
+</style>
+</head>
+<body>
+
+<div class="auth-shell">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="auth-header">
+    <div class="auth-header__logos">
+      <img src="shared/logos/naowee.svg" alt="Naowee" class="logo-naowee"/>
+      <div class="logo-sep"></div>
+      <img src="shared/logos/ministerio.svg" alt="Ministerio del Deporte Colombia" class="logo-ministerio"/>
+      <div class="logo-sep"></div>
+      <img src="shared/logos/colombia.svg" alt="Comité Olímpico Colombiano" class="logo-colombia"/>
+    </div>
+    <div class="auth-header__actions">
+      ¿Ya tienes una cuenta? <a href="escenario-01-login.html" data-wizard-nav="escenario-01-login.html">Inicia sesión</a>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="auth-main">
+    <form class="wizard-form" id="propiedadForm" novalidate>
+
+      <div class="wizard-title-block">
+
+        <div class="wizard-heading">
+          <span class="wizard-step">2 de 3</span>
+          <h1 class="wizard-title">Datos de pre-validación</h1>
+          <p class="wizard-subtitle">Completa la información requerida para verificar la unicidad de la sede o escenario.</p>
+        </div>
+
+        <div class="wizard-fields">
+
+          <div class="wizard-fields__label">DATOS DE PROPIEDAD</div>
+
+          <!-- Row 1: Entidad propietaria + Tipo de propietario -->
+          <div class="wizard-row">
+
+            <div class="naowee-textfield" id="fldEntidad">
+              <label class="naowee-textfield__label naowee-textfield__label--required" for="entidad">Nombre de la entidad propietaria</label>
+              <div class="naowee-textfield__input-wrap">
+                <input
+                  type="text"
+                  id="entidad"
+                  name="entidad"
+                  class="naowee-textfield__input"
+                  placeholder="Escriba el nombre"
+                  autocomplete="off"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="naowee-dropdown" id="propietarioDD">
+              <label class="naowee-dropdown__label" for="propietarioTrigger">Tipo de propietario <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+              <button type="button" class="naowee-dropdown__trigger" id="propietarioTrigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="naowee-dropdown__placeholder" id="propietarioValue">Seleccione un tipo</span>
+                <span class="naowee-dropdown__controls">
+                  <span class="naowee-dropdown__chevron">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </span>
+                </span>
+              </button>
+              <div class="naowee-dropdown__menu" role="listbox" id="propietarioMenu"></div>
+            </div>
+
+          </div>
+
+          <!-- Row 2: Entidad administradora + Tipo de tenencia -->
+          <div class="wizard-row">
+
+            <div class="naowee-textfield" id="fldAdministradora">
+              <label class="naowee-textfield__label" for="administradora">Entidad administradora</label>
+              <div class="naowee-textfield__input-wrap">
+                <input
+                  type="text"
+                  id="administradora"
+                  name="administradora"
+                  class="naowee-textfield__input"
+                  placeholder="Escriba el nombre"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <div class="naowee-dropdown" id="tenenciaDD">
+              <label class="naowee-dropdown__label" for="tenenciaTrigger">Tipo de tenencia <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+              <button type="button" class="naowee-dropdown__trigger" id="tenenciaTrigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="naowee-dropdown__placeholder" id="tenenciaValue">Seleccione un tipo</span>
+                <span class="naowee-dropdown__controls">
+                  <span class="naowee-dropdown__chevron">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </span>
+                </span>
+              </button>
+              <div class="naowee-dropdown__menu" role="listbox" id="tenenciaMenu"></div>
+            </div>
+
+          </div>
+
+          <!-- Conditional: Fecha de vencimiento (si tenencia = Comodato/Arrendamiento/Concesión) -->
+          <div class="naowee-textfield" id="fldVencimiento" style="display:none">
+            <label class="naowee-textfield__label naowee-textfield__label--required" for="vencimiento">Fecha de vencimiento del contrato</label>
+            <div class="naowee-textfield__input-wrap">
+              <input
+                type="date"
+                id="vencimiento"
+                name="vencimiento"
+                class="naowee-textfield__input"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <!-- Row 3: Nombre del responsable (full width) -->
+          <div class="naowee-textfield" id="fldResponsable">
+            <label class="naowee-textfield__label naowee-textfield__label--required" for="responsable">Nombre del responsable del escenario</label>
+            <div class="naowee-textfield__input-wrap">
+              <input
+                type="text"
+                id="responsable"
+                name="responsable"
+                class="naowee-textfield__input"
+                placeholder="Escriba el nombre del responsable"
+                autocomplete="name"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Row 4: Teléfono (half width) -->
+          <div class="wizard-row">
+            <div class="naowee-textfield" id="fldTelefono">
+              <label class="naowee-textfield__label naowee-textfield__label--required" for="telefono">Teléfono del responsable</label>
+              <div class="naowee-textfield__input-wrap">
+                <input
+                  type="tel"
+                  id="telefono"
+                  name="telefono"
+                  class="naowee-textfield__input"
+                  placeholder="Escriba el número"
+                  inputmode="numeric"
+                  pattern="[0-9]{10}"
+                  maxlength="10"
+                  autocomplete="tel"
+                  required
+                />
+              </div>
+            </div>
+            <!-- Empty spacer for grid alignment -->
+            <div></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer buttons -->
+      <div class="wizard-footer">
+        <div class="wizard-footer__group">
+          <button
+            type="button"
+            class="naowee-btn naowee-btn--mute naowee-btn--large"
+            data-wizard-nav="escenario-05-registrar-georreferenciacion.html"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            Volver
+          </button>
+          <button
+            type="submit"
+            class="naowee-btn naowee-btn--loud naowee-btn--large"
+            id="siguienteBtn"
+            disabled
+          >
+            Siguiente
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+const state = {
+  entidad: '',
+  propietario: '',
+  administradora: '',
+  tenencia: '',
+  vencimiento: '',
+  responsable: '',
+  telefono: ''
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   DROPDOWN (usa .naowee-dropdown del DS)
+   ═══════════════════════════════════════════════════════════════ */
+const _triggerWired = new WeakSet();
+
+function initDropdown(ddId, options, onSelect){
+  const dd = document.getElementById(ddId);
+  const trigger = dd.querySelector('.naowee-dropdown__trigger');
+  const menu = dd.querySelector('.naowee-dropdown__menu');
+  const valueSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+
+  menu.innerHTML = '';
+  options.forEach(opt => {
+    const el = document.createElement('div');
+    el.className = 'naowee-dropdown__option';
+    el.setAttribute('role','option');
+    el.textContent = opt;
+    el.addEventListener('click', () => {
+      valueSpan.textContent = opt;
+      valueSpan.className = 'naowee-dropdown__value';
+      menu.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+      el.classList.add('naowee-dropdown__option--selected');
+      dd.classList.remove('naowee-dropdown--open');
+      trigger.setAttribute('aria-expanded','false');
+      onSelect(opt);
+    });
+    menu.appendChild(el);
+  });
+
+  if(!_triggerWired.has(trigger)){
+    _triggerWired.add(trigger);
+    trigger.addEventListener('click', (e) => {
+      if(dd.classList.contains('naowee-dropdown--disabled')) return;
+      e.stopPropagation();
+      document.querySelectorAll('.naowee-dropdown--open').forEach(o => {
+        if(o !== dd) o.classList.remove('naowee-dropdown--open');
+      });
+      dd.classList.toggle('naowee-dropdown--open');
+      trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+    });
+  }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.naowee-dropdown')){
+    document.querySelectorAll('.naowee-dropdown--open').forEach(dd => {
+      dd.classList.remove('naowee-dropdown--open');
+      dd.querySelector('.naowee-dropdown__trigger')?.setAttribute('aria-expanded','false');
+    });
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   DROPDOWN DATA (del CSV de registro de escenarios)
+   ═══════════════════════════════════════════════════════════════ */
+const TIPOS_PROPIETARIO = [
+  'Ente territorial (municipio/departamento)',
+  'Entidad deportiva',
+  'Privado',
+  'Comunidad',
+  'Otro'
+];
+
+const TIPOS_TENENCIA = [
+  'Propiedad',
+  'Comodato',
+  'Arrendamiento',
+  'Concesión',
+  'Otro'
+];
+
+const TENENCIAS_CON_VENCIMIENTO = new Set(['Comodato','Arrendamiento','Concesión']);
+
+initDropdown('propietarioDD', TIPOS_PROPIETARIO, (val) => {
+  state.propietario = val;
+  validate();
+});
+
+const fldVencimiento = document.getElementById('fldVencimiento');
+const vencimientoInput = document.getElementById('vencimiento');
+
+initDropdown('tenenciaDD', TIPOS_TENENCIA, (val) => {
+  state.tenencia = val;
+  // Conditional field logic
+  if(TENENCIAS_CON_VENCIMIENTO.has(val)){
+    fldVencimiento.style.display = '';
+    vencimientoInput.required = true;
+  } else {
+    fldVencimiento.style.display = 'none';
+    vencimientoInput.required = false;
+    vencimientoInput.value = '';
+    state.vencimiento = '';
+  }
+  validate();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   TEXT FIELDS — validation per type
+   ═══════════════════════════════════════════════════════════════ */
+
+// Entidad propietaria: text required
+const entidadInput = document.getElementById('entidad');
+entidadInput.addEventListener('input', (e) => {
+  state.entidad = e.target.value.trim();
+  validate();
+});
+
+// Administradora: optional
+document.getElementById('administradora').addEventListener('input', (e) => {
+  state.administradora = e.target.value.trim();
+});
+
+// Vencimiento (date)
+vencimientoInput.addEventListener('input', (e) => {
+  state.vencimiento = e.target.value;
+  validate();
+});
+
+// Responsable: solo letras y tildes (según CSV)
+const responsableInput = document.getElementById('responsable');
+const fldResponsable = document.getElementById('fldResponsable');
+const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/;
+responsableInput.addEventListener('input', (e) => {
+  // Filter non-letters in real time
+  const cleaned = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]/g,'');
+  if(cleaned !== e.target.value) e.target.value = cleaned;
+  state.responsable = cleaned.trim();
+  if(state.responsable && state.responsable.length < 3){
+    fldResponsable.classList.add('naowee-textfield--caution');
+  } else {
+    fldResponsable.classList.remove('naowee-textfield--caution');
+  }
+  validate();
+});
+
+// Teléfono: exactamente 10 dígitos, numeric only
+const telefonoInput = document.getElementById('telefono');
+const fldTelefono = document.getElementById('fldTelefono');
+telefonoInput.addEventListener('input', (e) => {
+  const cleaned = e.target.value.replace(/\D/g,'').slice(0,10);
+  if(cleaned !== e.target.value) e.target.value = cleaned;
+  state.telefono = cleaned;
+  if(state.telefono && state.telefono.length < 10){
+    fldTelefono.classList.add('naowee-textfield--caution');
+  } else if(state.telefono.length === 10){
+    fldTelefono.classList.remove('naowee-textfield--caution');
+    fldTelefono.classList.add('naowee-textfield--validated');
+  } else {
+    fldTelefono.classList.remove('naowee-textfield--caution','naowee-textfield--validated');
+  }
+  validate();
+});
+telefonoInput.addEventListener('keypress', (e) => {
+  if(!/[0-9]/.test(e.key) && e.key.length === 1){ e.preventDefault(); }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   VALIDATE
+   ═══════════════════════════════════════════════════════════════ */
+const siguienteBtn = document.getElementById('siguienteBtn');
+function validate(){
+  const conditionalOk = TENENCIAS_CON_VENCIMIENTO.has(state.tenencia)
+    ? !!state.vencimiento
+    : true;
+
+  const ok = state.entidad.length >= 3
+    && state.propietario
+    && state.tenencia
+    && conditionalOk
+    && state.responsable.length >= 3
+    && NAME_REGEX.test(state.responsable)
+    && state.telefono.length === 10;
+
+  siguienteBtn.disabled = !ok;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBMIT
+   ═══════════════════════════════════════════════════════════════ */
+document.getElementById('propiedadForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  alert('✓ Datos de propiedad completos\n\n' +
+    'Entidad propietaria: ' + state.entidad + '\n' +
+    'Tipo propietario: ' + state.propietario + '\n' +
+    'Entidad administradora: ' + (state.administradora || '(vacío)') + '\n' +
+    'Tipo tenencia: ' + state.tenencia + '\n' +
+    (state.vencimiento ? 'Vencimiento: ' + state.vencimiento + '\n' : '') +
+    'Responsable: ' + state.responsable + '\n' +
+    'Teléfono: ' + state.telefono + '\n\n' +
+    'Paso 3 de 3 — Próximamente');
+});
+</script>
+<script src="shared/transitions.js"></script>
+
+</body>
+</html>
