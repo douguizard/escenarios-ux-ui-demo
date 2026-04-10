@@ -549,13 +549,12 @@ updateCoords(DEFAULT_CENTER[0], DEFAULT_CENTER[1]);
    ═══════════════════════════════════════════════════════════════ */
 document.getElementById('georForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  alert('✓ Georreferenciación completa\n\n' +
-    'Lat: ' + state.lat + '\n' +
-    'Lon: ' + state.lon + '\n' +
-    'Dirección: ' + state.direccion + '\n' +
-    'Corregimiento: ' + (state.corregimiento || '(vacío)') + '\n' +
-    'Zona: ' + state.zona + '\n\n' +
-    'Paso 3 de 3 — Próximamente');
+  const url = 'escenario-06-registrar-propiedad.html';
+  if(window.wizardNavigate){
+    window.wizardNavigate(url);
+  } else {
+    window.location.href = url;
+  }
 });
 </script>
 <script src="shared/transitions.js"></script>
