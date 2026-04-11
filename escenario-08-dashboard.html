@@ -1,0 +1,3914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SUID – Sedes y escenarios</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="shared/design-system.css"/>
+<link rel="stylesheet" href="shared/shell.css"/>
+<link rel="stylesheet" href="shared/transitions.css"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   ESCENARIO 08 — Sedes y escenarios (dashboard ciudadano)
+   Figma: 126:28008 (empty) / 126:39706 (1 registro) / 126:39789 (varios)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Sidebar logo override (imagen en vez de texto) */
+.sidebar-logo .naowee-logo-img{
+  height:32px;width:auto;display:block;flex-shrink:0;
+}
+/* Collapsed: ocultar la imagen del logo también (no está en la lista base del shell.css) */
+.sidebar.collapsed .naowee-logo-img{display:none}
+/* Collapsed: el burger debe quedar centrado en los 72px */
+.sidebar.collapsed .sidebar-logo{justify-content:center}
+.sidebar.collapsed .nav-row{padding:0}
+.sidebar.collapsed .nav-row .active-bar{display:none}
+
+/* Avatar en user chip con imagen/gradiente */
+.user-chip{
+  padding:8px 16px 8px 8px;max-width:220px;gap:10px;
+}
+.user-chip .ava-ring{
+  width:40px;height:40px;
+  background:linear-gradient(135deg,#FF7500 0%,#d74009 100%);
+  color:#fff;font-size:13px;font-weight:700;
+}
+.user-chip .user-name{
+  font-size:14px;font-weight:600;color:var(--text-primary);
+  max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.user-chip .user-role{
+  font-size:12px;color:var(--text-secondary);
+  max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.user-chip__chevron{
+  display:flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border-radius:6px;
+  background:transparent;border:none;cursor:pointer;
+  color:var(--text-secondary);flex-shrink:0;
+  margin-left:4px;
+  transition:background .15s,color .15s;
+}
+.user-chip__chevron:hover{background:var(--naowee-color-interactive-fill-quiet-idle,#FFEDC7);color:var(--accent)}
+.user-chip__chevron svg{width:14px;height:14px}
+
+/* ═══ PAGE HEADER ═══ */
+.page-header{
+  display:flex;align-items:flex-start;gap:16px;
+  margin-bottom:32px;
+}
+.page-header__title-group{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.page-header__title{
+  font-size:24px;font-weight:700;line-height:28px;
+  color:var(--text-primary);margin:0;
+}
+.page-header__sub{
+  font-size:16px;font-weight:400;line-height:24px;
+  color:var(--text-secondary);margin:0;
+}
+
+/* ═══ TABLET CONTAINER ═══ */
+.tablet{
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:16px;
+  background:var(--surface);
+  display:flex;flex-direction:column;gap:32px;
+  animation:fadeInUp .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══ TOOLBAR (search + filters + pagination) ═══ */
+.tablet-toolbar{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;
+}
+.toolbar-left{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+/* Searchbox override to match Figma (318px rounded-full, 32px height) */
+.tablet .naowee-searchbox--pill{width:318px;max-width:100%}
+.tablet .naowee-searchbox--pill .naowee-searchbox__input-wrap{
+  border-radius:9999px;height:32px;padding:4px 10px;
+}
+
+/* Wrapper para dropdown con menu posicionable */
+.toolbar-dd-wrap{position:relative;display:inline-flex}
+
+/* Dropdown trigger compacto (Estados) */
+.toolbar-dd{
+  position:relative;
+  display:inline-flex;align-items:center;gap:8px;justify-content:space-between;
+  height:32px;padding:4px 10px 4px 12px;
+  background:#fff;
+  border:1px solid #8788ab;border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:12px;font-weight:400;color:var(--text-primary);
+  cursor:pointer;
+  transition:border-color .15s,box-shadow .15s;
+  min-width:120px;
+}
+.toolbar-dd:hover{border-color:#646587}
+.toolbar-dd:focus-visible,.toolbar-dd.open{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(215,64,9,.15);
+}
+.toolbar-dd svg{width:16px;height:16px;flex-shrink:0;color:var(--text-secondary);transition:transform .2s}
+.toolbar-dd.open svg{transform:rotate(180deg)}
+
+/* Menu del dropdown (usa .naowee-menu del DS) */
+.toolbar-dd-wrap .naowee-menu{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:50;
+  width:200px;min-width:200px;
+  opacity:0;transform:translateY(-6px);pointer-events:none;
+  transition:opacity .2s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.4,0,.2,1);
+}
+.toolbar-dd-wrap.open .naowee-menu{
+  opacity:1;transform:translateY(0);pointer-events:auto;
+}
+.toolbar-dd-wrap .naowee-menu__item{
+  padding:10px 12px;font-size:13px;line-height:18px;
+  display:flex;align-items:center;gap:10px;
+}
+.toolbar-dd-wrap .naowee-menu__item .dd-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.toolbar-dd-wrap .naowee-menu__item[aria-selected="true"]{
+  background:var(--naowee-color-interactive-fill-quiet-idle,#FFEDC7);
+  color:var(--accent);font-weight:600;
+}
+
+/* ═══ TABLA ═══ */
+.naowee-scenarios-table{
+  width:100%;border-collapse:separate;border-spacing:0;
+}
+.naowee-scenarios-table thead tr{
+  background:#f4f5f9;
+}
+.naowee-scenarios-table thead th{
+  height:64px;padding:8px 8px;
+  font-size:16px;font-weight:600;line-height:20px;
+  color:var(--text-secondary);
+  text-align:left;vertical-align:middle;
+  font-feature-settings:'case' 1;
+}
+.naowee-scenarios-table thead th:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px;padding-left:20px}
+.naowee-scenarios-table thead th:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px;padding-right:20px;text-align:center;width:72px}
+
+.naowee-scenarios-table tbody tr{
+  border-bottom:1px solid var(--border-dark);
+  transition:background .15s;
+}
+.naowee-scenarios-table tbody tr:last-child{border-bottom:none}
+.naowee-scenarios-table tbody tr:hover{background:#fafbfc}
+.naowee-scenarios-table tbody td{
+  height:88px;padding:16px 8px;vertical-align:middle;
+  font-family:'Inter',sans-serif;font-feature-settings:'case' 1;
+}
+.naowee-scenarios-table tbody td:first-child{padding-left:20px}
+.naowee-scenarios-table tbody td:last-child{padding-right:20px;text-align:center;width:72px}
+
+.cell-name{
+  font-size:14px;font-weight:400;line-height:18px;color:var(--text-primary);
+}
+.cell-id,.cell-car{
+  font-size:16px;font-weight:400;line-height:24px;color:var(--text-primary);
+}
+.cell-modified{
+  display:flex;flex-direction:column;gap:6px;align-items:flex-start;
+}
+.cell-modified__date{
+  font-size:14px;font-weight:400;line-height:18px;color:var(--text-primary);
+}
+.cell-modified__user{
+  font-size:12px;font-weight:400;line-height:16px;color:#9c9ebf;
+}
+
+/* Column widths */
+.naowee-scenarios-table thead th:nth-child(1),
+.naowee-scenarios-table tbody td:nth-child(1){width:calc(346px - 16px)}
+.naowee-scenarios-table thead th:nth-child(2),
+.naowee-scenarios-table tbody td:nth-child(2){width:228px}
+.naowee-scenarios-table thead th:nth-child(3),
+.naowee-scenarios-table tbody td:nth-child(3){width:95px}
+.naowee-scenarios-table thead th:nth-child(4),
+.naowee-scenarios-table tbody td:nth-child(4){width:166px}
+.naowee-scenarios-table thead th:nth-child(5),
+.naowee-scenarios-table tbody td:nth-child(5){width:calc(215px - 8px)}
+
+/* Row fade-in */
+.naowee-scenarios-table tbody tr{
+  animation:fadeInUp .35s cubic-bezier(.4,0,.2,1) both;
+}
+.naowee-scenarios-table tbody tr:nth-child(1){animation-delay:.05s}
+.naowee-scenarios-table tbody tr:nth-child(2){animation-delay:.1s}
+.naowee-scenarios-table tbody tr:nth-child(3){animation-delay:.15s}
+.naowee-scenarios-table tbody tr:nth-child(4){animation-delay:.2s}
+
+/* ═══ EMPTY STATE ═══ */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:57px 24px;gap:20px;
+  animation:fadeInUp .5s cubic-bezier(.4,0,.2,1);
+}
+.empty-state__illustration{
+  width:152px;height:132px;flex-shrink:0;
+}
+.empty-state__text{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  text-align:center;max-width:480px;
+}
+.empty-state__title{
+  font-size:24px;font-weight:600;line-height:28px;color:var(--text-primary);
+  margin:0;font-feature-settings:'case' 1;
+}
+.empty-state__desc{
+  font-size:14px;font-weight:400;line-height:18px;color:var(--text-secondary);
+  margin:0;
+}
+.empty-state__cta{
+  margin-top:4px;
+  background:transparent;border:none;cursor:pointer;
+  font-family:'Inter',sans-serif;
+  font-size:12px;font-weight:600;line-height:16px;
+  color:var(--accent);padding:8px 12px;border-radius:8px;
+  transition:background .15s;
+}
+.empty-state__cta:hover{background:var(--naowee-color-interactive-fill-quiet-idle,#FFEDC7)}
+
+/* ═══ MESSAGE TOAST (botttom-right) ═══ */
+.toast-message{
+  position:fixed;bottom:20px;right:20px;z-index:200;
+  width:388px;max-width:calc(100vw - 40px);
+  background:#defade;
+  border-radius:20px;padding:16px;
+  display:flex;flex-direction:column;gap:8px;
+  box-shadow:0 12px 24px rgba(0,0,0,.12);
+  animation:slideInRight .4s cubic-bezier(.4,0,.2,1);
+}
+.toast-message.hidden{display:none}
+.toast-message__header{display:flex;gap:8px;align-items:flex-start}
+.toast-message__badge{
+  flex-shrink:0;width:20px;height:20px;border-radius:9999px;
+  background:#1f8923;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:2px;
+}
+.toast-message__badge svg{width:12px;height:12px}
+.toast-message__title{
+  flex:1;font-size:16px;font-weight:700;line-height:20px;
+  color:var(--text-primary);margin:0;
+}
+.toast-message__close{
+  flex-shrink:0;width:24px;height:24px;border:none;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--text-primary);border-radius:8px;transition:background .15s;
+}
+.toast-message__close:hover{background:rgba(0,0,0,.06)}
+.toast-message__close svg{width:18px;height:18px}
+.toast-message__body{
+  font-size:14px;line-height:18px;color:var(--text-primary);margin:0;
+}
+
+@keyframes slideInRight{
+  from{opacity:0;transform:translateX(40px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* Overrides para el botón loud large matching Figma (48px / 24px padding) */
+.cta-main .naowee-btn--loud{height:48px;padding:0 24px;border-radius:12px;font-size:14px}
+
+/* Paginator spacing fix — más aire alrededor del input y entre controles */
+.tablet-toolbar .naowee-pagination{gap:24px}
+.tablet-toolbar .naowee-pagination__pages{gap:10px}
+.tablet-toolbar .naowee-pagination__input{margin:0 2px}
+.tablet-toolbar .naowee-pagination__total{margin-left:2px}
+.tablet-toolbar .naowee-pagination__controls{gap:6px;margin-left:4px}
+
+/* Icon action buttons dentro de tabla: ghost (mute) */
+.naowee-scenarios-table .naowee-btn--icon{
+  background:transparent;
+}
+.naowee-scenarios-table .naowee-btn--icon:hover{
+  background:var(--naowee-color-interactive-fill-quiet-idle,#FFEDC7);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL REGISTRAR SEDE O ESCENARIO
+   Figma: 126:36449 — 576px wide con header + body scrollable + footer
+   ═══════════════════════════════════════════════════════════════ */
+.reg-modal-overlay{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,43,91,.45);
+  backdrop-filter:blur(2px);
+  display:none;align-items:center;justify-content:center;
+  padding:24px;
+  animation:regFade .25s ease;
+}
+.reg-modal-overlay.open{display:flex}
+/* Cuando hay un dialog encima, ocultar el modal principal (reemplazo visual) */
+.reg-modal-overlay.behind-dialog{display:none}
+@keyframes regFade{from{opacity:0}to{opacity:1}}
+
+.reg-modal{
+  width:576px;max-width:100%;max-height:calc(100vh - 48px);
+  background:#fff;border-radius:16px;
+  box-shadow:0 24px 48px rgba(0,0,0,.25);
+  display:flex;flex-direction:column;
+  animation:regScale .35s cubic-bezier(.175,.885,.32,1.275);
+  overflow:hidden;
+}
+@keyframes regScale{
+  from{opacity:0;transform:scale(.92) translateY(24px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.reg-modal__header{
+  flex-shrink:0;padding:24px;
+  display:flex;gap:16px;align-items:flex-start;
+  border-bottom:1px solid #d0d4e6;
+  background:#fff;position:relative;z-index:2;
+}
+.reg-modal__titles{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.reg-modal__step{
+  font-size:14px;font-weight:400;line-height:18px;
+  color:var(--text-secondary);
+}
+.reg-modal__title{
+  font-size:20px;font-weight:700;line-height:24px;
+  color:var(--text-primary);margin:0;
+}
+.reg-modal__subtitle{
+  font-size:14px;font-weight:400;line-height:20px;
+  color:var(--text-secondary);margin:0;
+}
+.reg-modal__dismiss{
+  flex-shrink:0;width:32px;height:32px;border:none;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--text-primary);border-radius:8px;
+  transition:background .15s;
+}
+.reg-modal__dismiss:hover{background:#f4f5f9}
+.reg-modal__dismiss svg{width:20px;height:20px}
+
+.reg-modal__body{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:24px;
+  display:flex;flex-direction:column;gap:24px;
+  scroll-behavior:smooth;
+}
+/* Scrollbar styling */
+.reg-modal__body::-webkit-scrollbar{width:8px}
+.reg-modal__body::-webkit-scrollbar-thumb{background:#d0d4e6;border-radius:4px}
+.reg-modal__body::-webkit-scrollbar-thumb:hover{background:#8788ab}
+
+.reg-section__title{
+  font-size:12px;font-weight:600;line-height:16px;letter-spacing:.2px;
+  color:#9c9ebf;text-transform:uppercase;
+  margin:0;
+}
+.reg-section__title:not(:first-child){margin-top:8px}
+
+.reg-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+.reg-row > *{min-width:0}
+
+/* Leaflet map */
+.reg-map-wrap{
+  position:relative;width:100%;height:220px;flex-shrink:0;
+  border-radius:12px;overflow:hidden;
+  border:1px solid var(--border);
+}
+#regMap,#regMap0{width:100%;height:100%;background:#f5f6fa}
+.reg-map-fs{
+  position:absolute;top:12px;right:12px;z-index:500;
+  width:32px;height:32px;border-radius:8px;
+  background:#fff;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 2px 6px rgba(40,40,52,.1);transition:background .15s;
+}
+.reg-map-fs:hover{background:#f5f6fa}
+.reg-map-fs svg{width:16px;height:16px;color:var(--accent)}
+.reg-map-actions{display:flex;gap:4px}
+.reg-map-actions .naowee-btn{flex:1;font-size:12px;padding:0 12px}
+.reg-map-actions .naowee-btn svg{width:16px;height:16px}
+/* Marker estilo (usa divIcon inline svg) */
+.geo-marker{background:transparent;border:none}
+
+/* Lat/Lon wrapper con tooltip (reutiliza pattern del escenario-05) */
+.reg-geofield{display:flex;flex-direction:column;width:100%}
+.reg-geofield__label{
+  display:flex;align-items:center;gap:4px;
+  font-size:14px;font-weight:400;line-height:18px;
+  color:var(--text-primary);padding-bottom:6px;
+}
+.reg-geofield__label .req{color:var(--accent);margin-left:2px}
+.reg-geofield__tooltip{
+  position:relative;width:16px;height:16px;margin-left:2px;
+  color:var(--accent);cursor:help;
+  display:flex;align-items:center;justify-content:center;
+}
+.reg-geofield__tooltip svg{width:16px;height:16px}
+.reg-geofield__tooltip-content{
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:#282834;color:#fff;font-size:12px;font-weight:400;line-height:16px;
+  padding:8px 10px;border-radius:6px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .15s;
+  z-index:30;
+}
+.reg-geofield__tooltip-content::after{
+  content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#282834;
+}
+.reg-geofield__tooltip:hover .reg-geofield__tooltip-content{opacity:1}
+.reg-geofield__input{
+  height:48px;padding:0 12px;
+  background:#fff;border:1px solid #8788ab;
+  border-radius:12px;
+  font:400 14px/18px 'Inter',sans-serif;
+  color:var(--text-primary);
+  width:100%;outline:none;
+  text-align:right;font-variant-numeric:tabular-nums;
+  transition:border-color .15s,box-shadow .15s;
+}
+.reg-geofield__input:focus{border-color:var(--accent);border-width:2px;padding:0 11px}
+.reg-geofield__input::placeholder{color:var(--text-secondary)}
+
+/* Helper info (google maps link) */
+.reg-helper{
+  display:flex;gap:6px;align-items:flex-start;
+  padding-top:0;
+}
+.reg-helper__badge{
+  flex-shrink:0;width:12px;height:12px;border-radius:50%;
+  background:#006aff;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:4px;
+}
+.reg-helper__badge svg{width:8px;height:8px}
+.reg-helper__text{
+  flex:1;font-size:12px;line-height:16px;color:var(--text-secondary);
+}
+.reg-helper__text strong{display:block;margin-bottom:4px;font-weight:400;color:var(--text-primary)}
+.reg-helper__text a{color:#006aff;text-decoration:underline}
+
+/* Fields condicional oculto */
+[hidden]{display:none !important}
+
+/* Textfield del DS: ajuste del input-wrap al ancho completo en el modal */
+.reg-modal .naowee-textfield{width:100%}
+.reg-modal .naowee-dropdown{width:100%}
+/* Dropdown abierto debe estar por encima de los controles de Leaflet (z-index 1000) */
+.reg-modal .naowee-dropdown{position:relative;z-index:1}
+.reg-modal .naowee-dropdown--open{z-index:2000}
+.reg-modal .naowee-dropdown__menu{z-index:2001}
+/* Igualar el color del border del dropdown con el del textfield (DS usa gray-300 vs gray-600) */
+.reg-modal .naowee-dropdown__trigger{
+  border-color:var(--naowee-color-gray-600,#8788ab);
+}
+.reg-modal .naowee-dropdown__trigger:hover{
+  border-color:var(--naowee-color-gray-700,#646587);
+}
+/* Los controles de Leaflet dentro del modal deben quedar por debajo */
+.reg-modal .leaflet-top,
+.reg-modal .leaflet-bottom{z-index:400}
+
+/* Cuando el menú está en modo 'fixed' (escapa del overflow del body), forzar top-level */
+.naowee-dropdown__menu.naowee-dropdown__menu--floating{
+  position:fixed !important;
+  top:auto;left:auto;right:auto;
+  z-index:3000 !important;
+}
+/* Spacer para rows con un solo field */
+.reg-row__spacer{display:block}
+
+/* Datepicker del DS dentro del modal */
+.datepicker-wrap{position:relative;width:100%}
+.datepicker-wrap .naowee-datepicker-field__input{cursor:pointer}
+.datepicker-wrap .naowee-datepicker-field__value{text-align:left}
+.datepicker-wrap .naowee-datepicker{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;
+  background:var(--naowee-color-fill-primary,#fff);
+  border:1px solid var(--naowee-color-border-default,#e7e9f3);
+  border-radius:12px;
+  box-shadow:0 8px 24px rgba(40,40,52,.12);
+  z-index:3000;
+  width:412px;
+  max-width:calc(100vw - 48px);
+}
+.datepicker-wrap:not(.datepicker-wrap--open) .naowee-datepicker{display:none}
+.datepicker-wrap .naowee-datepicker__month-selector{
+  cursor:pointer;padding:0 8px;border-radius:8px;transition:background .15s;
+}
+.datepicker-wrap .naowee-datepicker__month-selector:hover{
+  background:var(--naowee-color-interactive-fill-mute-hover,#FFEDC7);
+}
+
+/* Footer */
+.reg-modal__footer{
+  flex-shrink:0;padding:16px 24px 24px;
+  border-top:1px solid #d0d4e6;
+  background:#fff;position:relative;z-index:2;
+}
+.reg-modal__footer .naowee-btn{
+  width:100%;height:48px;font-size:14px;border-radius:12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL 0 — Datos de pre-validación (READONLY)
+   Vista resumen de los datos ya validados, antes de continuar al
+   paso de Propiedad y administración.
+   ═══════════════════════════════════════════════════════════════ */
+.reg-ro-field{
+  display:flex;flex-direction:column;gap:6px;
+}
+.reg-ro-field__label{
+  font-size:14px;font-weight:400;line-height:18px;
+  color:var(--text-secondary);
+}
+/* En modo solo lectura no se muestran los asteriscos requeridos */
+.reg-ro-field__label .req{display:none}
+.reg-ro-field__value{
+  font-size:14px;font-weight:400;line-height:20px;
+  color:var(--text-primary);
+  word-break:break-word;
+}
+.reg-ro-field__value--empty{color:var(--text-secondary);font-style:italic}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL 2 — Datos de propiedad y administración
+   ═══════════════════════════════════════════════════════════════ */
+.reg-modal__id-chip{
+  display:inline-block;margin-top:2px;
+  font-size:14px;font-weight:400;line-height:20px;
+  color:#006aff;
+}
+.reg-modal__id-chip strong{color:#002b5b;font-weight:600}
+
+/* Stepper (tabs con número + línea conectora) */
+.reg-stepper{
+  display:flex;align-items:flex-start;gap:0;
+  padding:16px 24px 8px;
+  border-bottom:1px solid var(--border);
+}
+.reg-stepper__item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;
+  position:relative;
+}
+.reg-stepper__item:first-child{align-items:flex-start}
+.reg-stepper__item:last-child{align-items:flex-end}
+.reg-stepper__circle{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+  background:#b5b9d4;color:#fff;
+  position:relative;z-index:2;
+}
+.reg-stepper__item--active .reg-stepper__circle{
+  background:var(--accent);
+}
+.reg-stepper__item--done .reg-stepper__circle{
+  background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);
+}
+.reg-stepper__label{
+  font-size:14px;font-weight:600;color:var(--text-primary);
+  white-space:nowrap;
+}
+.reg-stepper__item:not(.reg-stepper__item--active):not(.reg-stepper__item--done) .reg-stepper__label{
+  color:var(--text-secondary);
+}
+.reg-stepper__bar{
+  position:absolute;top:14px;height:3px;z-index:1;
+  background:#e7e9f3;
+}
+.reg-stepper__bar--first{left:50%;right:0}
+.reg-stepper__bar--last{left:0;right:50%}
+.reg-stepper__item--active .reg-stepper__bar--first{
+  background:linear-gradient(90deg,var(--accent) 50%,#e7e9f3 50%);
+}
+.reg-stepper__item--done .reg-stepper__bar--first{
+  background:var(--accent);
+}
+
+/* Acceso público — row con label a la izquierda + switch del DS a la derecha */
+.reg-toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;
+}
+.reg-toggle-row__label{
+  display:flex;align-items:center;gap:4px;
+  font-size:14px;color:var(--text-primary);
+}
+.reg-toggle-row__label .req{color:var(--accent)}
+
+/* Multi-select dropdown con checkboxes (Usos actuales) */
+.reg-multi{position:relative;width:100%;display:flex;flex-direction:column}
+.reg-multi__label{
+  font-size:14px;font-weight:400;line-height:18px;
+  color:var(--text-primary);padding-bottom:2px;
+}
+.reg-multi__label .req{color:var(--accent);margin-left:2px}
+.reg-multi__trigger{
+  display:flex;align-items:center;gap:8px;
+  min-height:48px;padding:8px 12px;
+  background:#fff;border:1px solid #8788ab;border-radius:12px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:14px;
+  transition:border-color .15s,box-shadow .15s;
+  text-align:left;
+}
+.reg-multi__trigger:hover{border-color:#646587}
+.reg-multi.open .reg-multi__trigger{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(215,64,9,.15);
+}
+.reg-multi__chips{
+  display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0;
+  align-items:center;
+}
+.reg-multi__placeholder{
+  color:var(--text-secondary);flex:1;
+  text-align:left;
+}
+.reg-multi__chevron{
+  width:20px;height:20px;color:var(--text-primary);
+  transition:transform .2s;flex-shrink:0;stroke-width:2;
+}
+.reg-multi.open .reg-multi__chevron{transform:rotate(180deg);color:var(--accent)}
+.reg-multi__menu{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  box-shadow:0 8px 24px rgba(40,40,52,.12);
+  z-index:3000;display:none;flex-direction:column;
+  max-height:280px;overflow:hidden;
+}
+.reg-multi.open .reg-multi__menu{display:flex}
+/* Modo floating: fixed + coords calculadas por JS para escapar del overflow */
+.reg-multi__menu--floating{
+  position:fixed !important;
+  top:auto;left:auto;right:auto;
+}
+.reg-multi__options{
+  flex:1;overflow-y:auto;padding:4px;
+}
+.reg-multi__option{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:6px;
+  cursor:pointer;transition:background .15s;
+  font-size:14px;color:var(--text-primary);
+}
+.reg-multi__option:hover{background:#f4f5f9}
+.reg-multi__option--selected{background:#f4f5f9}
+.reg-multi__checkbox{
+  width:20px;height:20px;border-radius:4px;
+  border:2px solid #8788ab;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;background:#fff;
+  transition:background .15s,border-color .15s;
+}
+.reg-multi__option--selected .reg-multi__checkbox{
+  background:var(--accent);border-color:var(--accent);
+}
+.reg-multi__checkbox svg{
+  width:12px;height:12px;color:#fff;
+  opacity:0;transition:opacity .15s;
+}
+.reg-multi__option--selected .reg-multi__checkbox svg{opacity:1}
+.reg-multi__menu-footer{
+  padding:8px;border-top:1px solid var(--border);
+}
+.reg-multi__menu-footer .naowee-btn{width:100%}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL 3 — Datos deportivos (paso 2 de 2)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Row inline: label + toggle a la derecha (para toggles como CAR) */
+.reg3-inline-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 0;
+}
+.reg3-inline-toggle__label{
+  font-size:14px;color:var(--text-primary);
+}
+.reg3-inline-toggle__label .req{color:var(--accent)}
+
+/* Divider con label (nombre de la disciplina) */
+.reg3-discipline{
+  display:flex;flex-direction:column;gap:16px;
+  margin-top:16px;
+  padding-top:4px;
+}
+.reg3-discipline:first-child{margin-top:0}
+.reg3-discipline__title{
+  font-size:12px;font-weight:600;line-height:16px;
+  color:#9c9ebf;text-transform:uppercase;margin:0 0 4px;letter-spacing:.2px;
+}
+
+/* Wrapper del input stepper del DS dentro del modal 3 (para que aparezca al lado del dropdown) */
+.reg3-stepper-wrap{
+  flex-shrink:0;width:168px;
+}
+
+/* Espacio con titulo (e.g. "1 Cancha *") */
+.reg3-space{
+  display:flex;flex-direction:column;gap:16px;
+  padding:12px 16px;
+  background:#fafbfc;border-radius:12px;
+  margin-top:4px;
+}
+.reg3-space__header{
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;
+}
+.reg3-space__title{
+  font-size:14px;font-weight:600;color:var(--text-primary);
+  display:flex;align-items:center;gap:8px;
+}
+.reg3-space__title .req{color:var(--accent)}
+.reg3-space__num{
+  color:var(--accent);font-weight:700;
+}
+.reg3-space__chevron{
+  width:20px;height:20px;color:var(--text-secondary);
+  transition:transform .2s;
+}
+.reg3-space.collapsed .reg3-space__chevron{transform:rotate(-90deg)}
+.reg3-space.collapsed .reg3-space__body{display:none}
+.reg3-space__body{
+  display:flex;flex-direction:column;gap:16px;
+}
+
+/* Stepper interno del modal (Información general / Documentación) */
+.reg3-tabs{
+  display:flex;gap:0;padding:16px 24px 8px;
+  border-bottom:1px solid var(--border);
+  align-items:flex-start;
+}
+.reg3-tabs__item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;
+  position:relative;
+}
+.reg3-tabs__item:first-child{align-items:flex-start}
+.reg3-tabs__item:last-child{align-items:flex-end}
+.reg3-tabs__circle{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+  background:#b5b9d4;color:#fff;
+  position:relative;z-index:2;
+}
+.reg3-tabs__item--active .reg3-tabs__circle{background:var(--accent)}
+.reg3-tabs__item--done .reg3-tabs__circle{background:var(--naowee-color-feedback-fill-positive-loud,#1f8923)}
+.reg3-tabs__label{
+  font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;
+}
+.reg3-tabs__item:not(.reg3-tabs__item--active):not(.reg3-tabs__item--done) .reg3-tabs__label{
+  color:var(--text-secondary);
+}
+.reg3-tabs__bar{
+  position:absolute;top:14px;height:3px;z-index:1;background:#e7e9f3;
+}
+.reg3-tabs__bar--first{left:50%;right:0}
+.reg3-tabs__bar--last{left:0;right:50%}
+.reg3-tabs__item--active .reg3-tabs__bar--first{background:linear-gradient(90deg,var(--accent) 50%,#e7e9f3 50%)}
+.reg3-tabs__item--done .reg3-tabs__bar--first{background:var(--accent)}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECONDARY MODALS — Validación exitosa & Advertencia cerrar
+   Layout centrado tipo dialog, similar al empty-state card
+   ═══════════════════════════════════════════════════════════════ */
+.dialog-overlay{
+  position:fixed;inset:0;z-index:1100;
+  background:rgba(0,43,91,.45);
+  backdrop-filter:blur(2px);
+  display:none;align-items:center;justify-content:center;
+  padding:24px;
+  animation:regFade .25s ease;
+}
+.dialog-overlay.open{display:flex}
+
+.dialog-card{
+  width:520px;max-width:100%;
+  background:#fff;border-radius:16px;
+  box-shadow:0 24px 48px rgba(0,0,0,.25);
+  animation:regScale .35s cubic-bezier(.175,.885,.32,1.275);
+  display:flex;flex-direction:column;
+}
+.dialog-card--warning{width:500px}
+
+.dialog-card__body{
+  padding:40px 40px 24px;
+  display:flex;flex-direction:column;gap:16px;align-items:center;
+  text-align:center;
+}
+.dialog-card__icon{
+  width:72px;height:72px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:8px;position:relative;
+}
+.dialog-card__icon--warning{
+  background:var(--accent);
+  color:#fff;
+}
+.dialog-card__icon svg{width:40px;height:40px;stroke-width:3}
+
+/* Animated success badge (reutilizado del escenario-07) */
+.dialog-card__icon--success{
+  background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);
+  color:#fff;
+}
+.dialog-overlay.open .dialog-card__icon--success{
+  transform:scale(0);
+  animation:dlgBadgePop .6s cubic-bezier(.175,.885,.32,1.275) .15s forwards;
+}
+.dialog-overlay.open .dialog-card__icon--success::before{
+  content:'';position:absolute;inset:-8px;border-radius:50%;
+  border:3px solid var(--naowee-color-feedback-fill-positive-loud,#1f8923);
+  opacity:0;
+  animation:dlgRingPulse 1.2s ease-out .55s forwards;
+}
+.dialog-overlay.open .dialog-card__icon--success svg path{
+  fill:none;stroke:#fff;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:40;stroke-dashoffset:40;
+  animation:dlgCheckDraw .45s cubic-bezier(.4,0,.2,1) .55s forwards;
+}
+@keyframes dlgBadgePop{
+  0%{transform:scale(0);opacity:0}
+  60%{transform:scale(1.15);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes dlgCheckDraw{
+  to{stroke-dashoffset:0}
+}
+@keyframes dlgRingPulse{
+  0%{transform:scale(.85);opacity:.8}
+  100%{transform:scale(1.4);opacity:0}
+}
+@media (prefers-reduced-motion: reduce){
+  .dialog-overlay.open .dialog-card__icon--success,
+  .dialog-overlay.open .dialog-card__icon--success::before,
+  .dialog-overlay.open .dialog-card__icon--success svg path{
+    animation:none !important;transform:none !important;opacity:1 !important;
+  }
+  .dialog-overlay.open .dialog-card__icon--success svg path{stroke-dashoffset:0 !important}
+}
+
+.dialog-card__title{
+  font-size:24px;font-weight:700;line-height:28px;
+  color:var(--text-primary);margin:0;
+}
+.dialog-card__sub{
+  font-size:14px;line-height:20px;color:var(--text-secondary);
+  font-weight:600;margin:0;
+}
+.dialog-card__desc{
+  font-size:14px;line-height:20px;color:var(--text-secondary);
+  margin:0;
+}
+
+/* Lista con bullets verdes (válidos) */
+.dialog-list{
+  display:flex;flex-direction:column;gap:16px;
+  margin:8px 0 0;width:100%;padding:0;list-style:none;
+  text-align:left;
+}
+.dialog-list__item{
+  display:flex;gap:12px;align-items:flex-start;
+  font-size:14px;line-height:20px;color:var(--text-secondary);
+}
+.dialog-list__check{
+  flex-shrink:0;width:20px;height:20px;border-radius:50%;
+  background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:2px;
+}
+.dialog-list__check svg{width:12px;height:12px;stroke-width:3}
+
+.dialog-card__footer{
+  display:flex;gap:12px;justify-content:flex-end;
+  padding:0 40px 32px;
+}
+.dialog-card__footer--spread{justify-content:space-between;gap:16px}
+.dialog-card__footer .naowee-btn{min-width:120px}
+.dialog-card--warning .dialog-card__body{padding:40px 32px 20px}
+.dialog-card--warning .dialog-card__footer{padding:0 32px 28px}
+
+/* Hide sidebar "Registro de escenarios" active indicator - is current */
+.sidebar .nav-row.active .active-bar{background:var(--accent)}
+
+/* Responsive */
+@media(max-width:1100px){
+  .tablet{overflow-x:auto}
+  .naowee-scenarios-table{min-width:1000px}
+}
+@media(max-width:768px){
+  .page-header{flex-direction:column;align-items:stretch}
+  .tablet-toolbar{flex-direction:column;align-items:stretch}
+  .tablet .naowee-searchbox--pill{width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('collapsed')" aria-label="Toggle sidebar">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="#282834" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <img src="shared/logos/naowee.svg" alt="Naowee" class="naowee-logo-img"/>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">SEDES Y ESCENARIOS</div>
+
+      <div class="nav-row active">
+        <div class="active-bar"></div>
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="#d74009" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 7v6M9 10h6" stroke="#d74009" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="lbl">Registro de escenarios</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="nav-row" id="btnLogout">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#B5B9D4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="lbl">Cerrar sesión</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+
+    <!-- ═══ TOP HEADER ═══ -->
+    <header class="top-header">
+      <div class="user-chip">
+        <div class="ava">
+          <div class="ava-ring">JH</div>
+          <div class="ava-dot"></div>
+        </div>
+        <div class="user-info">
+          <span class="user-name">Juan Hernandez</span>
+          <span class="user-role">Gestor de escenarios</span>
+        </div>
+        <button class="user-chip__chevron" type="button" aria-label="Abrir menú de usuario">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══ PAGE ═══ -->
+    <div class="page">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-header__title-group">
+          <h1 class="page-header__title">Sedes y escenarios</h1>
+          <p class="page-header__sub">Registra y administra tus sedes y escenarios</p>
+        </div>
+        <div class="cta-main">
+          <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="btnOpenReg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Registrar sede o escenario
+          </button>
+        </div>
+      </div>
+
+      <!-- Tablet (card con tabla) -->
+      <div class="tablet">
+
+        <!-- Toolbar: search + filters + pagination -->
+        <div class="tablet-toolbar">
+          <div class="toolbar-left">
+            <div class="naowee-searchbox naowee-searchbox--small naowee-searchbox--pill" id="searchbox">
+              <div class="naowee-searchbox__input-wrap">
+                <span class="naowee-searchbox__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  class="naowee-searchbox__input"
+                  placeholder="Buscar nombre de la sede o registro catastral"
+                  id="searchInput"
+                />
+                <button type="button" class="naowee-searchbox__clear" id="searchClear" aria-label="Limpiar búsqueda">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="toolbar-dd-wrap" id="ddEstadosWrap">
+              <button type="button" class="toolbar-dd" id="ddEstados" aria-haspopup="listbox" aria-expanded="false">
+                <span id="ddEstadosLabel">Estados</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="naowee-menu naowee-menu--small" role="listbox" id="ddEstadosMenu">
+                <div class="naowee-menu__list">
+                  <div class="naowee-menu__item" role="option" data-value="todos" aria-selected="true">
+                    Todos los estados
+                  </div>
+                  <div class="naowee-menu__item" role="option" data-value="borrador">
+                    <span class="dd-dot" style="background:#8788ab"></span>Borrador
+                  </div>
+                  <div class="naowee-menu__item" role="option" data-value="revision">
+                    <span class="dd-dot" style="background:#d74009"></span>En revisión
+                  </div>
+                  <div class="naowee-menu__item" role="option" data-value="activo">
+                    <span class="dd-dot" style="background:#1f8923"></span>Activo
+                  </div>
+                  <div class="naowee-menu__item" role="option" data-value="rechazado">
+                    <span class="dd-dot" style="background:#9e0015"></span>Rechazado
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="naowee-pagination naowee-pagination--small">
+            <div class="naowee-pagination__pages">
+              <span class="naowee-pagination__label">Página</span>
+              <input type="text" class="naowee-pagination__input" id="pgInput" value="1" />
+              <span class="naowee-pagination__total">de <strong id="pgTotal">1</strong></span>
+            </div>
+            <div class="naowee-pagination__controls">
+              <button type="button" class="naowee-pagination__btn" aria-label="Anterior" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button type="button" class="naowee-pagination__btn" aria-label="Siguiente" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <table class="naowee-scenarios-table">
+          <thead>
+            <tr>
+              <th>Nombre de la sede o escenario</th>
+              <th>ID único de la sede</th>
+              <th>CAR</th>
+              <th>Estado</th>
+              <th>Última modificación</th>
+              <th aria-label="Acciones">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color:#646587"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="tbodyScenarios">
+            <!-- filas o empty state inyectados por JS -->
+          </tbody>
+        </table>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ MODAL REGISTRAR SEDE O ESCENARIO ═══ -->
+<div class="reg-modal-overlay" id="regModalOverlay" role="dialog" aria-labelledby="regModalTitle" aria-modal="true">
+  <div class="reg-modal">
+
+    <!-- Header sticky -->
+    <div class="reg-modal__header">
+      <div class="reg-modal__titles">
+        <span class="reg-modal__step" id="regModalStep">0 de 2</span>
+        <h2 class="reg-modal__title" id="regModalTitle">Datos de pre-validación</h2>
+        <p class="reg-modal__subtitle">Completa la información requerida para verificar la unicidad de la sede o escenario.</p>
+      </div>
+      <button type="button" class="reg-modal__dismiss" id="regModalClose" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Body scrollable -->
+    <div class="reg-modal__body">
+
+      <!-- ══ DATOS BÁSICOS ══ -->
+      <h3 class="reg-section__title">DATOS BÁSICOS</h3>
+
+      <!-- Nombre del escenario -->
+      <div class="naowee-textfield" id="regFldNombre">
+        <label class="naowee-textfield__label naowee-textfield__label--required" for="regNombre">Nombre del escenario</label>
+        <div class="naowee-textfield__input-wrap">
+          <input type="text" id="regNombre" class="naowee-textfield__input" placeholder="Centro deportivo Prado" minlength="5" autocomplete="off"/>
+        </div>
+      </div>
+
+      <!-- Row: Departamento + Municipio -->
+      <div class="reg-row">
+        <div class="naowee-dropdown" id="regDepartamentoDD">
+          <label class="naowee-dropdown__label" for="regDepTrigger">Departamento <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" id="regDepTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="naowee-dropdown__placeholder" id="regDepValue">Selecciona departamento</span>
+            <span class="naowee-dropdown__controls">
+              <span class="naowee-dropdown__chevron">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox" id="regDepMenu"></div>
+        </div>
+
+        <div class="naowee-dropdown naowee-dropdown--disabled" id="regMunicipioDD">
+          <label class="naowee-dropdown__label" for="regMpioTrigger">Municipio <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" id="regMpioTrigger" aria-haspopup="listbox" aria-expanded="false" disabled>
+            <span class="naowee-dropdown__placeholder" id="regMpioValue">Selecciona municipio</span>
+            <span class="naowee-dropdown__controls">
+              <span class="naowee-dropdown__chevron">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox" id="regMpioMenu"></div>
+        </div>
+      </div>
+
+      <!-- Número de registro catastral -->
+      <div class="naowee-textfield" id="regFldCatastral">
+        <label class="naowee-textfield__label naowee-textfield__label--required" for="regCatastral">Número de registro catastral</label>
+        <div class="naowee-textfield__input-wrap">
+          <input type="text" id="regCatastral" class="naowee-textfield__input" placeholder="080010101000000010901900000012" inputmode="numeric" pattern="[0-9]*" autocomplete="off"/>
+        </div>
+      </div>
+
+      <!-- Catastral duplicate error (message negative) -->
+      <div class="naowee-message naowee-message--negative" id="regCatastralDupMsg" hidden>
+        <div class="naowee-message__header">
+          <div class="naowee-message__icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="8" x2="12" y2="8"/>
+            </svg>
+          </div>
+          <div class="naowee-message__title">Error de validación</div>
+        </div>
+        <p class="naowee-message__text">
+          No se puede hacer el registro porque, ya existe una sede o escenario con el mismo número de registro catastral. <strong>Modifica los datos para continuar.</strong>
+        </p>
+      </div>
+
+      <!-- ══ GEORREFERENCIACIÓN ══ -->
+      <h3 class="reg-section__title">GEORREFERENCIACIÓN</h3>
+
+      <!-- Leaflet Map -->
+      <div class="reg-map-wrap">
+        <div id="regMap"></div>
+        <button type="button" class="reg-map-fs" id="regBtnFullscreen" aria-label="Pantalla completa">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
+      </div>
+
+      <!-- Map action buttons -->
+      <div class="reg-map-actions">
+        <button type="button" class="naowee-btn naowee-btn--quiet naowee-btn--small" id="regBtnMyLocation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v5M9 13l-2 8M15 13l2 8M9 10h6"/></svg>
+          Marcar mi ubicación actual
+        </button>
+        <button type="button" class="naowee-btn naowee-btn--quiet naowee-btn--small" id="regBtnClickMap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+          Ubicarme en el mapa
+        </button>
+      </div>
+
+      <!-- Lat + Lon row -->
+      <div class="reg-row">
+        <div class="reg-geofield">
+          <label class="reg-geofield__label" for="regLat">
+            Latitud<span class="req">*</span>
+            <span class="reg-geofield__tooltip">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><path d="M6 6a2 2 0 0 1 4 0c0 1.5-2 2-2 3M8 11v.5" stroke-linecap="round"/></svg>
+              <span class="reg-geofield__tooltip-content">Formato decimal. Rango Colombia: -4.23 a 12.53</span>
+            </span>
+          </label>
+          <input type="text" id="regLat" class="reg-geofield__input" placeholder="0.0000" inputmode="decimal" autocomplete="off"/>
+        </div>
+        <div class="reg-geofield">
+          <label class="reg-geofield__label" for="regLon">
+            Longitud<span class="req">*</span>
+            <span class="reg-geofield__tooltip">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><path d="M6 6a2 2 0 0 1 4 0c0 1.5-2 2-2 3M8 11v.5" stroke-linecap="round"/></svg>
+              <span class="reg-geofield__tooltip-content">Formato decimal. Rango Colombia: -81.73 a -66.87</span>
+            </span>
+          </label>
+          <input type="text" id="regLon" class="reg-geofield__input" placeholder="0.0000" inputmode="decimal" autocomplete="off"/>
+        </div>
+      </div>
+
+      <!-- Informative helper: Google Maps link -->
+      <div class="reg-helper">
+        <span class="reg-helper__badge"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="4" x2="6" y2="6"/><line x1="6" y1="8" x2="6" y2="8.01"/></svg></span>
+        <div class="reg-helper__text">
+          <strong>¿Cómo obtener coordenadas desde Google Maps?</strong>
+          Para el registro manual puede dirigirse a <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google Maps.</a> Ubique el marcador en la ubicación correspondiente, haga clic derecho sobre el icono y seleccione la primera opción.
+        </div>
+      </div>
+
+      <!-- Dirección -->
+      <div class="naowee-textfield" id="regFldDireccion">
+        <label class="naowee-textfield__label naowee-textfield__label--required" for="regDireccion">Dirección del escenario</label>
+        <div class="naowee-textfield__input-wrap">
+          <input type="text" id="regDireccion" class="naowee-textfield__input" placeholder="Cl. 6 #No. 16-95, Salgar" minlength="5" maxlength="200" autocomplete="street-address"/>
+        </div>
+      </div>
+
+      <!-- Corregimiento + Zona row -->
+      <div class="reg-row">
+        <div class="naowee-textfield" id="regFldCorregimiento">
+          <label class="naowee-textfield__label" for="regCorregimiento">Corregimiento/Vereda/Barrio</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" id="regCorregimiento" class="naowee-textfield__input" placeholder="Ej: Salgar" maxlength="100" autocomplete="off"/>
+          </div>
+        </div>
+
+        <div class="naowee-dropdown" id="regZonaDD">
+          <label class="naowee-dropdown__label" for="regZonaTrigger">Zona <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" id="regZonaTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="naowee-dropdown__placeholder" id="regZonaValue">Selecciona</span>
+            <span class="naowee-dropdown__controls">
+              <span class="naowee-dropdown__chevron">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox" id="regZonaMenu"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer sticky -->
+    <div class="reg-modal__footer">
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="regSubmitBtn" disabled>
+        Validar y continuar
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ MODAL 3: DATOS DEPORTIVOS (paso 2 de 2) ═══ -->
+<div class="reg-modal-overlay" id="regModal3Overlay" role="dialog" aria-labelledby="regModal3Title" aria-modal="true">
+  <div class="reg-modal">
+
+    <!-- Header -->
+    <div class="reg-modal__header">
+      <div class="reg-modal__titles">
+        <span class="reg-modal__step">2 de 2</span>
+        <h2 class="reg-modal__title" id="regModal3Title">Datos deportivos</h2>
+        <p class="reg-modal__subtitle">Completa la información requerida para registrar la sede o el escenario deportivo.</p>
+        <span class="reg-modal__id-chip">ID único: <strong id="regModal3IdChip">—</strong></span>
+      </div>
+      <button type="button" class="reg-modal__dismiss" id="regModal3Close" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Stepper interno (2 tabs) -->
+    <div class="reg3-tabs">
+      <div class="reg3-tabs__item reg3-tabs__item--active">
+        <div class="reg3-tabs__circle">1</div>
+        <div class="reg3-tabs__label">Información general</div>
+        <div class="reg3-tabs__bar reg3-tabs__bar--first"></div>
+      </div>
+      <div class="reg3-tabs__item">
+        <div class="reg3-tabs__circle">2</div>
+        <div class="reg3-tabs__label">Documentación</div>
+        <div class="reg3-tabs__bar reg3-tabs__bar--last"></div>
+      </div>
+    </div>
+
+    <!-- Body scrollable -->
+    <div class="reg-modal__body">
+
+      <!-- Toggle CAR -->
+      <div class="reg3-inline-toggle">
+        <span class="reg3-inline-toggle__label">¿La sede es un centro de alto rendimiento (CAR)?<span class="req">*</span></span>
+        <div class="naowee-switch" id="reg3CarToggle" role="switch" aria-checked="false" aria-label="CAR" tabindex="0">
+          <div class="naowee-switch__track">
+            <div class="naowee-switch__handle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo de escenario -->
+      <div class="naowee-dropdown" id="reg3TipoEscDD">
+        <label class="naowee-dropdown__label" for="reg3TipoEscTrigger">Tipo de escenario <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+        <button type="button" class="naowee-dropdown__trigger" id="reg3TipoEscTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="naowee-dropdown__placeholder" id="reg3TipoEscValue">Seleccione el tipo de escenario</span>
+          <span class="naowee-dropdown__controls">
+            <span class="naowee-dropdown__chevron">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </span>
+          </span>
+        </button>
+        <div class="naowee-dropdown__menu" role="listbox" id="reg3TipoEscMenu"></div>
+      </div>
+
+      <!-- Disciplinas deportivas (multi-select) -->
+      <div class="reg-multi" id="reg3DiscMulti">
+        <label class="reg-multi__label">Disciplinas deportivas que alberga</label>
+        <button type="button" class="reg-multi__trigger" id="reg3DiscTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="reg-multi__chips" id="reg3DiscChips">
+            <span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>
+          </span>
+          <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="reg-multi__menu" role="listbox">
+          <div class="reg-multi__options" id="reg3DiscOptions"></div>
+          <div class="reg-multi__menu-footer">
+            <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small" id="reg3DiscConfirm">
+              Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección expandida (aparece cuando hay disciplinas) -->
+      <div id="reg3DynamicSection" hidden>
+
+        <!-- Toggle: ¿Los deportes comparten el mismo escenario? -->
+        <div class="reg3-inline-toggle">
+          <span class="reg3-inline-toggle__label">¿Los deportes comparten el mismo escenario?<span class="req">*</span></span>
+          <div class="naowee-switch" id="reg3CompartenToggle" role="switch" aria-checked="false" tabindex="0">
+            <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+          </div>
+        </div>
+
+        <!-- Toggle: ¿Los escenarios comparten los mismos detalles? -->
+        <div class="reg3-inline-toggle">
+          <span class="reg3-inline-toggle__label">¿Los escenarios comparten los mismos detalles?<span class="req">*</span></span>
+          <div class="naowee-switch" id="reg3DetallesToggle" role="switch" aria-checked="false" tabindex="0">
+            <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+          </div>
+        </div>
+
+        <!-- Secciones por disciplina (renderizadas por JS) -->
+        <div id="reg3DisciplinesList"></div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer: Volver + Guardar y continuar -->
+    <div class="reg-modal__footer" style="display:flex;gap:12px;justify-content:space-between">
+      <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--large" id="reg3BtnBack" style="width:auto;min-width:120px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+        Volver
+      </button>
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="reg3SubmitBtn" style="width:auto;flex:1;max-width:320px" disabled>
+        Guardar y continuar
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ MODAL 0: DATOS DE PRE-VALIDACIÓN (READONLY) ═══ -->
+<div class="reg-modal-overlay" id="regModal0Overlay" role="dialog" aria-labelledby="regModal0Title" aria-modal="true">
+  <div class="reg-modal">
+
+    <!-- Header -->
+    <div class="reg-modal__header">
+      <div class="reg-modal__titles">
+        <span class="reg-modal__step">0 de 2</span>
+        <h2 class="reg-modal__title" id="regModal0Title">Datos de pre-validación</h2>
+        <p class="reg-modal__subtitle">Completa la información requerida para verificar la unicidad de la sede o escenario.</p>
+        <span class="reg-modal__id-chip">ID único: <strong id="regModal0IdChip">—</strong></span>
+      </div>
+      <button type="button" class="reg-modal__dismiss" id="regModal0Close" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Body scrollable -->
+    <div class="reg-modal__body">
+
+      <!-- Nombre del escenario -->
+      <div class="reg-ro-field">
+        <span class="reg-ro-field__label">Nombre del escenario<span class="req">*</span></span>
+        <span class="reg-ro-field__value" id="ro0Nombre">—</span>
+      </div>
+
+      <!-- Row: Departamento + Municipio -->
+      <div class="reg-row">
+        <div class="reg-ro-field">
+          <span class="reg-ro-field__label">Departamento<span class="req">*</span></span>
+          <span class="reg-ro-field__value" id="ro0Departamento">—</span>
+        </div>
+        <div class="reg-ro-field">
+          <span class="reg-ro-field__label">Municipio<span class="req">*</span></span>
+          <span class="reg-ro-field__value" id="ro0Municipio">—</span>
+        </div>
+      </div>
+
+      <!-- Número de registro catastral -->
+      <div class="reg-ro-field">
+        <span class="reg-ro-field__label">Número de registro catastral<span class="req">*</span></span>
+        <span class="reg-ro-field__value" id="ro0Catastral">—</span>
+      </div>
+
+      <!-- Mapa (readonly) -->
+      <div class="reg-map-wrap">
+        <div id="regMap0"></div>
+      </div>
+
+      <!-- Lat + Lon row -->
+      <div class="reg-row">
+        <div class="reg-ro-field">
+          <span class="reg-ro-field__label">Latitud<span class="req">*</span></span>
+          <span class="reg-ro-field__value" id="ro0Lat">—</span>
+        </div>
+        <div class="reg-ro-field">
+          <span class="reg-ro-field__label">Longitud<span class="req">*</span></span>
+          <span class="reg-ro-field__value" id="ro0Lon">—</span>
+        </div>
+      </div>
+
+      <!-- Dirección -->
+      <div class="reg-ro-field">
+        <span class="reg-ro-field__label">Dirección del escenario<span class="req">*</span></span>
+        <span class="reg-ro-field__value" id="ro0Direccion">—</span>
+      </div>
+
+      <!-- Corregimiento + Zona -->
+      <div class="reg-row">
+        <div class="reg-ro-field">
+          <span class="reg-ro-field__label">Corregimiento/Vereda/Barrio</span>
+          <span class="reg-ro-field__value" id="ro0Corregimiento">—</span>
+        </div>
+        <div class="reg-ro-field">
+          <span class="reg-ro-field__label">Zona<span class="req">*</span></span>
+          <span class="reg-ro-field__value" id="ro0Zona">—</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer: Continuar -->
+    <div class="reg-modal__footer">
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="regModal0Continue">
+        Continuar
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ MODAL 2: DATOS DE PROPIEDAD Y ADMINISTRACIÓN ═══ -->
+<div class="reg-modal-overlay" id="regModal2Overlay" role="dialog" aria-labelledby="regModal2Title" aria-modal="true">
+  <div class="reg-modal">
+
+    <!-- Header -->
+    <div class="reg-modal__header">
+      <div class="reg-modal__titles">
+        <span class="reg-modal__step">1 de 2</span>
+        <h2 class="reg-modal__title" id="regModal2Title">Datos de propiedad y administración</h2>
+        <p class="reg-modal__subtitle">Completa la información requerida para registrar la sede o el escenario deportivo.</p>
+        <span class="reg-modal__id-chip">ID único: <strong id="regModal2IdChip">10000101010</strong></span>
+      </div>
+      <button type="button" class="reg-modal__dismiss" id="regModal2Close" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Stepper -->
+    <div class="reg-stepper">
+      <div class="reg-stepper__item reg-stepper__item--active">
+        <div class="reg-stepper__circle">1</div>
+        <div class="reg-stepper__label">Información general</div>
+        <div class="reg-stepper__bar reg-stepper__bar--first"></div>
+      </div>
+      <div class="reg-stepper__item">
+        <div class="reg-stepper__circle">2</div>
+        <div class="reg-stepper__label">Documentación</div>
+        <div class="reg-stepper__bar reg-stepper__bar--last"></div>
+      </div>
+    </div>
+
+    <!-- Body scrollable -->
+    <div class="reg-modal__body">
+
+      <!-- ══ DATOS DE PROPIEDAD ══ -->
+      <h3 class="reg-section__title">DATOS DE PROPIEDAD</h3>
+
+      <div class="reg-row">
+        <div class="naowee-textfield" id="reg2FldEntidad">
+          <label class="naowee-textfield__label naowee-textfield__label--required" for="reg2Entidad">Nombre de la entidad propietaria</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" id="reg2Entidad" class="naowee-textfield__input" placeholder="Escriba el nombre" autocomplete="off"/>
+          </div>
+        </div>
+
+        <div class="naowee-dropdown" id="reg2PropietarioDD">
+          <label class="naowee-dropdown__label" for="reg2PropietarioTrigger">Tipo de propietario <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" id="reg2PropietarioTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="naowee-dropdown__placeholder" id="reg2PropietarioValue">Seleccione un tipo</span>
+            <span class="naowee-dropdown__controls">
+              <span class="naowee-dropdown__chevron">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox" id="reg2PropietarioMenu"></div>
+        </div>
+      </div>
+
+      <div class="reg-row">
+        <div class="naowee-textfield" id="reg2FldAdministradora">
+          <label class="naowee-textfield__label" for="reg2Administradora">Entidad administradora</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" id="reg2Administradora" class="naowee-textfield__input" placeholder="Escriba el nombre" autocomplete="off"/>
+          </div>
+        </div>
+
+        <div class="naowee-dropdown" id="reg2TenenciaDD">
+          <label class="naowee-dropdown__label" for="reg2TenenciaTrigger">Tipo de tenencia <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" id="reg2TenenciaTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="naowee-dropdown__placeholder" id="reg2TenenciaValue">Seleccione un tipo</span>
+            <span class="naowee-dropdown__controls">
+              <span class="naowee-dropdown__chevron">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox" id="reg2TenenciaMenu"></div>
+        </div>
+      </div>
+
+      <!-- Conditional: Fecha de vencimiento (datepicker del DS) -->
+      <div class="naowee-datepicker-field datepicker-wrap" id="reg2FldVencimiento" hidden>
+        <label class="naowee-textfield__label naowee-textfield__label--required" for="reg2VencimientoTrigger">Fecha de vencimiento del contrato</label>
+        <button type="button" class="naowee-datepicker-field__input" id="reg2VencimientoTrigger" aria-haspopup="dialog" aria-expanded="false">
+          <span class="naowee-datepicker-field__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </span>
+          <span class="naowee-datepicker-field__value" id="reg2VencimientoValue" style="color:var(--naowee-color-text-secondary,#646587)">Selecciona una fecha</span>
+          <span class="naowee-datepicker-field__controls">
+            <span class="naowee-datepicker-field__chevron">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </span>
+          </span>
+        </button>
+        <div class="naowee-datepicker" id="reg2VencimientoCal">
+          <div class="naowee-datepicker__calendar" id="reg2CalCalendar"></div>
+        </div>
+      </div>
+
+      <!-- Nombre del responsable (full width) -->
+      <div class="naowee-textfield" id="reg2FldResponsable">
+        <label class="naowee-textfield__label naowee-textfield__label--required" for="reg2Responsable">Nombre del responsable del escenario</label>
+        <div class="naowee-textfield__input-wrap">
+          <input type="text" id="reg2Responsable" class="naowee-textfield__input" placeholder="Escriba el nombre del responsable" autocomplete="name"/>
+        </div>
+      </div>
+
+      <!-- Teléfono + Correo row -->
+      <div class="reg-row">
+        <div class="naowee-textfield" id="reg2FldTelefono">
+          <label class="naowee-textfield__label naowee-textfield__label--required" for="reg2Telefono">Teléfono del responsable</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="tel" id="reg2Telefono" class="naowee-textfield__input" placeholder="Escriba el número" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel"/>
+          </div>
+        </div>
+        <div class="naowee-textfield" id="reg2FldCorreoResp">
+          <label class="naowee-textfield__label" for="reg2CorreoResp">Correo del responsable</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="email" id="reg2CorreoResp" class="naowee-textfield__input" placeholder="Escriba el correo electrónico" autocomplete="email"/>
+          </div>
+          <div class="naowee-helper naowee-helper--negative" id="reg2HelpCorreoResp" hidden>
+            <div class="naowee-helper__text">
+              <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+              El formato de correo no es válido
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DATOS ADMINISTRATIVOS ══ -->
+      <h3 class="reg-section__title">DATOS ADMINISTRATIVOS</h3>
+
+      <div class="naowee-dropdown" id="reg2HorarioDD">
+        <label class="naowee-dropdown__label" for="reg2HorarioTrigger">Horario de atención</label>
+        <button type="button" class="naowee-dropdown__trigger" id="reg2HorarioTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="naowee-dropdown__placeholder" id="reg2HorarioValue">Ej: Lunes a viernes 6 am - 10pm</span>
+          <span class="naowee-dropdown__controls">
+            <span class="naowee-dropdown__chevron">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </span>
+          </span>
+        </button>
+        <div class="naowee-dropdown__menu" role="listbox" id="reg2HorarioMenu"></div>
+      </div>
+
+      <div class="reg-toggle-row">
+        <span class="reg-toggle-row__label">Acceso público<span class="req">*</span></span>
+        <div class="naowee-switch" id="reg2AccesoToggle" role="switch" aria-checked="false" aria-label="Acceso público" tabindex="0">
+          <div class="naowee-switch__track">
+            <div class="naowee-switch__handle"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reg-row">
+        <div class="naowee-dropdown" id="reg2CostoDD">
+          <label class="naowee-dropdown__label" for="reg2CostoTrigger">Costo de uso <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" id="reg2CostoTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="naowee-dropdown__placeholder" id="reg2CostoValue">Selecciona una opción</span>
+            <span class="naowee-dropdown__controls">
+              <span class="naowee-dropdown__chevron">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox" id="reg2CostoMenu"></div>
+        </div>
+
+        <div class="reg-multi" id="reg2UsosMulti">
+          <label class="reg-multi__label">Usos actuales del escenario<span class="req">*</span></label>
+          <button type="button" class="reg-multi__trigger" id="reg2UsosTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="reg-multi__chips" id="reg2UsosChips">
+              <span class="reg-multi__placeholder">Selecciona una opción</span>
+            </span>
+            <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="reg-multi__menu" role="listbox">
+            <div class="reg-multi__options" id="reg2UsosOptions"></div>
+            <div class="reg-multi__menu-footer">
+              <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small" id="reg2UsosConfirm">
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="naowee-dropdown" id="reg2UsuariosDD">
+        <label class="naowee-dropdown__label" for="reg2UsuariosTrigger">Usuarios actuales <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+        <button type="button" class="naowee-dropdown__trigger" id="reg2UsuariosTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="naowee-dropdown__placeholder" id="reg2UsuariosValue">Selecciona una opción</span>
+          <span class="naowee-dropdown__controls">
+            <span class="naowee-dropdown__chevron">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </span>
+          </span>
+        </button>
+        <div class="naowee-dropdown__menu" role="listbox" id="reg2UsuariosMenu"></div>
+      </div>
+
+    </div>
+
+    <!-- Footer: Volver + Guardar y continuar -->
+    <div class="reg-modal__footer" style="display:flex;gap:12px;justify-content:space-between">
+      <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--large" id="reg2BtnBack" style="width:auto;min-width:120px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+        Volver
+      </button>
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="reg2SubmitBtn" style="width:auto;flex:1;max-width:320px" disabled>
+        Guardar y continuar
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ DIALOG: VALIDACIÓN EXITOSA ═══ -->
+<div class="dialog-overlay" id="dlgValidation" role="dialog" aria-labelledby="dlgValidationTitle" aria-modal="true">
+  <div class="dialog-card">
+    <div class="dialog-card__body">
+      <div class="dialog-card__icon dialog-card__icon--success" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <path d="M12 24l8 8 16-16"/>
+        </svg>
+      </div>
+      <h2 class="dialog-card__title" id="dlgValidationTitle">Validación exitosa</h2>
+      <p class="dialog-card__desc">
+        Los datos registrados fueron validados exitosamente y no se detectó duplicidad de datos.
+      </p>
+      <ul class="dialog-list">
+        <li class="dialog-list__item">
+          <span class="dialog-list__check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span>Puede continuar con el registro del formulario o guardarlo como borrador para completarlo en otro momento.</span>
+        </li>
+        <li class="dialog-list__item">
+          <span class="dialog-list__check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span>Los datos básicos no se deben modificar, si es así, y ya ha completado el registro sus datos serán eliminados.</span>
+        </li>
+      </ul>
+    </div>
+    <div class="dialog-card__footer dialog-card__footer--spread">
+      <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--large" id="dlgValSaveDraft">
+        Guardar borrador
+      </button>
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="dlgValContinue">
+        Continuar registro
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: ADVERTENCIA CERRAR (datos sin guardar) ═══ -->
+<div class="dialog-overlay" id="dlgWarnClose" role="dialog" aria-labelledby="dlgWarnCloseTitle" aria-modal="true">
+  <div class="dialog-card dialog-card--warning">
+    <div class="dialog-card__body">
+      <div class="dialog-card__icon dialog-card__icon--warning" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="8" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12" y2="17.01"/>
+        </svg>
+      </div>
+      <h2 class="dialog-card__title" id="dlgWarnCloseTitle">Información importante</h2>
+      <p class="dialog-card__sub">Antes de cancelar tenga en cuenta:</p>
+      <ul class="dialog-list">
+        <li class="dialog-list__item">
+          <span class="dialog-list__check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span>Si cancela en este punto sin hacer la validación el registro no se realizará y sus datos serán borrados.</span>
+        </li>
+      </ul>
+    </div>
+    <div class="dialog-card__footer dialog-card__footer--spread">
+      <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--large" id="dlgWarnDiscard">
+        Cerrar
+      </button>
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="dlgWarnContinue">
+        Continuar registro
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST MESSAGE (solo visible en mode=single) ═══ -->
+<div class="toast-message hidden" id="toastMsg" role="status">
+  <div class="toast-message__header">
+    <div class="toast-message__badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3 class="toast-message__title">Datos guardados correctamente</h3>
+    <button type="button" class="toast-message__close" id="toastClose" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <p class="toast-message__body">
+    Los datos de la sede fueron guardados como borrador y puedes continuar el formulario cuando desees.
+  </p>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="shared/transitions.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   MODE SWITCHER
+   Query param ?mode=empty|single|multiple (default: empty)
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('mode') || 'empty';
+
+  // Drafts acumulados en sessionStorage (array)
+  const meses = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.'];
+  function formatDraftDate(ts){
+    const d = ts ? new Date(ts) : new Date();
+    const h = d.getHours() % 12 || 12;
+    const ampm = d.getHours() >= 12 ? 'PM' : 'AM';
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    return `${meses[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}, ${d.getFullYear()} ${h}:${mm} ${ampm}`;
+  }
+  let draftItems = [];
+  try {
+    const raw = sessionStorage.getItem('regDrafts');
+    if(raw){
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)){
+        draftItems = arr.map(d => ({
+          name: d.nombre,
+          id: d.catastral || '—',
+          car: '—',
+          state: { label: 'Borrador', variant: 'informative' },
+          modifiedDate: formatDraftDate(d.savedAt),
+          modifiedBy: 'De ' + (d.responsable || 'Juan Hernandez Granados'),
+          action: 'edit',
+          isDraft: true
+        }));
+      }
+    }
+  } catch(err){ /* ignore */ }
+
+  // Mock data — respeta lo que muestra el Figma
+  const DATA = {
+    empty: [],
+    single: [
+      {
+        name: 'Centro deportivo Prado',
+        id: '10000101010',
+        car: '—',
+        state: { label: 'Borrador', variant: 'informative' },
+        modifiedDate: 'Feb. 13, 2026 1:22 PM',
+        modifiedBy: 'De Juan Hernandez Granados',
+        action: 'edit'
+      }
+    ],
+    multiple: [
+      {
+        name: 'Centro deportivo Prado',
+        id: '10000101010',
+        car: '—',
+        state: { label: 'Borrador', variant: 'neutral' },
+        modifiedDate: 'Feb. 13, 2026 1:22 PM',
+        modifiedBy: 'De Juan Hernandez Granados',
+        action: 'edit'
+      },
+      {
+        name: 'Centro deportivo Miramar',
+        id: '1000020202',
+        car: 'Sí',
+        state: { label: 'En revisión', variant: 'caution' },
+        modifiedDate: 'Feb. 20, 2026 1:22 PM',
+        modifiedBy: 'De Juan Hernandez Granados',
+        action: 'view'
+      },
+      {
+        name: 'Centro deportivo Norte',
+        id: '1000030303',
+        car: 'Sí',
+        state: { label: 'Activo', variant: 'positive' },
+        modifiedDate: 'Feb. 02, 2026 1:22 PM',
+        modifiedBy: 'De Juan Hernandez Granados',
+        action: 'view'
+      },
+      {
+        name: 'Centro deportivo Sur',
+        id: '1000040404',
+        car: 'No',
+        state: { label: 'Rechazado', variant: 'negative' },
+        modifiedDate: 'Feb. 02, 2026 1:22 PM',
+        modifiedBy: 'De Juan Hernandez Granados',
+        action: 'edit'
+      }
+    ]
+  };
+
+  const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  const ICON_VIEW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  function renderRow(item, idx){
+    const icon = item.action === 'edit' ? ICON_EDIT : ICON_VIEW;
+    const actionLabel = item.action === 'edit' ? 'Editar' : 'Ver detalle';
+    const draftAttr = item.isDraft ? ` data-draft-idx="${idx}"` : '';
+    return `
+      <tr>
+        <td><div class="cell-name">${item.name}</div></td>
+        <td><div class="cell-id">${item.id}</div></td>
+        <td><div class="cell-car">${item.car}</div></td>
+        <td>
+          <span class="naowee-badge naowee-badge--quiet naowee-badge--${item.state.variant}">
+            ${item.state.label}
+          </span>
+        </td>
+        <td>
+          <div class="cell-modified">
+            <span class="cell-modified__date">${item.modifiedDate}</span>
+            <span class="cell-modified__user">${item.modifiedBy}</span>
+          </div>
+        </td>
+        <td>
+          <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--icon naowee-btn--small" aria-label="${actionLabel}"${draftAttr}>
+            ${icon}
+          </button>
+        </td>
+      </tr>
+    `;
+  }
+
+  function renderEmptyState(){
+    return `
+      <tr>
+        <td colspan="6" style="padding:0">
+          <div class="empty-state">
+            <svg class="empty-state__illustration" viewBox="0 0 152 132" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- Envelope back -->
+              <path d="M16 42 L76 4 L136 42 L136 118 Q136 124 130 124 L22 124 Q16 124 16 118 Z" fill="#fff3e6" stroke="#FF7500" stroke-width="2.5" stroke-linejoin="round"/>
+              <!-- Envelope opening -->
+              <path d="M16 42 L76 82 L136 42" stroke="#FF7500" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+              <!-- Paper inside -->
+              <rect x="32" y="22" width="88" height="60" rx="4" fill="#fff" stroke="#002B5B" stroke-width="2"/>
+              <line x1="42" y1="36" x2="102" y2="36" stroke="#002B5B" stroke-width="2" stroke-linecap="round"/>
+              <line x1="42" y1="46" x2="92" y2="46" stroke="#002B5B" stroke-width="2" stroke-linecap="round"/>
+              <line x1="42" y1="56" x2="98" y2="56" stroke="#8788ab" stroke-width="2" stroke-linecap="round"/>
+              <line x1="42" y1="66" x2="82" y2="66" stroke="#8788ab" stroke-width="2" stroke-linecap="round"/>
+              <!-- Envelope front flap -->
+              <path d="M16 42 L76 96 L136 42 L136 118 Q136 124 130 124 L22 124 Q16 124 16 118 Z" fill="#FF7500" fill-opacity="0.85" stroke="#d74009" stroke-width="2.5" stroke-linejoin="round"/>
+              <!-- Person peeking -->
+              <circle cx="108" cy="38" r="11" fill="#ffd1a6" stroke="#002B5B" stroke-width="2"/>
+              <path d="M99 32 Q108 20 117 32" fill="#002B5B"/>
+              <circle cx="104.5" cy="39" r="1.3" fill="#002B5B"/>
+              <circle cx="111.5" cy="39" r="1.3" fill="#002B5B"/>
+              <path d="M105 43 Q108 46 111 43" stroke="#002B5B" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <!-- Sparkles -->
+              <path d="M128 20 L130 14 L132 20 L138 22 L132 24 L130 30 L128 24 L122 22 Z" fill="#FFC74F"/>
+              <circle cx="26" cy="30" r="3" fill="#FFC74F"/>
+              <circle cx="14" cy="70" r="2.5" fill="#FF7500"/>
+            </svg>
+            <div class="empty-state__text">
+              <h2 class="empty-state__title">Aún no hay sedes registradas</h2>
+              <p class="empty-state__desc">Registra una sede o escenario y completa el formulario con los datos correspondientes.</p>
+              <button type="button" class="empty-state__cta" onclick="document.getElementById('btnOpenReg').click()">
+                Registrar el primer escenario
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  const tbody = document.getElementById('tbodyScenarios');
+  const pgInput = document.getElementById('pgInput');
+  const pgTotal = document.getElementById('pgTotal');
+  // Si hay drafts acumulados, se usan en lugar del mock del modo;
+  // si no, se usa el dataset del modo seleccionado.
+  const rows = draftItems.length > 0 ? draftItems : (DATA[mode] || []);
+
+  if(rows.length === 0){
+    tbody.innerHTML = renderEmptyState();
+    pgInput.value = '0';
+    pgTotal.textContent = '0';
+  } else {
+    tbody.innerHTML = rows.map((item, idx) => renderRow(item, idx)).join('');
+    pgInput.value = '1';
+    pgTotal.textContent = '1';
+
+    // Click en editar de un draft → abre modal 2 con datos precargados
+    tbody.querySelectorAll('[data-draft-idx]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-draft-idx'), 10);
+        if(window.openEditDraft) window.openEditDraft(idx);
+      });
+    });
+  }
+
+  // Mostrar toast solo en mode=single (venimos de guardar un borrador)
+  if(mode === 'single'){
+    const toast = document.getElementById('toastMsg');
+    toast.classList.remove('hidden');
+    document.getElementById('toastClose').addEventListener('click', () => {
+      toast.style.animation = 'slideInRight .3s cubic-bezier(.4,0,.2,1) reverse';
+      setTimeout(() => toast.classList.add('hidden'), 280);
+    });
+    // Auto-dismiss después de 6s
+    setTimeout(() => {
+      if(!toast.classList.contains('hidden')){
+        toast.style.animation = 'slideInRight .3s cubic-bezier(.4,0,.2,1) reverse';
+        setTimeout(() => toast.classList.add('hidden'), 280);
+      }
+    }, 6000);
+  }
+})();
+
+/* ═══ Searchbox: toggle clear visibility + reset ═══ */
+(function(){
+  const sb = document.getElementById('searchbox');
+  const input = document.getElementById('searchInput');
+  const clearBtn = document.getElementById('searchClear');
+
+  function sync(){
+    if(input.value.length > 0){
+      sb.classList.add('naowee-searchbox--has-value');
+    } else {
+      sb.classList.remove('naowee-searchbox--has-value');
+    }
+  }
+  input.addEventListener('input', sync);
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    sync();
+    input.focus();
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL REGISTRAR SEDE O ESCENARIO
+   Usa los mismos componentes del DS que el wizard público
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  /* ─── DATA (copiada del wizard público) ─── */
+  const COLOMBIA = {
+    'Amazonas':['Leticia','Puerto Nariño'],
+    'Antioquia':['Medellín','Bello','Envigado','Itagüí','Sabaneta','Rionegro','Apartadó','Turbo'],
+    'Arauca':['Arauca','Saravena','Tame','Arauquita'],
+    'Atlántico':['Barranquilla','Soledad','Malambo','Puerto Colombia','Galapa','Sabanalarga','Santo Tomás','Baranoa'],
+    'Bogotá D.C.':['Bogotá'],
+    'Bolívar':['Cartagena','Magangué','Turbaco','El Carmen de Bolívar','Arjona'],
+    'Boyacá':['Tunja','Duitama','Sogamoso','Chiquinquirá','Paipa'],
+    'Caldas':['Manizales','Villamaría','Chinchiná','La Dorada','Riosucio'],
+    'Caquetá':['Florencia','San Vicente del Caguán','Puerto Rico','La Montañita'],
+    'Casanare':['Yopal','Aguazul','Villanueva','Tauramena','Paz de Ariporo'],
+    'Cauca':['Popayán','Santander de Quilichao','Puerto Tejada','Patía','Piendamó'],
+    'Cesar':['Valledupar','Aguachica','Bosconia','Codazzi','La Jagua de Ibirico'],
+    'Chocó':['Quibdó','Istmina','Tadó','Condoto','Riosucio'],
+    'Córdoba':['Montería','Lorica','Cereté','Sahagún','Tierralta','Planeta Rica'],
+    'Cundinamarca':['Soacha','Zipaquirá','Chía','Facatativá','Girardot','Fusagasugá','Mosquera','Madrid','Cajicá'],
+    'Guainía':['Inírida'],
+    'Guaviare':['San José del Guaviare','Calamar','El Retorno'],
+    'Huila':['Neiva','Pitalito','Garzón','La Plata','Campoalegre'],
+    'La Guajira':['Riohacha','Maicao','Uribia','Manaure','San Juan del Cesar'],
+    'Magdalena':['Santa Marta','Ciénaga','Fundación','El Banco','Plato'],
+    'Meta':['Villavicencio','Acacías','Granada','Puerto López','Cumaral'],
+    'Nariño':['Pasto','Ipiales','Tumaco','Túquerres','La Unión'],
+    'Norte de Santander':['Cúcuta','Ocaña','Pamplona','Villa del Rosario','Los Patios'],
+    'Putumayo':['Mocoa','Puerto Asís','Orito','Valle del Guamuez','Puerto Caicedo'],
+    'Quindío':['Armenia','Calarcá','Montenegro','La Tebaida','Quimbaya'],
+    'Risaralda':['Pereira','Dosquebradas','Santa Rosa de Cabal','La Virginia','Belén de Umbría'],
+    'San Andrés y Providencia':['San Andrés','Providencia'],
+    'Santander':['Bucaramanga','Floridablanca','Girón','Piedecuesta','Barrancabermeja','San Gil'],
+    'Sucre':['Sincelejo','Corozal','Sampués','San Marcos','Tolú'],
+    'Tolima':['Ibagué','Espinal','Melgar','Honda','Chaparral'],
+    'Valle del Cauca':['Cali','Palmira','Buenaventura','Tuluá','Cartago','Buga','Yumbo','Jamundí'],
+    'Vaupés':['Mitú','Carurú'],
+    'Vichada':['Puerto Carreño','La Primavera','Cumaribo']
+  };
+  const TIPOS_PROPIETARIO = [
+    'Ente territorial (municipio/departamento)',
+    'Entidad deportiva',
+    'Privado',
+    'Comunidad',
+    'Otro'
+  ];
+  const TIPOS_TENENCIA = ['Propiedad','Comodato','Arrendamiento','Concesión','Otro'];
+  const TENENCIAS_CON_VENCIMIENTO = new Set(['Comodato','Arrendamiento','Concesión']);
+
+  // Catastrales ya registrados (mismo del wizard público)
+  const REGISTERED_CATASTRALES = [
+    '080010101000000010901900000012',
+    '110010101000000010101010101010',
+    '050010101000000020202020202020'
+  ];
+
+  /* ─── STATE (paso 1: pre-validación + georref) ─── */
+  const regState = {
+    nombre:'', departamento:'', municipio:'', catastral:'', catastralState:'empty',
+    lat:null, lon:null,
+    direccion:'', corregimiento:'', zona:''
+  };
+
+  // State del paso 2 (propiedad + administrativos)
+  const reg2State = {
+    entidad:'', propietario:'',
+    administradora:'', tenencia:'', vencimiento:'',
+    responsable:'', telefono:'', correoResp:'',
+    horario:'', accesoPublico:false,
+    costo:'', usos:[], usuarios:''
+  };
+
+  function isDirty(){
+    const r = regState;
+    return !!(r.nombre || r.departamento || r.municipio || r.catastral ||
+      r.lat != null || r.lon != null || r.direccion || r.corregimiento || r.zona);
+  }
+  function isDirty2(){
+    const r = reg2State;
+    return !!(r.entidad || r.propietario || r.administradora || r.tenencia ||
+      r.vencimiento || r.responsable || r.telefono || r.correoResp ||
+      r.horario || r.accesoPublico || r.costo || r.usos.length || r.usuarios);
+  }
+
+  /* ─── DROPDOWN BEHAVIOR (copiado del wizard público) ─── */
+  const _triggerWired = new WeakSet();
+  function initDropdown(ddId, options, onSelect, disabled){
+    const dd = document.getElementById(ddId);
+    const trigger = dd.querySelector('.naowee-dropdown__trigger');
+    const menu = dd.querySelector('.naowee-dropdown__menu');
+    const valueSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+
+    menu.innerHTML = '';
+    options.forEach(opt => {
+      const el = document.createElement('div');
+      el.className = 'naowee-dropdown__option';
+      el.setAttribute('role','option');
+      el.textContent = opt;
+      el.addEventListener('click', () => {
+        valueSpan.textContent = opt;
+        valueSpan.className = 'naowee-dropdown__value';
+        menu.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+        el.classList.add('naowee-dropdown__option--selected');
+        dd.classList.remove('naowee-dropdown--open');
+        trigger.setAttribute('aria-expanded','false');
+        onSelect(opt);
+      });
+      menu.appendChild(el);
+    });
+
+    if(!_triggerWired.has(trigger)){
+      _triggerWired.add(trigger);
+      trigger.addEventListener('click', (e) => {
+        if(dd.classList.contains('naowee-dropdown--disabled')) return;
+        e.stopPropagation();
+        document.querySelectorAll('.naowee-dropdown--open').forEach(other => {
+          if(other !== dd) other.classList.remove('naowee-dropdown--open');
+        });
+        dd.classList.toggle('naowee-dropdown--open');
+        trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+      });
+    }
+
+    if(disabled){
+      dd.classList.add('naowee-dropdown--disabled');
+      trigger.disabled = true;
+    } else {
+      dd.classList.remove('naowee-dropdown--disabled');
+      trigger.disabled = false;
+    }
+  }
+
+  // Close dropdowns clicking outside (scoped al modal)
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.naowee-dropdown') && !e.target.closest('.naowee-dropdown__menu')){
+      document.querySelectorAll('.naowee-dropdown--open').forEach(dd => {
+        dd.classList.remove('naowee-dropdown--open');
+        dd.querySelector('.naowee-dropdown__trigger')?.setAttribute('aria-expanded','false');
+      });
+    }
+  });
+
+  /* ─── FIX: dropdowns dentro del modal body no deben cortarse por overflow ───
+     Cuando se abre un dropdown que vive en un contenedor con overflow:auto (modal body),
+     convertimos su menú a position:fixed y calculamos las coordenadas a partir del trigger.
+     Se actualiza al scrollear el body o al cambiar el tamaño de la ventana. */
+  function floatDropdownMenu(dd){
+    const trigger = dd.querySelector('.naowee-dropdown__trigger');
+    const menu = dd.querySelector('.naowee-dropdown__menu');
+    if(!trigger || !menu) return;
+    const rect = trigger.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const spaceBelow = vh - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuMaxHeight = 260;
+    menu.classList.add('naowee-dropdown__menu--floating');
+    menu.style.width = rect.width + 'px';
+    menu.style.left = rect.left + 'px';
+    if(spaceBelow >= menuMaxHeight + 8 || spaceBelow >= spaceAbove){
+      menu.style.top = (rect.bottom + 4) + 'px';
+      menu.style.bottom = 'auto';
+    } else {
+      menu.style.top = 'auto';
+      menu.style.bottom = (vh - rect.top + 4) + 'px';
+    }
+  }
+  function unfloatDropdownMenu(dd){
+    const menu = dd.querySelector('.naowee-dropdown__menu');
+    if(!menu) return;
+    menu.classList.remove('naowee-dropdown__menu--floating');
+    menu.style.width = '';
+    menu.style.left = '';
+    menu.style.top = '';
+    menu.style.bottom = '';
+  }
+
+  // Observador: cuando un dropdown dentro de .reg-modal abre/cierra, aplicamos/quitamos floating
+  const ddFloatObserver = new MutationObserver(muts => {
+    muts.forEach(m => {
+      if(m.type === 'attributes' && m.attributeName === 'class'){
+        const dd = m.target;
+        if(!dd.closest('.reg-modal')) return;
+        if(dd.classList.contains('naowee-dropdown--open')){
+          floatDropdownMenu(dd);
+        } else {
+          unfloatDropdownMenu(dd);
+        }
+      }
+    });
+  });
+  // Observar todos los dropdowns del modal
+  setTimeout(() => {
+    document.querySelectorAll('.reg-modal .naowee-dropdown').forEach(dd => {
+      ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
+    });
+  }, 100);
+
+  // Reposicionar cualquier dropdown/multi-select abierto al scrollear el modal body o resize
+  function repositionOpenDropdowns(){
+    document.querySelectorAll('.reg-modal .naowee-dropdown--open').forEach(floatDropdownMenu);
+    // Multi-select también
+    const multi = document.getElementById('reg2UsosMulti');
+    if(multi && multi.classList.contains('open') && typeof floatMultiMenu === 'function'){
+      floatMultiMenu();
+    }
+  }
+  document.querySelectorAll('.reg-modal__body').forEach(body => {
+    body.addEventListener('scroll', repositionOpenDropdowns, {passive: true});
+  });
+  window.addEventListener('resize', repositionOpenDropdowns);
+
+  /* ─── OVERLAY OPEN/CLOSE ─── */
+  const overlay = document.getElementById('regModalOverlay');
+  const openBtn = document.getElementById('btnOpenReg');
+  const closeBtn = document.getElementById('regModalClose');
+  const submitBtn = document.getElementById('regSubmitBtn');
+
+  let mapInstance = null;
+  let markerInstance = null;
+  const DEFAULT_CENTER = [10.9878, -74.9547]; // Puerto Colombia (igual que escenario-05)
+
+  let pickMode = false;
+  function initMap(){
+    if(mapInstance) return;
+    mapInstance = L.map('regMap', {zoomControl:true, attributionControl:true}).setView(DEFAULT_CENTER, 16);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20,
+      subdomains: 'abcd',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(mapInstance);
+    const markerIcon = L.divIcon({
+      className: 'geo-marker',
+      html: '<svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 24 16 24s16-12 16-24C32 7.2 24.8 0 16 0z" fill="#d74009"/><circle cx="16" cy="16" r="6" fill="#fff"/></svg>',
+      iconSize: [32, 40],
+      iconAnchor: [16, 40]
+    });
+    markerInstance = L.marker(DEFAULT_CENTER, {draggable:true, icon:markerIcon}).addTo(mapInstance);
+    markerInstance.on('dragend', (e) => {
+      const { lat, lng } = e.target.getLatLng();
+      updateCoords(lat, lng);
+    });
+    // Pick mode click
+    mapInstance.on('click', (e) => {
+      if(!pickMode) return;
+      markerInstance.setLatLng(e.latlng);
+      updateCoords(e.latlng.lat, e.latlng.lng);
+      pickMode = false;
+      document.getElementById('regMap').style.cursor = '';
+      const btn = document.getElementById('regBtnClickMap');
+      if(btn) btn.style.outline = '';
+    });
+  }
+
+  function updateCoords(lat, lon){
+    regState.lat = parseFloat(lat.toFixed(6));
+    regState.lon = parseFloat(lon.toFixed(6));
+    document.getElementById('regLat').value = regState.lat;
+    document.getElementById('regLon').value = regState.lon;
+    validate();
+  }
+
+  function openModal(){
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      initMap();
+      if(mapInstance) mapInstance.invalidateSize();
+      document.getElementById('regNombre')?.focus();
+    }, 250);
+  }
+  function closeModal(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Intento de cerrar: si hay datos, abre dialog de advertencia
+  function attemptClose(){
+    if(isDirty()){
+      openDialog('dlgWarnClose');
+    } else {
+      closeModal();
+    }
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', attemptClose);
+  overlay.addEventListener('click', e => { if(e.target === overlay) attemptClose(); });
+  document.addEventListener('keydown', e => {
+    // Solo cerrar el modal principal si no hay dialogs abiertos encima
+    if(e.key === 'Escape' && overlay.classList.contains('open')){
+      const anyDialog = document.querySelector('.dialog-overlay.open');
+      if(!anyDialog) attemptClose();
+    }
+  });
+
+  /* ─── DIALOG HELPERS ─── */
+  function openDialog(id){
+    document.getElementById(id).classList.add('open');
+    // Oculta el modal principal para que solo se vea el dialog
+    overlay.classList.add('behind-dialog');
+  }
+  function closeDialog(id){
+    document.getElementById(id).classList.remove('open');
+    // Si no hay otros dialogs abiertos, vuelve a mostrar el modal principal
+    const stillOpen = document.querySelectorAll('.dialog-overlay.open').length;
+    if(stillOpen === 0) overlay.classList.remove('behind-dialog');
+  }
+
+  /* ─── INIT DROPDOWNS ─── */
+  // Departamento
+  initDropdown('regDepartamentoDD', Object.keys(COLOMBIA), (dep) => {
+    regState.departamento = dep;
+    regState.municipio = '';
+    const mpioValue = document.getElementById('regMpioValue');
+    mpioValue.textContent = 'Selecciona municipio';
+    mpioValue.className = 'naowee-dropdown__placeholder';
+    initDropdown('regMunicipioDD', COLOMBIA[dep], (mpio) => {
+      regState.municipio = mpio;
+      validate();
+    }, false);
+    validate();
+  });
+  initDropdown('regMunicipioDD', [], () => {}, true);
+
+  // Zona
+  initDropdown('regZonaDD', ['Urbana','Rural'], (val) => {
+    regState.zona = val;
+    validate();
+  });
+
+  /* ─── FIELD INPUTS ─── */
+  const nombreInput = document.getElementById('regNombre');
+  nombreInput.addEventListener('input', e => {
+    regState.nombre = e.target.value.trim();
+    validate();
+  });
+
+  const catInput = document.getElementById('regCatastral');
+  const fldCatastral = document.getElementById('regFldCatastral');
+  const catDupMsg = document.getElementById('regCatastralDupMsg');
+
+  function updateCatastralState(){
+    fldCatastral.classList.remove('naowee-textfield--caution','naowee-textfield--error','naowee-textfield--validated');
+    catDupMsg.hidden = true;
+    const v = regState.catastral;
+    if(!v){
+      regState.catastralState = 'empty';
+    } else if(v.length < 10){
+      regState.catastralState = 'short';
+      fldCatastral.classList.add('naowee-textfield--caution');
+    } else if(REGISTERED_CATASTRALES.includes(v)){
+      regState.catastralState = 'duplicate';
+      fldCatastral.classList.add('naowee-textfield--error');
+      catDupMsg.hidden = false;
+    } else {
+      regState.catastralState = 'valid';
+      fldCatastral.classList.add('naowee-textfield--validated');
+    }
+  }
+
+  catInput.addEventListener('input', e => {
+    const cleaned = e.target.value.replace(/\D/g,'');
+    if(cleaned !== e.target.value) e.target.value = cleaned;
+    regState.catastral = cleaned;
+    updateCatastralState();
+    validate();
+  });
+  catInput.addEventListener('keypress', e => {
+    if(!/[0-9]/.test(e.key) && e.key.length === 1) e.preventDefault();
+  });
+
+  // Lat/Lon sanitize (patrón del escenario-05)
+  function sanitizeDecimal(value){
+    let cleaned = value.replace(/[^0-9.\-]/g,'');
+    cleaned = cleaned.replace(/(?!^)-/g,'');
+    const parts = cleaned.split('.');
+    if(parts.length > 2) cleaned = parts[0] + '.' + parts.slice(1).join('');
+    return cleaned;
+  }
+
+  const latInput = document.getElementById('regLat');
+  const lonInput = document.getElementById('regLon');
+  latInput.addEventListener('input', e => {
+    const cleaned = sanitizeDecimal(e.target.value);
+    if(cleaned !== e.target.value) e.target.value = cleaned;
+    const lat = parseFloat(cleaned);
+    if(!isNaN(lat) && lat >= -4.23 && lat <= 12.53){
+      regState.lat = lat;
+      if(regState.lon != null && mapInstance){
+        markerInstance.setLatLng([lat, regState.lon]);
+        mapInstance.panTo([lat, regState.lon]);
+      }
+    } else { regState.lat = null; }
+    validate();
+  });
+  lonInput.addEventListener('input', e => {
+    const cleaned = sanitizeDecimal(e.target.value);
+    if(cleaned !== e.target.value) e.target.value = cleaned;
+    const lon = parseFloat(cleaned);
+    if(!isNaN(lon) && lon >= -81.73 && lon <= -66.87){
+      regState.lon = lon;
+      if(regState.lat != null && mapInstance){
+        markerInstance.setLatLng([regState.lat, lon]);
+        mapInstance.panTo([regState.lat, lon]);
+      }
+    } else { regState.lon = null; }
+    validate();
+  });
+
+  document.getElementById('regDireccion').addEventListener('input', e => {
+    regState.direccion = e.target.value.trim();
+    validate();
+  });
+  document.getElementById('regCorregimiento').addEventListener('input', e => {
+    regState.corregimiento = e.target.value.trim();
+  });
+
+  /* ─── MAP ACTIONS ─── */
+  document.getElementById('regBtnMyLocation').addEventListener('click', () => {
+    if(!mapInstance) return;
+    if(!navigator.geolocation){
+      alert('Tu navegador no soporta geolocalización');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        mapInstance.setView([latitude, longitude], 17);
+        markerInstance.setLatLng([latitude, longitude]);
+        updateCoords(latitude, longitude);
+      },
+      (err) => alert('No pudimos obtener tu ubicación: ' + err.message)
+    );
+  });
+
+  const btnPick = document.getElementById('regBtnClickMap');
+  btnPick.addEventListener('click', () => {
+    if(!mapInstance) return;
+    pickMode = !pickMode;
+    document.getElementById('regMap').style.cursor = pickMode ? 'crosshair' : '';
+    btnPick.style.outline = pickMode ? '2px solid var(--accent)' : '';
+  });
+
+  document.getElementById('regBtnFullscreen').addEventListener('click', () => {
+    const el = document.getElementById('regMap');
+    if(!document.fullscreenElement){
+      el.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+    setTimeout(() => mapInstance?.invalidateSize(), 200);
+  });
+
+  /* ─── VALIDATION (solo paso 1: pre-validación + georref) ─── */
+  function validate(){
+    const r = regState;
+    const ok = (
+      r.nombre.length >= 5 &&
+      r.departamento && r.municipio &&
+      r.catastralState === 'valid' &&
+      r.lat != null && r.lon != null &&
+      r.direccion.length >= 5 &&
+      r.zona
+    );
+    submitBtn.disabled = !ok;
+  }
+
+  /* ─── SUBMIT: abre dialog de validación exitosa ─── */
+  submitBtn.addEventListener('click', () => {
+    if(submitBtn.disabled) return;
+    submitBtn.classList.add('naowee-btn--loading');
+    setTimeout(() => {
+      submitBtn.classList.remove('naowee-btn--loading');
+      openDialog('dlgValidation');
+    }, 600);
+  });
+
+  /* ─── DIALOG: Validación exitosa ─── */
+  function appendDraft(extra){
+    try {
+      let arr = [];
+      const raw = sessionStorage.getItem('regDrafts');
+      if(raw) arr = JSON.parse(raw) || [];
+      if(!Array.isArray(arr)) arr = [];
+      arr.push(Object.assign({
+        nombre: regState.nombre,
+        catastral: regState.catastral,
+        departamento: regState.departamento,
+        municipio: regState.municipio,
+        lat: regState.lat,
+        lon: regState.lon,
+        direccion: regState.direccion,
+        corregimiento: regState.corregimiento,
+        zona: regState.zona,
+        responsable: (extra && extra.responsable) || '',
+        savedAt: Date.now()
+      }, extra || {}));
+      sessionStorage.setItem('regDrafts', JSON.stringify(arr));
+    } catch(err){ /* ignore */ }
+  }
+
+  function goToSingleMode(){
+    closeDialog('dlgValidation');
+    closeModal();
+    const url = new URL(window.location.href);
+    url.searchParams.set('mode','single');
+    window.location.href = url.toString();
+  }
+
+  // Guardar borrador: guarda solo los datos del paso 1 y vuelve al dashboard
+  document.getElementById('dlgValSaveDraft').addEventListener('click', () => {
+    appendDraft();
+    goToSingleMode();
+  });
+
+  // Continuar registro: cierra el dialog y abre el modal 2
+  document.getElementById('dlgValContinue').addEventListener('click', () => {
+    closeDialog('dlgValidation');
+    overlay.classList.remove('open'); // cierra modal 1 sin warning
+    modal2Origin = 'new'; // flujo de nuevo registro
+    editingDraftIdx = null;
+    document.getElementById('regModal2Overlay').classList.add('open');
+    // Muestra el ID único generado (mock)
+    document.getElementById('regModal2IdChip').textContent = regState.catastral || '10000101010';
+  });
+
+  /* ─── DIALOG: Advertencia al cerrar ─── */
+  document.getElementById('dlgWarnDiscard').addEventListener('click', () => {
+    closeDialog('dlgWarnClose');
+    closeModal();
+  });
+  document.getElementById('dlgWarnContinue').addEventListener('click', () => {
+    closeDialog('dlgWarnClose');
+    // mantiene el modal de registro abierto
+  });
+  // ESC cierra solo el dialog que está arriba
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Escape') return;
+    const openDialogs = document.querySelectorAll('.dialog-overlay.open');
+    if(openDialogs.length > 0){
+      e.stopPropagation();
+      openDialogs[openDialogs.length - 1].classList.remove('open');
+    }
+  });
+
+  /* ═══════════════════════════════════════════════════════════════
+     MODAL 2 — Datos de propiedad y administración
+     ═══════════════════════════════════════════════════════════════ */
+  const modal2 = document.getElementById('regModal2Overlay');
+  const reg2SubmitBtn = document.getElementById('reg2SubmitBtn');
+  const reg2FldVenc = document.getElementById('reg2FldVencimiento');
+
+  function closeModal2(){
+    modal2.classList.remove('open');
+  }
+  function attemptClose2(){
+    if(isDirty2()){
+      openDialog('dlgWarnClose');
+    } else {
+      closeModal2();
+    }
+  }
+
+  document.getElementById('regModal2Close').addEventListener('click', attemptClose2);
+  modal2.addEventListener('click', e => { if(e.target === modal2) attemptClose2(); });
+
+  // Dropdowns del modal 2
+  initDropdown('reg2PropietarioDD', TIPOS_PROPIETARIO, (val) => {
+    reg2State.propietario = val;
+    validate2();
+  });
+
+  initDropdown('reg2TenenciaDD', TIPOS_TENENCIA, (val) => {
+    reg2State.tenencia = val;
+    if(TENENCIAS_CON_VENCIMIENTO.has(val)){
+      reg2FldVenc.hidden = false;
+    } else {
+      reg2FldVenc.hidden = true;
+      reg2State.vencimiento = '';
+      // Reset del datepicker visual
+      const vv = document.getElementById('reg2VencimientoValue');
+      if(vv){ vv.textContent = 'Selecciona una fecha'; vv.style.color = 'var(--naowee-color-text-secondary,#646587)'; }
+    }
+    validate2();
+  });
+
+  const HORARIOS = [
+    'Lunes a viernes 6 am - 10 pm',
+    'Lunes a sábado 6 am - 10 pm',
+    'Lunes a domingo 6 am - 10 pm',
+    'Lunes a viernes 8 am - 6 pm',
+    'Fin de semana 8 am - 6 pm',
+    '24 horas'
+  ];
+  initDropdown('reg2HorarioDD', HORARIOS, (val) => {
+    reg2State.horario = val;
+    validate2();
+  });
+
+  const COSTOS = ['Gratuito','Pago','Mixto (Según usuario)'];
+  initDropdown('reg2CostoDD', COSTOS, (val) => {
+    reg2State.costo = val;
+    validate2();
+  });
+
+  const USUARIOS_ACTUALES = [
+    'Deportistas federados',
+    'Deportistas aficionados',
+    'Estudiantes',
+    'Comunidad en general',
+    'Niños y jóvenes',
+    'Adultos mayores'
+  ];
+  initDropdown('reg2UsuariosDD', USUARIOS_ACTUALES, (val) => {
+    reg2State.usuarios = val;
+    validate2();
+  });
+
+  /* ─── Multi-select Usos actuales ─── */
+  const USOS_OPTIONS = [
+    'Competencias',
+    'Entrenamiento',
+    'Recreación',
+    'Eventos culturales',
+    'Educación física',
+    'Programas comunitarios'
+  ];
+  const multiEl = document.getElementById('reg2UsosMulti');
+  const multiTrigger = document.getElementById('reg2UsosTrigger');
+  const multiOptionsEl = document.getElementById('reg2UsosOptions');
+  const multiChips = document.getElementById('reg2UsosChips');
+  const multiConfirm = document.getElementById('reg2UsosConfirm');
+  let tempUsos = [];
+
+  function renderMultiOptions(){
+    multiOptionsEl.innerHTML = '';
+    USOS_OPTIONS.forEach(opt => {
+      const row = document.createElement('div');
+      row.className = 'reg-multi__option' + (tempUsos.includes(opt) ? ' reg-multi__option--selected' : '');
+      row.innerHTML = `
+        <div class="reg-multi__checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>${opt}</span>
+      `;
+      row.addEventListener('click', e => {
+        e.stopPropagation();
+        if(tempUsos.includes(opt)){
+          tempUsos = tempUsos.filter(u => u !== opt);
+        } else {
+          tempUsos.push(opt);
+        }
+        renderMultiOptions();
+      });
+      multiOptionsEl.appendChild(row);
+    });
+  }
+
+  function renderMultiChips(){
+    const usos = reg2State.usos;
+    if(usos.length === 0){
+      multiChips.innerHTML = '<span class="reg-multi__placeholder">Selecciona una opción</span>';
+      return;
+    }
+    const first = usos[0];
+    const rest = usos.length - 1;
+    multiChips.innerHTML = `
+      <span class="naowee-tag naowee-tag--small naowee-tag--accent">
+        ${first}
+        <span class="naowee-tag__active-area" data-remove="0" role="button" aria-label="Quitar ${first}">
+          <span class="naowee-tag__close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </span>
+        </span>
+      </span>
+      ${rest > 0 ? `<span class="naowee-tag naowee-tag--small naowee-tag--accent">+${rest}</span>` : ''}
+    `;
+    multiChips.querySelectorAll('[data-remove]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const idx = parseInt(el.dataset.remove);
+        reg2State.usos.splice(idx, 1);
+        renderMultiChips();
+        validate2();
+      });
+    });
+  }
+
+  // Float/unfloat del menú del multi-select (mismo approach que los dropdowns DS)
+  function floatMultiMenu(){
+    const menu = multiEl.querySelector('.reg-multi__menu');
+    if(!menu) return;
+    const rect = multiTrigger.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const spaceBelow = vh - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuMaxHeight = 288;
+    menu.classList.add('reg-multi__menu--floating');
+    menu.style.width = rect.width + 'px';
+    menu.style.left = rect.left + 'px';
+    if(spaceBelow >= menuMaxHeight + 8 || spaceBelow >= spaceAbove){
+      menu.style.top = (rect.bottom + 4) + 'px';
+      menu.style.bottom = 'auto';
+    } else {
+      menu.style.top = 'auto';
+      menu.style.bottom = (vh - rect.top + 4) + 'px';
+    }
+  }
+  function unfloatMultiMenu(){
+    const menu = multiEl.querySelector('.reg-multi__menu');
+    if(!menu) return;
+    menu.classList.remove('reg-multi__menu--floating');
+    menu.style.width = '';
+    menu.style.left = '';
+    menu.style.top = '';
+    menu.style.bottom = '';
+  }
+
+  multiTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = multiEl.classList.contains('open');
+    if(!wasOpen){
+      // Cerrar otros dropdowns abiertos
+      document.querySelectorAll('.naowee-dropdown--open').forEach(dd => dd.classList.remove('naowee-dropdown--open'));
+      tempUsos = [...reg2State.usos];
+      renderMultiOptions();
+      multiEl.classList.add('open');
+      floatMultiMenu();
+    } else {
+      multiEl.classList.remove('open');
+      unfloatMultiMenu();
+    }
+  });
+  multiConfirm.addEventListener('click', e => {
+    e.stopPropagation();
+    reg2State.usos = [...tempUsos];
+    renderMultiChips();
+    multiEl.classList.remove('open');
+    unfloatMultiMenu();
+    validate2();
+  });
+  document.addEventListener('click', e => {
+    if(!e.target.closest('#reg2UsosMulti') && !e.target.closest('.reg-multi__menu')){
+      if(multiEl.classList.contains('open')){
+        multiEl.classList.remove('open');
+        unfloatMultiMenu();
+      }
+    }
+  });
+
+  /* ─── Toggle acceso público (usa .naowee-switch del DS) ─── */
+  const accesoToggle = document.getElementById('reg2AccesoToggle');
+  function setAcceso(on){
+    accesoToggle.classList.toggle('naowee-switch--on', on);
+    accesoToggle.setAttribute('aria-checked', String(on));
+    reg2State.accesoPublico = on;
+    validate2();
+  }
+  accesoToggle.addEventListener('click', () => setAcceso(!accesoToggle.classList.contains('naowee-switch--on')));
+  accesoToggle.addEventListener('keydown', e => {
+    if(e.key === ' ' || e.key === 'Enter'){
+      e.preventDefault();
+      setAcceso(!accesoToggle.classList.contains('naowee-switch--on'));
+    }
+  });
+
+  /* ─── Inputs texto modal 2 ─── */
+  document.getElementById('reg2Entidad').addEventListener('input', e => {
+    reg2State.entidad = e.target.value.trim();
+    validate2();
+  });
+  document.getElementById('reg2Administradora').addEventListener('input', e => {
+    reg2State.administradora = e.target.value.trim();
+  });
+  /* ─── Datepicker del DS (Fecha vencimiento) ─── */
+  const MONTH_NAMES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const WEEKDAYS_ES = ['L','M','M','J','V','S','D'];
+  const reg2Cal = {
+    year: new Date().getFullYear(),
+    month: new Date().getMonth(),
+    view: 'days'
+  };
+  const reg2CalCalendar = document.getElementById('reg2CalCalendar');
+  const reg2VencWrap = document.getElementById('reg2FldVencimiento');
+  const reg2VencTrigger = document.getElementById('reg2VencimientoTrigger');
+  const reg2VencValue = document.getElementById('reg2VencimientoValue');
+
+  function reg2FormatDate(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function reg2FormatDisplay(d){
+    return String(d.getDate()).padStart(2,'0') + ' ' + MONTH_NAMES_ES[d.getMonth()].toLowerCase() + ' ' + d.getFullYear();
+  }
+
+  function reg2RenderCalendar(){
+    const chevL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    const chevR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+    const chevDown = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+    const chevUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>';
+    const headerChev = reg2Cal.view === 'days' ? chevDown : chevUp;
+    const headerTitle = reg2Cal.view === 'years' ? reg2Cal.year : (MONTH_NAMES_ES[reg2Cal.month] + ' de ' + reg2Cal.year);
+
+    let html = '<div class="naowee-datepicker__header">';
+    html += '<div class="naowee-datepicker__month-selector" data-action="toggle-view"><span class="naowee-datepicker__month">' + headerTitle + '</span><span class="naowee-datepicker__month-chevron">' + headerChev + '</span></div>';
+    html += '<div class="naowee-datepicker__controls">';
+    html += '<button type="button" class="naowee-datepicker__nav" data-action="nav-prev" aria-label="Anterior">' + chevL + '</button>';
+    html += '<button type="button" class="naowee-datepicker__nav" data-action="nav-next" aria-label="Siguiente">' + chevR + '</button>';
+    html += '</div></div>';
+
+    if(reg2Cal.view === 'months'){
+      html += '<div class="naowee-datepicker__month-grid">';
+      MONTH_NAMES_ES.forEach((m, i) => {
+        const sel = i === reg2Cal.month ? ' naowee-datepicker__month-item--selected' : '';
+        html += '<button type="button" class="naowee-datepicker__month-item' + sel + '" data-action="pick-month" data-month="' + i + '">' + m + '</button>';
+      });
+      html += '</div>';
+    } else if(reg2Cal.view === 'years'){
+      const startY = reg2Cal.year - (reg2Cal.year % 12);
+      html += '<div class="naowee-datepicker__month-grid">';
+      for(let yi = 0; yi < 12; yi++){
+        const y = startY + yi;
+        const sel = y === reg2Cal.year ? ' naowee-datepicker__month-item--selected' : '';
+        html += '<button type="button" class="naowee-datepicker__month-item' + sel + '" data-action="pick-year" data-year="' + y + '">' + y + '</button>';
+      }
+      html += '</div>';
+    } else {
+      const daysInMonth = new Date(reg2Cal.year, reg2Cal.month + 1, 0).getDate();
+      const firstDay = new Date(reg2Cal.year, reg2Cal.month, 1).getDay();
+      const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+      const prevMonthDays = new Date(reg2Cal.year, reg2Cal.month, 0).getDate();
+      const all = [];
+      for(let pi = startOffset - 1; pi >= 0; pi--) all.push({d: prevMonthDays - pi, other: true});
+      for(let ci = 1; ci <= daysInMonth; ci++) all.push({d: ci, other: false});
+      const remaining = 42 - all.length;
+      for(let ni = 1; ni <= remaining; ni++) all.push({d: ni, other: true});
+
+      let wkHtml = '<div class="naowee-datepicker__week">';
+      WEEKDAYS_ES.forEach(w => wkHtml += '<span class="naowee-datepicker__weekday">' + w + '</span>');
+      wkHtml += '</div>';
+
+      const today = new Date();
+      const minDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      let weeksHtml = '';
+      for(let w = 0; w < 6; w++){
+        weeksHtml += '<div class="naowee-datepicker__week">';
+        for(let di = 0; di < 7; di++){
+          const cell = all[w * 7 + di];
+          let cls = 'naowee-datepicker__day';
+          let disabled = false;
+          if(cell.other){
+            cls += ' naowee-datepicker__day--other-month';
+            disabled = true;
+          } else {
+            const cellDate = new Date(reg2Cal.year, reg2Cal.month, cell.d);
+            if(cellDate < minDate){
+              cls += ' naowee-datepicker__day--disabled';
+              disabled = true;
+            }
+            if(cell.d === today.getDate() && reg2Cal.month === today.getMonth() && reg2Cal.year === today.getFullYear()){
+              cls += ' naowee-datepicker__day--today';
+            }
+            if(reg2State.vencimiento === reg2FormatDate(cellDate)){
+              cls += ' naowee-datepicker__day--selected';
+            }
+          }
+          const dataAttr = disabled ? '' : ' data-action="pick-day" data-day="' + cell.d + '"';
+          weeksHtml += '<button type="button" class="' + cls + '"' + dataAttr + '>' + cell.d + '</button>';
+        }
+        weeksHtml += '</div>';
+      }
+      html += '<div class="naowee-datepicker__content">' + wkHtml + weeksHtml + '</div>';
+    }
+    reg2CalCalendar.innerHTML = html;
+  }
+
+  function openReg2Datepicker(){
+    reg2Cal.view = 'days';
+    // Si ya hay fecha, arrancar el calendario en ese mes
+    if(reg2State.vencimiento){
+      const parts = reg2State.vencimiento.split('-');
+      reg2Cal.year = parseInt(parts[0]);
+      reg2Cal.month = parseInt(parts[1]) - 1;
+    }
+    reg2RenderCalendar();
+    reg2VencWrap.classList.add('datepicker-wrap--open');
+    reg2VencTrigger.setAttribute('aria-expanded','true');
+  }
+  function closeReg2Datepicker(){
+    reg2VencWrap.classList.remove('datepicker-wrap--open');
+    reg2VencTrigger.setAttribute('aria-expanded','false');
+  }
+
+  reg2CalCalendar.addEventListener('click', e => {
+    e.stopPropagation();
+    const target = e.target.closest('[data-action]');
+    if(!target) return;
+    const action = target.dataset.action;
+    if(action === 'toggle-view'){
+      reg2Cal.view = reg2Cal.view === 'days' ? 'months' : reg2Cal.view === 'months' ? 'years' : 'days';
+      reg2RenderCalendar();
+    } else if(action === 'nav-prev' || action === 'nav-next'){
+      const delta = action === 'nav-prev' ? -1 : 1;
+      if(reg2Cal.view === 'days'){
+        reg2Cal.month += delta;
+        if(reg2Cal.month > 11){ reg2Cal.month = 0; reg2Cal.year++; }
+        if(reg2Cal.month < 0){ reg2Cal.month = 11; reg2Cal.year--; }
+      } else if(reg2Cal.view === 'months'){
+        reg2Cal.year += delta;
+      } else {
+        reg2Cal.year += delta * 12;
+      }
+      reg2RenderCalendar();
+    } else if(action === 'pick-month'){
+      reg2Cal.month = parseInt(target.dataset.month);
+      reg2Cal.view = 'days';
+      reg2RenderCalendar();
+    } else if(action === 'pick-year'){
+      reg2Cal.year = parseInt(target.dataset.year);
+      reg2Cal.view = 'months';
+      reg2RenderCalendar();
+    } else if(action === 'pick-day'){
+      const d = parseInt(target.dataset.day);
+      const picked = new Date(reg2Cal.year, reg2Cal.month, d);
+      reg2State.vencimiento = reg2FormatDate(picked);
+      reg2VencValue.textContent = reg2FormatDisplay(picked);
+      reg2VencValue.style.color = 'var(--naowee-color-text-primary,#282834)';
+      closeReg2Datepicker();
+      validate2();
+    }
+  });
+
+  reg2VencTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    if(reg2VencWrap.classList.contains('datepicker-wrap--open')){
+      closeReg2Datepicker();
+    } else {
+      openReg2Datepicker();
+    }
+  });
+  // Cerrar al hacer click fuera
+  document.addEventListener('click', e => {
+    if(!e.target.closest('#reg2FldVencimiento')) closeReg2Datepicker();
+  });
+  const reg2Resp = document.getElementById('reg2Responsable');
+  reg2Resp.addEventListener('input', e => {
+    const cleaned = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g,'');
+    if(cleaned !== e.target.value) e.target.value = cleaned;
+    reg2State.responsable = cleaned.trim();
+    validate2();
+  });
+  const reg2Tel = document.getElementById('reg2Telefono');
+  reg2Tel.addEventListener('input', e => {
+    const cleaned = e.target.value.replace(/\D/g,'').slice(0,10);
+    if(cleaned !== e.target.value) e.target.value = cleaned;
+    reg2State.telefono = cleaned;
+    validate2();
+  });
+  reg2Tel.addEventListener('keypress', e => {
+    if(!/[0-9]/.test(e.key) && e.key.length === 1) e.preventDefault();
+  });
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const reg2CorreoInput = document.getElementById('reg2CorreoResp');
+  const reg2CorreoField = document.getElementById('reg2FldCorreoResp');
+  const reg2CorreoHelp = document.getElementById('reg2HelpCorreoResp');
+  function updateCorreoState(){
+    const v = reg2State.correoResp;
+    const valid = !v || emailRegex.test(v); // vacío es válido (campo opcional)
+    if(valid){
+      reg2CorreoField.classList.remove('naowee-textfield--error');
+      reg2CorreoHelp.hidden = true;
+    } else {
+      reg2CorreoField.classList.add('naowee-textfield--error');
+      reg2CorreoHelp.hidden = false;
+    }
+    return valid;
+  }
+  reg2CorreoInput.addEventListener('input', e => {
+    reg2State.correoResp = e.target.value.trim();
+    // Mientras escribe: solo ocultar el error si ahora es válido
+    if(!reg2State.correoResp || emailRegex.test(reg2State.correoResp)){
+      reg2CorreoField.classList.remove('naowee-textfield--error');
+      reg2CorreoHelp.hidden = true;
+    }
+    validate2();
+  });
+  reg2CorreoInput.addEventListener('blur', updateCorreoState);
+
+  /* ─── Validación modal 2 ─── */
+  function validate2(){
+    const r = reg2State;
+    // Correo es opcional, pero si tiene valor debe ser válido
+    const correoOk = !r.correoResp || emailRegex.test(r.correoResp);
+    const ok = (
+      r.entidad && r.propietario &&
+      r.tenencia &&
+      (!TENENCIAS_CON_VENCIMIENTO.has(r.tenencia) || r.vencimiento) &&
+      r.responsable && r.telefono.length === 10 &&
+      correoOk &&
+      r.costo && r.usos.length > 0 && r.usuarios
+    );
+    reg2SubmitBtn.disabled = !ok;
+  }
+
+  /* ─── Botón Volver ─── */
+  document.getElementById('reg2BtnBack').addEventListener('click', () => {
+    closeModal2();
+    if(modal2Origin === 'edit'){
+      // Venimos editando un draft → regresar al modal 0 (view only)
+      // Re-pintar los campos del modal 0 con el regState actual
+      const setRo = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = (v == null || v === '') ? '—' : v; };
+      setRo('ro0Nombre', regState.nombre);
+      setRo('ro0Departamento', regState.departamento);
+      setRo('ro0Municipio', regState.municipio);
+      setRo('ro0Catastral', regState.catastral);
+      setRo('ro0Lat', regState.lat != null ? regState.lat : '—');
+      setRo('ro0Lon', regState.lon != null ? regState.lon : '—');
+      setRo('ro0Direccion', regState.direccion);
+      setRo('ro0Corregimiento', regState.corregimiento);
+      setRo('ro0Zona', regState.zona);
+      document.getElementById('regModal0IdChip').textContent = regState.catastral || '—';
+      modal0.classList.add('open');
+      setTimeout(() => {
+        initMap0();
+        if(regState.lat != null && regState.lon != null){
+          setMap0Coords(regState.lat, regState.lon);
+        } else if(map0Instance){
+          map0Instance.invalidateSize();
+        }
+      }, 250);
+    } else {
+      // Flujo nuevo → reabrir modal 1 editable con los datos del paso 1 re-pintados
+      paintModal1Fields();
+      openModal();
+    }
+  });
+
+  /* ─── Repintar campos del modal 1 desde regState ─── */
+  function paintModal1Fields(){
+    const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = (v == null) ? '' : v; };
+    setVal('regNombre', regState.nombre);
+    setVal('regCatastral', regState.catastral);
+    setVal('regDireccion', regState.direccion);
+    setVal('regCorregimiento', regState.corregimiento);
+    setVal('regLat', regState.lat != null ? regState.lat : '');
+    setVal('regLon', regState.lon != null ? regState.lon : '');
+
+    // Forzar recalculo del estado del catastral (duplicado, corto, válido)
+    if(typeof updateCatastralState === 'function') updateCatastralState();
+
+    // Pintar dropdowns del modal 1
+    function paintDD(ddId, value, placeholder){
+      const dd = document.getElementById(ddId);
+      if(!dd) return;
+      const span = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+      if(!span) return;
+      if(value){
+        span.textContent = value;
+        span.className = 'naowee-dropdown__value';
+        const opt = Array.from(dd.querySelectorAll('.naowee-dropdown__option')).find(o => o.textContent === value);
+        if(opt){
+          dd.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+          opt.classList.add('naowee-dropdown__option--selected');
+        }
+      } else {
+        span.textContent = placeholder;
+        span.className = 'naowee-dropdown__placeholder';
+      }
+    }
+    paintDD('regDepartamentoDD', regState.departamento, 'Selecciona departamento');
+    // Re-poblar municipio según el departamento seleccionado
+    if(regState.departamento){
+      initDropdown('regMunicipioDD', COLOMBIA[regState.departamento] || [], (mpio) => {
+        regState.municipio = mpio;
+        validate();
+      }, false);
+      paintDD('regMunicipioDD', regState.municipio, 'Selecciona municipio');
+    }
+    paintDD('regZonaDD', regState.zona, 'Selecciona');
+
+    // Actualizar el mapa con las coordenadas guardadas
+    if(mapInstance && regState.lat != null && regState.lon != null){
+      markerInstance.setLatLng([regState.lat, regState.lon]);
+      mapInstance.setView([regState.lat, regState.lon], 16);
+    }
+
+    validate();
+  }
+
+  // Guardar state completo al appendear (para que editar pueda precargar todo)
+  function fullReg2Snapshot(){
+    return {
+      entidad: reg2State.entidad,
+      propietario: reg2State.propietario,
+      administradora: reg2State.administradora,
+      tenencia: reg2State.tenencia,
+      vencimiento: reg2State.vencimiento,
+      responsable: reg2State.responsable,
+      telefono: reg2State.telefono,
+      correoResp: reg2State.correoResp,
+      horario: reg2State.horario,
+      accesoPublico: reg2State.accesoPublico,
+      costo: reg2State.costo,
+      usos: [...reg2State.usos],
+      usuarios: reg2State.usuarios
+    };
+  }
+
+  // Índice del draft que estamos editando (null = nuevo)
+  let editingDraftIdx = null;
+  // Origen desde el que se abrió el modal 2: 'new' (flujo desde modal 1) o 'edit' (desde modal 0)
+  let modal2Origin = 'new';
+
+  /* ═══════════════════════════════════════════════════════════════
+     MODAL 3 — Datos deportivos
+     ═══════════════════════════════════════════════════════════════ */
+  const modal3 = document.getElementById('regModal3Overlay');
+  const reg3SubmitBtn = document.getElementById('reg3SubmitBtn');
+
+  const TIPOS_ESCENARIO = [
+    'Cancha múltiple',
+    'Piscina',
+    'Coliseo',
+    'Estadio',
+    'Pista atlética',
+    'Gimnasio',
+    'Velódromo',
+    'Escenario náutico',
+    'Patódromo',
+    'Villa Olímpica',
+    'Complejo deportivo',
+    'Otro'
+  ];
+
+  // Disciplinas disponibles por tipo de escenario
+  const DISCIPLINAS_POR_TIPO = {
+    'Piscina': ['Apnea','Natación','Vela','Waterpolo','Voleibol acuático','Buceo','Nado sincronizado'],
+    'Coliseo': ['Baloncesto','Voleibol','Fútbol sala','Balonmano','Bádminton','Gimnasia','Boxeo','Tenis de mesa'],
+    'Estadio': ['Fútbol','Atletismo','Rugby'],
+    'Pista atlética': ['Atletismo','Carreras','Salto largo','Salto alto','Lanzamiento'],
+    'Gimnasio': ['Baloncesto','Voleibol','Gimnasia','Tenis de mesa','Levantamiento de pesas'],
+    'Velódromo': ['Ciclismo de pista','Ciclismo BMX'],
+    'Escenario náutico': ['Vela','Canotaje','Remo','Esquí acuático'],
+    'Patódromo': ['Patinaje artístico','Patinaje de velocidad','Hockey sobre patines'],
+    'Villa Olímpica': ['Baloncesto','Fútbol','Voleibol','Atletismo','Natación','Tenis'],
+    'Complejo deportivo': ['Baloncesto','Fútbol','Voleibol','Tenis','Atletismo','Natación','Béisbol','Softbol'],
+    'Cancha múltiple': ['Baloncesto','Voleibol','Fútbol sala','Microfútbol','Tenis','Balonmano'],
+    'Otro': []
+  };
+
+  const TIPOS_ESPACIO_POR_DISCIPLINA = {
+    'default': ['Cancha','Campo','Pista','Piscina','Sala','Otro']
+  };
+
+  const ESTADO_SUPERFICIE = ['Excelente','Bueno','Regular','Malo'];
+
+  /* ─── STATE del modal 3 ─── */
+  const reg3State = {
+    car: false,
+    tipoEscenario: '',
+    disciplinas: [],
+    compartenEscenario: false,
+    compartenDetalles: false,
+    disciplinasData: {} // { 'Baloncesto': { espacioTipo, cantidad, dimLargo, dimAncho, estado, ... } }
+  };
+
+  /* ─── Helpers DOM ─── */
+  function openModal3(){
+    modal3.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('regModal3IdChip').textContent = regState.catastral || '—';
+  }
+  function closeModal3(){
+    modal3.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('regModal3Close').addEventListener('click', () => closeModal3());
+  modal3.addEventListener('click', e => { if(e.target === modal3) closeModal3(); });
+
+  /* ─── Toggle CAR ─── */
+  const carToggle = document.getElementById('reg3CarToggle');
+  function setCar(on){
+    carToggle.classList.toggle('naowee-switch--on', on);
+    carToggle.setAttribute('aria-checked', String(on));
+    reg3State.car = on;
+    validate3();
+  }
+  carToggle.addEventListener('click', () => setCar(!carToggle.classList.contains('naowee-switch--on')));
+  carToggle.addEventListener('keydown', e => {
+    if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); setCar(!carToggle.classList.contains('naowee-switch--on')); }
+  });
+
+  /* ─── Toggle compartenEscenario ─── */
+  const compartenToggle = document.getElementById('reg3CompartenToggle');
+  function setComparten(on){
+    compartenToggle.classList.toggle('naowee-switch--on', on);
+    compartenToggle.setAttribute('aria-checked', String(on));
+    reg3State.compartenEscenario = on;
+  }
+  compartenToggle.addEventListener('click', () => setComparten(!compartenToggle.classList.contains('naowee-switch--on')));
+
+  /* ─── Toggle compartenDetalles ─── */
+  const detallesToggle = document.getElementById('reg3DetallesToggle');
+  function setDetalles(on){
+    detallesToggle.classList.toggle('naowee-switch--on', on);
+    detallesToggle.setAttribute('aria-checked', String(on));
+    reg3State.compartenDetalles = on;
+  }
+  detallesToggle.addEventListener('click', () => setDetalles(!detallesToggle.classList.contains('naowee-switch--on')));
+
+  /* ─── Tipo de escenario ─── */
+  initDropdown('reg3TipoEscDD', TIPOS_ESCENARIO, (val) => {
+    if(reg3State.tipoEscenario !== val){
+      // Cambió el tipo → limpiar disciplinas
+      reg3State.disciplinas = [];
+      reg3State.disciplinasData = {};
+      renderReg3Chips();
+      renderReg3Disciplines();
+      document.getElementById('reg3DynamicSection').hidden = true;
+    }
+    reg3State.tipoEscenario = val;
+    validate3();
+  });
+
+  /* ─── Multi-select Disciplinas ─── */
+  const reg3DiscEl = document.getElementById('reg3DiscMulti');
+  const reg3DiscTrigger = document.getElementById('reg3DiscTrigger');
+  const reg3DiscOptionsEl = document.getElementById('reg3DiscOptions');
+  const reg3DiscChips = document.getElementById('reg3DiscChips');
+  const reg3DiscConfirm = document.getElementById('reg3DiscConfirm');
+  let tempDisc = [];
+
+  function reg3FloatMulti(){
+    const menu = reg3DiscEl.querySelector('.reg-multi__menu');
+    if(!menu) return;
+    const rect = reg3DiscTrigger.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const spaceBelow = vh - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuMaxHeight = 320;
+    menu.classList.add('reg-multi__menu--floating');
+    menu.style.width = rect.width + 'px';
+    menu.style.left = rect.left + 'px';
+    if(spaceBelow >= menuMaxHeight + 8 || spaceBelow >= spaceAbove){
+      menu.style.top = (rect.bottom + 4) + 'px';
+      menu.style.bottom = 'auto';
+    } else {
+      menu.style.top = 'auto';
+      menu.style.bottom = (vh - rect.top + 4) + 'px';
+    }
+  }
+  function reg3UnfloatMulti(){
+    const menu = reg3DiscEl.querySelector('.reg-multi__menu');
+    if(!menu) return;
+    menu.classList.remove('reg-multi__menu--floating');
+    menu.style.width = menu.style.left = menu.style.top = menu.style.bottom = '';
+  }
+
+  function renderReg3DiscOptions(){
+    const opts = DISCIPLINAS_POR_TIPO[reg3State.tipoEscenario] || [];
+    reg3DiscOptionsEl.innerHTML = '';
+    if(opts.length === 0){
+      reg3DiscOptionsEl.innerHTML = '<div class="reg-multi__option" style="color:#9c9ebf;cursor:default">Primero selecciona el tipo de escenario</div>';
+      return;
+    }
+    opts.forEach(opt => {
+      const row = document.createElement('div');
+      row.className = 'reg-multi__option' + (tempDisc.includes(opt) ? ' reg-multi__option--selected' : '');
+      row.innerHTML = `
+        <div class="reg-multi__checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>${opt}</span>
+      `;
+      row.addEventListener('click', e => {
+        e.stopPropagation();
+        if(tempDisc.includes(opt)){
+          tempDisc = tempDisc.filter(u => u !== opt);
+        } else {
+          tempDisc.push(opt);
+        }
+        renderReg3DiscOptions();
+      });
+      reg3DiscOptionsEl.appendChild(row);
+    });
+  }
+
+  function renderReg3Chips(){
+    const disc = reg3State.disciplinas;
+    if(disc.length === 0){
+      reg3DiscChips.innerHTML = '<span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>';
+      return;
+    }
+    const chipsHtml = disc.map((d, i) => `
+      <span class="naowee-tag naowee-tag--small naowee-tag--accent">
+        ${d}
+        <span class="naowee-tag__active-area" data-remove-disc="${i}" role="button" aria-label="Quitar ${d}">
+          <span class="naowee-tag__close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </span>
+        </span>
+      </span>
+    `).join('');
+    reg3DiscChips.innerHTML = chipsHtml;
+    reg3DiscChips.querySelectorAll('[data-remove-disc]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const idx = parseInt(el.dataset.removeDisc);
+        const removed = reg3State.disciplinas.splice(idx, 1)[0];
+        delete reg3State.disciplinasData[removed];
+        renderReg3Chips();
+        renderReg3Disciplines();
+        document.getElementById('reg3DynamicSection').hidden = reg3State.disciplinas.length === 0;
+        validate3();
+      });
+    });
+  }
+
+  /* ─── Renderizar secciones dinámicas por disciplina ─── */
+  function renderReg3Disciplines(){
+    const listEl = document.getElementById('reg3DisciplinesList');
+    listEl.innerHTML = '';
+    reg3State.disciplinas.forEach(disc => {
+      if(!reg3State.disciplinasData[disc]){
+        reg3State.disciplinasData[disc] = {
+          espacioTipo:'', cantidad:0, largo:'', ancho:'', numCanchas:'', estado:''
+        };
+      }
+      const data = reg3State.disciplinasData[disc];
+      const section = document.createElement('div');
+      section.className = 'reg3-discipline';
+      section.innerHTML = `
+        <h4 class="reg3-discipline__title">${disc}</h4>
+
+        <div class="reg-row" style="align-items:flex-end">
+          <div class="naowee-dropdown" data-disc-dd="${disc}">
+            <label class="naowee-dropdown__label">Tipo de espacio interno <span style="color:var(--accent)">*</span></label>
+            <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="${data.espacioTipo ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${data.espacioTipo || 'Selecciona un espacio'}</span>
+              <span class="naowee-dropdown__controls">
+                <span class="naowee-dropdown__chevron">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </span>
+            </button>
+            <div class="naowee-dropdown__menu" role="listbox"></div>
+          </div>
+
+          <div class="reg3-stepper-wrap">
+            <div class="naowee-input-stepper">
+              <div class="naowee-input-stepper__content">
+                <div class="naowee-input-stepper__input">
+                  <button type="button" class="naowee-input-stepper__btn" data-disc-step="minus" data-disc="${disc}" aria-label="Disminuir">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </button>
+                  <div class="naowee-input-stepper__value">
+                    <span class="naowee-input-stepper__value-text">${data.cantidad}</span>
+                  </div>
+                  <button type="button" class="naowee-input-stepper__btn" data-disc-step="plus" data-disc="${disc}" aria-label="Aumentar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${data.cantidad > 0 ? `
+          <div class="reg3-space" data-disc-space="${disc}">
+            <div class="reg3-space__header">
+              <div class="reg3-space__title">
+                <span class="reg3-space__num">1</span>
+                ${data.espacioTipo || 'Espacio'}<span class="req">*</span>
+              </div>
+              <svg class="reg3-space__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <div class="reg3-space__body">
+              <div class="reg-row">
+                <div class="naowee-textfield">
+                  <label class="naowee-textfield__label naowee-textfield__label--required">Dimensiones de largo (m)</label>
+                  <div class="naowee-textfield__input-wrap">
+                    <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-field="largo" data-numeric="decimal" data-disc="${disc}" value="${data.largo}"/>
+                  </div>
+                </div>
+                <div class="naowee-textfield">
+                  <label class="naowee-textfield__label naowee-textfield__label--required">Dimensiones de ancho (m)</label>
+                  <div class="naowee-textfield__input-wrap">
+                    <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-field="ancho" data-numeric="decimal" data-disc="${disc}" value="${data.ancho}"/>
+                  </div>
+                </div>
+              </div>
+              <div class="reg-row">
+                <div class="naowee-textfield">
+                  <label class="naowee-textfield__label naowee-textfield__label--required">Número de espacios</label>
+                  <div class="naowee-textfield__input-wrap">
+                    <input type="text" class="naowee-textfield__input" placeholder="000" inputmode="numeric" data-disc-field="numCanchas" data-numeric="int" data-disc="${disc}" value="${data.numCanchas}"/>
+                  </div>
+                </div>
+                <div class="naowee-dropdown" data-disc-estado="${disc}">
+                  <label class="naowee-dropdown__label">Estado de la superficie <span style="color:var(--accent)">*</span></label>
+                  <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="${data.estado ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${data.estado || 'Selecciona una opción'}</span>
+                    <span class="naowee-dropdown__controls">
+                      <span class="naowee-dropdown__chevron">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </span>
+                  </button>
+                  <div class="naowee-dropdown__menu" role="listbox"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+      `;
+      listEl.appendChild(section);
+
+      // Inicializar dropdowns de esta disciplina
+      const dd = section.querySelector(`[data-disc-dd="${CSS.escape(disc)}"]`);
+      if(dd){
+        const espacios = TIPOS_ESPACIO_POR_DISCIPLINA['default'];
+        // Reinit dropdown DS
+        const trigger = dd.querySelector('.naowee-dropdown__trigger');
+        const menu = dd.querySelector('.naowee-dropdown__menu');
+        const valueSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+        menu.innerHTML = '';
+        espacios.forEach(opt => {
+          const el = document.createElement('div');
+          el.className = 'naowee-dropdown__option';
+          el.setAttribute('role','option');
+          el.textContent = opt;
+          if(opt === data.espacioTipo) el.classList.add('naowee-dropdown__option--selected');
+          el.addEventListener('click', () => {
+            valueSpan.textContent = opt;
+            valueSpan.className = 'naowee-dropdown__value';
+            dd.classList.remove('naowee-dropdown--open');
+            trigger.setAttribute('aria-expanded','false');
+            reg3State.disciplinasData[disc].espacioTipo = opt;
+            renderReg3Disciplines(); // re-render para actualizar el título del espacio
+            validate3();
+          });
+          menu.appendChild(el);
+        });
+        trigger.addEventListener('click', e => {
+          e.stopPropagation();
+          document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== dd) o.classList.remove('naowee-dropdown--open'); });
+          dd.classList.toggle('naowee-dropdown--open');
+          trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+        });
+      }
+
+      // Estado de superficie dropdown
+      const ddEstado = section.querySelector(`[data-disc-estado="${CSS.escape(disc)}"]`);
+      if(ddEstado){
+        const trigger = ddEstado.querySelector('.naowee-dropdown__trigger');
+        const menu = ddEstado.querySelector('.naowee-dropdown__menu');
+        const valueSpan = ddEstado.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+        menu.innerHTML = '';
+        ESTADO_SUPERFICIE.forEach(opt => {
+          const el = document.createElement('div');
+          el.className = 'naowee-dropdown__option';
+          el.setAttribute('role','option');
+          el.textContent = opt;
+          if(opt === data.estado) el.classList.add('naowee-dropdown__option--selected');
+          el.addEventListener('click', () => {
+            valueSpan.textContent = opt;
+            valueSpan.className = 'naowee-dropdown__value';
+            ddEstado.classList.remove('naowee-dropdown--open');
+            trigger.setAttribute('aria-expanded','false');
+            reg3State.disciplinasData[disc].estado = opt;
+            validate3();
+          });
+          menu.appendChild(el);
+        });
+        trigger.addEventListener('click', e => {
+          e.stopPropagation();
+          document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== ddEstado) o.classList.remove('naowee-dropdown--open'); });
+          ddEstado.classList.toggle('naowee-dropdown--open');
+          trigger.setAttribute('aria-expanded', ddEstado.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+        });
+      }
+
+      // Steppers +/-
+      section.querySelectorAll('[data-disc-step]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const d = btn.dataset.disc;
+          const op = btn.dataset.discStep;
+          if(op === 'plus'){
+            reg3State.disciplinasData[d].cantidad++;
+          } else {
+            reg3State.disciplinasData[d].cantidad = Math.max(0, reg3State.disciplinasData[d].cantidad - 1);
+          }
+          renderReg3Disciplines();
+          validate3();
+        });
+      });
+
+      // Inputs de largo, ancho, numCanchas (con sanitización numérica)
+      section.querySelectorAll('[data-disc-field]').forEach(inp => {
+        inp.addEventListener('input', () => {
+          const d = inp.dataset.disc;
+          const f = inp.dataset.discField;
+          const mode = inp.dataset.numeric;
+          let v = inp.value;
+          if(mode === 'int'){
+            v = v.replace(/\D/g,'');
+          } else if(mode === 'decimal'){
+            // Solo dígitos y un punto decimal
+            v = v.replace(/[^0-9.]/g,'');
+            const parts = v.split('.');
+            if(parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+          }
+          if(v !== inp.value) inp.value = v;
+          reg3State.disciplinasData[d][f] = v;
+          validate3();
+        });
+        inp.addEventListener('keypress', e => {
+          const mode = inp.dataset.numeric;
+          if(mode === 'int' && !/[0-9]/.test(e.key) && e.key.length === 1) e.preventDefault();
+          if(mode === 'decimal' && !/[0-9.]/.test(e.key) && e.key.length === 1) e.preventDefault();
+        });
+      });
+
+      // Toggle colapsar/expandir space
+      const spaceEl = section.querySelector('[data-disc-space]');
+      if(spaceEl){
+        spaceEl.querySelector('.reg3-space__header').addEventListener('click', () => {
+          spaceEl.classList.toggle('collapsed');
+        });
+      }
+    });
+
+    // Observer para el float del multi-select cuando hay nuevos dropdowns dentro del modal 3
+    setTimeout(() => {
+      listEl.querySelectorAll('.naowee-dropdown').forEach(dd => {
+        ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
+      });
+    }, 100);
+  }
+
+  reg3DiscTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = reg3DiscEl.classList.contains('open');
+    if(!wasOpen){
+      document.querySelectorAll('.naowee-dropdown--open').forEach(dd => dd.classList.remove('naowee-dropdown--open'));
+      tempDisc = [...reg3State.disciplinas];
+      renderReg3DiscOptions();
+      reg3DiscEl.classList.add('open');
+      reg3FloatMulti();
+    } else {
+      reg3DiscEl.classList.remove('open');
+      reg3UnfloatMulti();
+    }
+  });
+  reg3DiscConfirm.addEventListener('click', e => {
+    e.stopPropagation();
+    reg3State.disciplinas = [...tempDisc];
+    // Limpiar data de disciplinas quitadas
+    Object.keys(reg3State.disciplinasData).forEach(k => {
+      if(!reg3State.disciplinas.includes(k)) delete reg3State.disciplinasData[k];
+    });
+    renderReg3Chips();
+    renderReg3Disciplines();
+    document.getElementById('reg3DynamicSection').hidden = reg3State.disciplinas.length === 0;
+    reg3DiscEl.classList.remove('open');
+    reg3UnfloatMulti();
+    validate3();
+  });
+  document.addEventListener('click', e => {
+    if(!e.target.closest('#reg3DiscMulti') && !e.target.closest('.reg-multi__menu')){
+      if(reg3DiscEl.classList.contains('open')){
+        reg3DiscEl.classList.remove('open');
+        reg3UnfloatMulti();
+      }
+    }
+  });
+
+  /* ─── Validación modal 3 ─── */
+  function validate3(){
+    const s = reg3State;
+    let ok = !!s.tipoEscenario;
+    if(s.disciplinas.length > 0){
+      // Si hay disciplinas, cada una debe tener al menos tipo de espacio + cantidad
+      for(const d of s.disciplinas){
+        const dd = s.disciplinasData[d];
+        if(!dd || !dd.espacioTipo || dd.cantidad < 1) { ok = false; break; }
+        if(!dd.largo || !dd.ancho || !dd.numCanchas || !dd.estado) { ok = false; break; }
+      }
+    }
+    reg3SubmitBtn.disabled = !ok;
+  }
+
+  /* ─── Botón Volver del modal 3 ─── */
+  document.getElementById('reg3BtnBack').addEventListener('click', () => {
+    closeModal3();
+    modal2.classList.add('open');
+  });
+
+  /* ─── Submit modal 3: guarda todo y navega ─── */
+  reg3SubmitBtn.addEventListener('click', () => {
+    if(reg3SubmitBtn.disabled) return;
+    reg3SubmitBtn.classList.add('naowee-btn--loading');
+    setTimeout(() => {
+      try {
+        let arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]');
+        if(!Array.isArray(arr)) arr = [];
+        const prev = (editingDraftIdx != null && arr[editingDraftIdx]) || {};
+        const newData = Object.assign({}, prev, fullReg2Snapshot(), {
+          nombre: regState.nombre || prev.nombre || '',
+          catastral: regState.catastral || prev.catastral || '',
+          departamento: regState.departamento || prev.departamento || '',
+          municipio: regState.municipio || prev.municipio || '',
+          lat: regState.lat != null ? regState.lat : (prev.lat != null ? prev.lat : null),
+          lon: regState.lon != null ? regState.lon : (prev.lon != null ? prev.lon : null),
+          direccion: regState.direccion || prev.direccion || '',
+          corregimiento: regState.corregimiento || prev.corregimiento || '',
+          zona: regState.zona || prev.zona || '',
+          // datos deportivos
+          car: reg3State.car,
+          tipoEscenario: reg3State.tipoEscenario,
+          disciplinas: [...reg3State.disciplinas],
+          compartenEscenario: reg3State.compartenEscenario,
+          compartenDetalles: reg3State.compartenDetalles,
+          disciplinasData: JSON.parse(JSON.stringify(reg3State.disciplinasData)),
+          savedAt: Date.now()
+        });
+        if(editingDraftIdx != null && arr[editingDraftIdx]){
+          arr[editingDraftIdx] = newData;
+        } else {
+          arr.push(newData);
+        }
+        sessionStorage.setItem('regDrafts', JSON.stringify(arr));
+      } catch(err){}
+      editingDraftIdx = null;
+      closeModal3();
+      const url = new URL(window.location.href);
+      url.searchParams.set('mode','single');
+      window.location.href = url.toString();
+    }, 700);
+  });
+
+  /* ─── Submit modal 2: abre modal 3 (paso siguiente) ─── */
+  reg2SubmitBtn.addEventListener('click', () => {
+    if(reg2SubmitBtn.disabled) return;
+    closeModal2();
+    // Pre-cargar datos del modal 3 si ya existían (modo edición)
+    if(editingDraftIdx != null){
+      try {
+        const arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]');
+        const d = arr[editingDraftIdx] || {};
+        reg3State.car = !!d.car;
+        reg3State.tipoEscenario = d.tipoEscenario || '';
+        reg3State.disciplinas = Array.isArray(d.disciplinas) ? [...d.disciplinas] : [];
+        reg3State.compartenEscenario = !!d.compartenEscenario;
+        reg3State.compartenDetalles = !!d.compartenDetalles;
+        reg3State.disciplinasData = d.disciplinasData ? JSON.parse(JSON.stringify(d.disciplinasData)) : {};
+        // Pintar UI
+        setCar(reg3State.car);
+        setComparten(reg3State.compartenEscenario);
+        setDetalles(reg3State.compartenDetalles);
+        const tipoEscSpan = document.querySelector('#reg3TipoEscDD .naowee-dropdown__placeholder, #reg3TipoEscDD .naowee-dropdown__value');
+        if(tipoEscSpan){
+          if(reg3State.tipoEscenario){
+            tipoEscSpan.textContent = reg3State.tipoEscenario;
+            tipoEscSpan.className = 'naowee-dropdown__value';
+          } else {
+            tipoEscSpan.textContent = 'Seleccione el tipo de escenario';
+            tipoEscSpan.className = 'naowee-dropdown__placeholder';
+          }
+        }
+        renderReg3Chips();
+        renderReg3Disciplines();
+        document.getElementById('reg3DynamicSection').hidden = reg3State.disciplinas.length === 0;
+      } catch(err){}
+    }
+    openModal3();
+    setTimeout(validate3, 50);
+  });
+
+  /* (legacy submit directo removido — ahora el flujo va modal 2 → modal 3) */
+
+  /* ─── MODAL 0 (READONLY) — mapa + precarga ─── */
+  const modal0 = document.getElementById('regModal0Overlay');
+  let map0Instance = null;
+  let marker0Instance = null;
+
+  function initMap0(){
+    if(map0Instance) return;
+    map0Instance = L.map('regMap0', {
+      zoomControl:true,
+      attributionControl:true,
+      dragging:true,
+      scrollWheelZoom:false
+    }).setView(DEFAULT_CENTER, 16);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20,
+      subdomains: 'abcd',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map0Instance);
+    const markerIcon = L.divIcon({
+      className: 'geo-marker',
+      html: '<svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 24 16 24s16-12 16-24C32 7.2 24.8 0 16 0z" fill="#d74009"/><circle cx="16" cy="16" r="6" fill="#fff"/></svg>',
+      iconSize: [32, 40],
+      iconAnchor: [16, 40]
+    });
+    marker0Instance = L.marker(DEFAULT_CENTER, {draggable:false, icon:markerIcon}).addTo(map0Instance);
+  }
+
+  function setMap0Coords(lat, lon){
+    if(!map0Instance) return;
+    const coords = [lat, lon];
+    map0Instance.setView(coords, 16);
+    marker0Instance.setLatLng(coords);
+    setTimeout(() => map0Instance.invalidateSize(), 150);
+  }
+
+  function closeModal0(){
+    modal0.classList.remove('open');
+  }
+
+  document.getElementById('regModal0Close').addEventListener('click', closeModal0);
+  modal0.addEventListener('click', e => { if(e.target === modal0) closeModal0(); });
+
+  // Continuar → cierra modal 0, abre modal 2 (ya pre-llenado en openEditDraft)
+  document.getElementById('regModal0Continue').addEventListener('click', () => {
+    closeModal0();
+    modal2Origin = 'edit'; // venimos del flujo de edición
+    modal2.classList.add('open');
+    setTimeout(validate2, 50);
+  });
+
+  /* ─── API pública: abrir modal 0 readonly + modal 2 preparado con datos del draft ─── */
+  window.openEditDraft = function(idx){
+    let arr = [];
+    try { arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]'); } catch(e){}
+    const d = arr[idx];
+    if(!d) return;
+    editingDraftIdx = idx;
+
+    // Precargar state del modal 1
+    regState.nombre = d.nombre || '';
+    regState.catastral = d.catastral || '';
+    regState.departamento = d.departamento || '';
+    regState.municipio = d.municipio || '';
+    regState.lat = (d.lat != null) ? d.lat : (regState.lat || null);
+    regState.lon = (d.lon != null) ? d.lon : (regState.lon || null);
+    regState.direccion = d.direccion || '';
+    regState.corregimiento = d.corregimiento || '';
+    regState.zona = d.zona || '';
+
+    // Precargar state del modal 2
+    reg2State.entidad = d.entidad || '';
+    reg2State.propietario = d.propietario || '';
+    reg2State.administradora = d.administradora || '';
+    reg2State.tenencia = d.tenencia || '';
+    reg2State.vencimiento = d.vencimiento || '';
+    reg2State.responsable = d.responsable || '';
+    reg2State.telefono = d.telefono || '';
+    reg2State.correoResp = d.correoResp || '';
+    reg2State.horario = d.horario || '';
+    reg2State.accesoPublico = !!d.accesoPublico;
+    reg2State.costo = d.costo || '';
+    reg2State.usos = Array.isArray(d.usos) ? [...d.usos] : [];
+    reg2State.usuarios = d.usuarios || '';
+
+    // Pintar inputs del modal 2
+    const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
+    setVal('reg2Entidad', d.entidad);
+    setVal('reg2Administradora', d.administradora);
+    setVal('reg2Responsable', d.responsable);
+    setVal('reg2Telefono', d.telefono);
+    setVal('reg2CorreoResp', d.correoResp);
+
+    // Pintar datepicker de vencimiento
+    if(d.vencimiento){
+      const parts = d.vencimiento.split('-');
+      if(parts.length === 3){
+        const dt = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+        reg2VencValue.textContent = reg2FormatDisplay(dt);
+        reg2VencValue.style.color = 'var(--naowee-color-text-primary,#282834)';
+      }
+    } else {
+      reg2VencValue.textContent = 'Selecciona una fecha';
+      reg2VencValue.style.color = 'var(--naowee-color-text-secondary,#646587)';
+    }
+
+    // Pintar dropdowns modal 2
+    function paintDropdown(ddId, value, placeholder){
+      const dd = document.getElementById(ddId);
+      if(!dd) return;
+      const span = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+      if(!span) return;
+      if(value){
+        span.textContent = value;
+        span.className = 'naowee-dropdown__value';
+        const opt = Array.from(dd.querySelectorAll('.naowee-dropdown__option')).find(o => o.textContent === value);
+        if(opt){
+          dd.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+          opt.classList.add('naowee-dropdown__option--selected');
+        }
+      } else {
+        span.textContent = placeholder;
+        span.className = 'naowee-dropdown__placeholder';
+      }
+    }
+    paintDropdown('reg2PropietarioDD', d.propietario, 'Seleccione un tipo');
+    paintDropdown('reg2TenenciaDD', d.tenencia, 'Seleccione un tipo');
+    paintDropdown('reg2HorarioDD', d.horario, 'Ej: Lunes a viernes 6 am - 10pm');
+    paintDropdown('reg2CostoDD', d.costo, 'Selecciona una opción');
+    paintDropdown('reg2UsuariosDD', d.usuarios, 'Selecciona una opción');
+
+    // Fecha vencimiento condicional
+    reg2FldVenc.hidden = !TENENCIAS_CON_VENCIMIENTO.has(reg2State.tenencia);
+
+    // Switch acceso público
+    setAcceso(reg2State.accesoPublico);
+
+    // Multi-select usos
+    renderMultiChips();
+
+    // ID único en ambos headers (0 y 2)
+    const displayId = d.catastral || '—';
+    document.getElementById('regModal0IdChip').textContent = displayId;
+    document.getElementById('regModal2IdChip').textContent = displayId;
+
+    // Pintar los campos readonly del modal 0
+    const setRo = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v || '—'; };
+    setRo('ro0Nombre', d.nombre);
+    setRo('ro0Departamento', d.departamento);
+    setRo('ro0Municipio', d.municipio);
+    setRo('ro0Catastral', d.catastral);
+    setRo('ro0Lat', d.lat != null ? d.lat : '—');
+    setRo('ro0Lon', d.lon != null ? d.lon : '—');
+    setRo('ro0Direccion', d.direccion);
+    setRo('ro0Corregimiento', d.corregimiento);
+    setRo('ro0Zona', d.zona);
+
+    // Abrir modal 0 e inicializar el mapa con las coordenadas del draft
+    modal0.classList.add('open');
+    setTimeout(() => {
+      initMap0();
+      if(d.lat != null && d.lon != null){
+        setMap0Coords(d.lat, d.lon);
+      } else {
+        if(map0Instance) map0Instance.invalidateSize();
+      }
+    }, 250);
+  };
+})();
+
+/* ═══ Dropdown Estados: menú funcional con selección ═══ */
+(function(){
+  const wrap = document.getElementById('ddEstadosWrap');
+  const btn = document.getElementById('ddEstados');
+  const label = document.getElementById('ddEstadosLabel');
+  const menu = document.getElementById('ddEstadosMenu');
+  const items = menu.querySelectorAll('.naowee-menu__item');
+
+  function close(){
+    wrap.classList.remove('open');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded','false');
+  }
+  function toggle(){
+    const isOpen = wrap.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    btn.setAttribute('aria-expanded', String(isOpen));
+  }
+
+  btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      items.forEach(i => i.setAttribute('aria-selected','false'));
+      item.setAttribute('aria-selected','true');
+      const text = item.textContent.trim();
+      label.textContent = item.dataset.value === 'todos' ? 'Estados' : text;
+      close();
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if(!wrap.contains(e.target)) close();
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') close();
+  });
+})();
+
+/* ═══ Cerrar sesión: limpia drafts acumulados y navega al login ═══ */
+document.getElementById('btnLogout')?.addEventListener('click', () => {
+  try { sessionStorage.removeItem('regDrafts'); } catch(e){}
+  window.location.href = 'escenario-01-login.html';
+});
+</script>
+
+</body>
+</html>
