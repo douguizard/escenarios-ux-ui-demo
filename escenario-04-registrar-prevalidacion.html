@@ -6,6 +6,7 @@
 <title>SUID – Pre-validación (1/3)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="shared/design-system.css"/>
+<link rel="stylesheet" href="shared/wizard-shell.css"/>
 <link rel="stylesheet" href="shared/transitions.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -16,38 +17,10 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* ═══ SHELL ═══ */
-.auth-shell{min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden}
-.auth-shell::before{
-  content:'';position:absolute;right:-280px;bottom:-280px;width:720px;height:720px;
-  background:radial-gradient(circle,rgba(255,117,0,.10) 0%,rgba(255,117,0,0) 70%);
-  pointer-events:none;z-index:0;
-}
-
-/* ═══ HEADER ═══ */
-.auth-header{
-  padding:40px 40px 0 40px;display:flex;align-items:flex-start;justify-content:space-between;
-  position:relative;z-index:10;gap:24px;
-}
-.auth-header__logos{display:flex;align-items:center;gap:24px}
-.logo-naowee{height:33px;width:auto;display:block}
-.logo-sep{width:1px;height:32px;background:var(--naowee-color-border-default,#d0d4e6)}
-.logo-ministerio{height:46px;width:auto;display:block}
-.logo-colombia{height:48px;width:auto;display:block}
-.auth-header__actions{
-  padding-top:12px;font-size:16px;line-height:24px;
-  color:var(--naowee-color-text-secondary,#646587);text-align:right;
-}
-.auth-header__actions a{
-  color:var(--naowee-color-text-accent,#d74009);
-  font-weight:600;text-decoration:underline;margin-left:4px;
-}
-.auth-header__actions a:hover{color:#b03507}
-
 /* ═══ MAIN ═══ */
 .auth-main{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  padding:60px 24px 40px 24px;position:relative;z-index:1;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:40px 24px 60px 24px;position:relative;z-index:1;
 }
 
 .wizard-form{
@@ -115,10 +88,6 @@ body{
 
 /* Responsive */
 @media(max-width:640px){
-  .auth-header{padding:24px 20px 0 20px;flex-wrap:wrap}
-  .auth-header__logos{gap:12px}
-  .logo-sep,.logo-ministerio,.logo-colombia{display:none}
-  .auth-header__actions{padding-top:0;font-size:14px}
   .wizard-title{font-size:24px;line-height:32px}
   .wizard-row{flex-direction:column}
   .wizard-cta{width:100%}
@@ -178,6 +147,12 @@ body{
                 required
               />
             </div>
+            <div class="naowee-helper naowee-helper--negative" id="helpNombre" hidden>
+              <div class="naowee-helper__text">
+                <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                Este campo es obligatorio
+              </div>
+            </div>
           </div>
 
           <!-- Row: Departamento + Municipio -->
@@ -194,6 +169,12 @@ body{
                 </span>
               </button>
               <div class="naowee-dropdown__menu" role="listbox" id="depMenu"></div>
+              <div class="naowee-helper naowee-helper--negative" id="helpDep" hidden>
+                <div class="naowee-helper__text">
+                  <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  Este campo es obligatorio
+                </div>
+              </div>
             </div>
 
             <div class="naowee-dropdown naowee-dropdown--disabled" id="municipioDD">
@@ -207,6 +188,12 @@ body{
                 </span>
               </button>
               <div class="naowee-dropdown__menu" role="listbox" id="mpioMenu"></div>
+              <div class="naowee-helper naowee-helper--negative" id="helpMpio" hidden>
+                <div class="naowee-helper__text">
+                  <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  Este campo es obligatorio
+                </div>
+              </div>
             </div>
 
           </div>
@@ -227,6 +214,27 @@ body{
                 required
               />
             </div>
+            <div class="naowee-helper naowee-helper--negative" id="helpCatastral" hidden>
+              <div class="naowee-helper__text">
+                <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                <span id="helpCatastralMsg">Este campo es obligatorio</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Catastral duplicate message (usa .naowee-message negative) -->
+          <div class="naowee-message naowee-message--negative" id="catastralDupMsg" hidden>
+            <div class="naowee-message__header">
+              <div class="naowee-message__icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="8" x2="12" y2="8"/>
+                </svg>
+              </div>
+              <div class="naowee-message__title">Error de validación</div>
+            </div>
+            <p class="naowee-message__text">
+              No se puede hacer el registro porque, ya existe una sede o escenario con el mismo número de registro catastral. <strong>Modifica los datos para continuar.</strong>
+            </p>
           </div>
 
           <!-- Correo electrónico (with email validation) -->
@@ -246,7 +254,13 @@ body{
                 <svg viewBox="0 0 24 24" fill="none" stroke="#1f8923" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
               </div>
             </div>
-            <div class="naowee-textfield__helper" id="correoHelper" style="display:none;font-size:12px;padding-top:4px;color:var(--naowee-color-text-secondary,#646587)">Correo electrónico registrado en la plataforma.</div>
+            <!-- Helper: default (secondary), positive when valid+available, negative when empty/invalid -->
+            <div class="naowee-helper" id="helpCorreo" hidden>
+              <div class="naowee-helper__text" id="helpCorreoText">
+                <span class="naowee-helper__badge" id="helpCorreoBadge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                <span id="helpCorreoMsg">Este campo es obligatorio</span>
+              </div>
+            </div>
           </div>
 
           <!-- Message (uses DS naowee-message component) -->
@@ -404,8 +418,9 @@ document.addEventListener('click', (e) => {
 });
 
 /* ═══════════════════════════════════════════════════════════════
-   SIMULATED REGISTERED EMAILS (demo only)
+   SIMULATED DATA (demo only)
    ═══════════════════════════════════════════════════════════════ */
+// Emails ya registrados en la plataforma (cuentas de ciudadano)
 const REGISTERED_EMAILS = [
   'mariana.rodriguez@gmail.com',
   'iveth@gmail.com',
@@ -413,6 +428,12 @@ const REGISTERED_EMAILS = [
   'admin@naowee.com',
   'carlos.lopez@naowee.com',
   'test@test.com'
+];
+// Números catastrales ya usados en otro escenario registrado
+const REGISTERED_CATASTRALES = [
+  '080010101000000010901900000012',
+  '110010101000000010101010101010',
+  '050010101000000020202020202020'
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -423,20 +444,23 @@ const state = {
   departamento: '',
   municipio: '',
   catastral: '',
+  catastralState: 'empty', // 'empty' | 'short' | 'duplicate' | 'valid'
   correo: '',
-  emailState: 'empty' // 'empty' | 'invalid' | 'registered' | 'available'
+  emailState: 'empty' // 'empty' | 'invalid' | 'not_registered' | 'valid'
 };
 
 // Initialize Departamento dropdown
 initDropdown('departamentoDD', Object.keys(COLOMBIA), (dep) => {
   state.departamento = dep;
   state.municipio = '';
+  hideHelperError('helpDep','departamentoDD');
   // Reset municipio value span back to placeholder + repopulate
   const mpioValue = document.getElementById('mpioValue');
   mpioValue.textContent = 'Selecciona municipio';
   mpioValue.className = 'naowee-dropdown__placeholder';
   initDropdown('municipioDD', COLOMBIA[dep], (mpio) => {
     state.municipio = mpio;
+    hideHelperError('helpMpio','municipioDD');
     validate();
   }, false);
   validate();
@@ -454,17 +478,43 @@ const nombreInput = document.getElementById('nombre');
 const fldNombre = document.getElementById('fldNombre');
 nombreInput.addEventListener('input', (e) => {
   state.nombre = e.target.value.trim();
-  if(state.nombre && state.nombre.length < 5){
-    fldNombre.classList.add('naowee-textfield--error');
-  } else {
-    fldNombre.classList.remove('naowee-textfield--error');
+  if(state.nombre.length >= 5){
+    hideHelperError('helpNombre','fldNombre');
   }
   validate();
 });
+nombreInput.addEventListener('blur', () => {
+  if(!state.nombre){
+    showHelperError('helpNombre','fldNombre');
+  }
+});
 
-// Catastral: NUMERIC ONLY (filter non-digits in real time)
+// Catastral: NUMERIC ONLY + duplicate check
 const catastralInput = document.getElementById('catastral');
 const fldCatastral = document.getElementById('fldCatastral');
+const catastralDupMsg = document.getElementById('catastralDupMsg');
+const helpCatastralMsg = document.getElementById('helpCatastralMsg');
+
+function updateCatastralState(){
+  fldCatastral.classList.remove('naowee-textfield--caution','naowee-textfield--error','naowee-textfield--validated');
+  catastralDupMsg.hidden = true;
+
+  if(!state.catastral){
+    state.catastralState = 'empty';
+  } else if(state.catastral.length < 10){
+    state.catastralState = 'short';
+    fldCatastral.classList.add('naowee-textfield--caution');
+  } else if(REGISTERED_CATASTRALES.includes(state.catastral)){
+    state.catastralState = 'duplicate';
+    fldCatastral.classList.add('naowee-textfield--error');
+    catastralDupMsg.hidden = false;
+  } else {
+    state.catastralState = 'valid';
+    fldCatastral.classList.add('naowee-textfield--validated');
+    hideHelperError('helpCatastral','fldCatastral');
+  }
+}
+
 catastralInput.addEventListener('input', (e) => {
   // Strip non-digit characters immediately
   const cleaned = e.target.value.replace(/\D/g, '');
@@ -472,28 +522,51 @@ catastralInput.addEventListener('input', (e) => {
     e.target.value = cleaned;
   }
   state.catastral = cleaned;
-  if(state.catastral && state.catastral.length < 10){
-    fldCatastral.classList.add('naowee-textfield--caution');
-  } else {
-    fldCatastral.classList.remove('naowee-textfield--caution');
-  }
+  updateCatastralState();
   validate();
 });
-// Block non-numeric keys on paste as safety
+// Block non-numeric keys as safety
 catastralInput.addEventListener('keypress', (e) => {
   if(!/[0-9]/.test(e.key) && e.key.length === 1){ e.preventDefault(); }
+});
+catastralInput.addEventListener('blur', () => {
+  if(!state.catastral){
+    helpCatastralMsg.textContent = 'Este campo es obligatorio';
+    showHelperError('helpCatastral','fldCatastral');
+  }
 });
 
 // Correo: email format + registered/available check
 const correoInput = document.getElementById('correo');
 const fldCorreo = document.getElementById('fldCorreo');
 const correoCheck = document.getElementById('correoCheck');
-const correoHelper = document.getElementById('correoHelper');
+const helpCorreo = document.getElementById('helpCorreo');
+const helpCorreoMsg = document.getElementById('helpCorreoMsg');
 const wizardInfo = document.getElementById('wizardInfo');
 const wizardInfoIcon = document.getElementById('wizardInfoIcon');
 const wizardInfoText = document.getElementById('wizardInfoText');
 const wizardInfoBtn = document.getElementById('wizardInfoBtn');
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPER UTILITIES — show/hide DS helpers on required fields
+   ═══════════════════════════════════════════════════════════════ */
+function showHelperError(helperId, fieldId){
+  const el = document.getElementById(helperId);
+  if(el) el.hidden = false;
+  if(fieldId){
+    const f = document.getElementById(fieldId);
+    if(f) f.classList.add('naowee-textfield--error','naowee-dropdown--error');
+  }
+}
+function hideHelperError(helperId, fieldId){
+  const el = document.getElementById(helperId);
+  if(el) el.hidden = true;
+  if(fieldId){
+    const f = document.getElementById(fieldId);
+    if(f) f.classList.remove('naowee-textfield--error','naowee-dropdown--error');
+  }
+}
 
 const ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg>';
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>';
@@ -505,13 +578,23 @@ correoInput.addEventListener('input', (e) => {
     state.emailState = 'empty';
   } else if(!emailRegex.test(state.correo)){
     state.emailState = 'invalid';
+  } else if(REGISTERED_EMAILS.includes(state.correo.toLowerCase())){
+    state.emailState = 'valid';
   } else {
-    state.emailState = REGISTERED_EMAILS.includes(state.correo.toLowerCase())
-      ? 'registered'
-      : 'available';
+    state.emailState = 'not_registered';
   }
   updateEmailUI();
   validate();
+});
+correoInput.addEventListener('blur', () => {
+  if(!state.correo){
+    // Show "required" helper
+    fldCorreo.classList.add('naowee-textfield--error');
+    helpCorreo.classList.remove('naowee-helper--positive','naowee-helper--informative');
+    helpCorreo.classList.add('naowee-helper--negative');
+    helpCorreoMsg.textContent = 'Este campo es obligatorio';
+    helpCorreo.hidden = false;
+  }
 });
 
 function setMessageVariant(variant){
@@ -522,13 +605,15 @@ function setMessageVariant(variant){
 }
 
 function updateEmailUI(){
-  // Reset field states
+  // Reset field + helper states
   fldCorreo.classList.remove('naowee-textfield--active','naowee-textfield--error','naowee-textfield--validated');
   correoCheck.style.display = 'none';
-  correoHelper.style.display = 'none';
+  helpCorreo.hidden = true;
+  helpCorreo.classList.remove('naowee-helper--negative','naowee-helper--positive','naowee-helper--informative');
 
   switch(state.emailState){
     case 'empty':
+      // Default alert: invita a usar un correo ya registrado
       setMessageVariant('informative');
       wizardInfoText.innerHTML = 'Usa un correo electrónico que ya esté registrado en la plataforma. Esto nos permitirá validar tu acceso y continuar con el registro. <strong>¿Aún no estás registrado?</strong>';
       wizardInfoBtn.textContent = 'Ir al registro ciudadano.';
@@ -538,25 +623,33 @@ function updateEmailUI(){
 
     case 'invalid':
       fldCorreo.classList.add('naowee-textfield--error');
+      helpCorreo.classList.add('naowee-helper--negative');
+      helpCorreoMsg.textContent = 'Ingresa un correo electrónico válido';
+      helpCorreo.hidden = false;
       break;
 
-    case 'registered':
-      fldCorreo.classList.add('naowee-textfield--validated');
-      correoCheck.style.display = 'flex';
-      correoHelper.textContent = 'Correo electrónico registrado en la plataforma.';
-      correoHelper.style.display = 'block';
+    case 'not_registered':
+      // Marca el campo en error + muestra mensaje: debe crear cuenta primero
+      fldCorreo.classList.add('naowee-textfield--error');
+      helpCorreo.classList.add('naowee-helper--negative');
+      helpCorreoMsg.textContent = 'El correo electrónico no está registrado';
+      helpCorreo.hidden = false;
       setMessageVariant('informative');
-      wizardInfoText.innerHTML = 'Este correo ya está registrado en la plataforma. <strong>Inicia sesión para continuar con el registro del escenario.</strong>';
-      wizardInfoBtn.style.display = 'none';
+      wizardInfoText.innerHTML = 'Para registrar una sede o escenario, primero debes tener una cuenta como ciudadano. <strong>Crea tu cuenta y luego vuelve a este registro.</strong>';
+      wizardInfoBtn.textContent = 'Ir al registro ciudadano.';
+      wizardInfoBtn.onclick = () => alert('Registro ciudadano — Próximamente');
+      wizardInfoBtn.style.display = '';
       break;
 
-    case 'available':
+    case 'valid':
+      // Correo registrado → CTA habilitado para Siguiente
       fldCorreo.classList.add('naowee-textfield--validated');
       correoCheck.style.display = 'flex';
-      correoHelper.textContent = 'Nuevo correo. Continuarás como registro ciudadano.';
-      correoHelper.style.display = 'block';
+      helpCorreo.classList.add('naowee-helper--positive');
+      helpCorreoMsg.textContent = 'Correo electrónico registrado en la plataforma.';
+      helpCorreo.hidden = false;
       setMessageVariant('positive');
-      wizardInfoText.innerHTML = 'Este correo no está registrado. <strong>Puedes continuar con el registro del escenario y tu cuenta se creará al finalizar.</strong>';
+      wizardInfoText.innerHTML = 'Tu cuenta está verificada. <strong>Puedes continuar con el registro del escenario.</strong>';
       wizardInfoBtn.style.display = 'none';
       break;
   }
@@ -572,43 +665,55 @@ function validate(){
   const basicOk = state.nombre.length >= 5
     && state.departamento
     && state.municipio
-    && state.catastral.length >= 10;
+    && state.catastralState === 'valid'
+    && state.emailState === 'valid';
 
-  if(state.emailState === 'registered'){
-    // Email already registered → button becomes "Iniciar sesión"
-    siguienteLabel.textContent = 'Iniciar sesión';
-    siguienteBtn.disabled = false;
-    siguienteBtn.dataset.action = 'login';
-  } else if(state.emailState === 'available'){
-    // New email → allow continue to next step
-    siguienteLabel.textContent = 'Siguiente';
-    siguienteBtn.disabled = !basicOk;
-    siguienteBtn.dataset.action = 'next';
-  } else {
-    // Empty or invalid email
-    siguienteLabel.textContent = 'Siguiente';
-    siguienteBtn.disabled = true;
-    siguienteBtn.dataset.action = 'next';
-  }
+  siguienteLabel.textContent = 'Siguiente';
+  siguienteBtn.disabled = !basicOk;
+  siguienteBtn.dataset.action = 'next';
 }
 
 /* ═══════════════════════════════════════════════════════════════
    SUBMIT
    ═══════════════════════════════════════════════════════════════ */
+function validateAllRequired(){
+  let firstInvalid = null;
+  if(!state.nombre){ showHelperError('helpNombre','fldNombre'); firstInvalid ||= nombreInput; }
+  if(!state.departamento){ showHelperError('helpDep','departamentoDD'); firstInvalid ||= document.getElementById('depTrigger'); }
+  if(!state.municipio){ showHelperError('helpMpio','municipioDD'); firstInvalid ||= document.getElementById('mpioTrigger'); }
+  if(!state.catastral){
+    helpCatastralMsg.textContent = 'Este campo es obligatorio';
+    showHelperError('helpCatastral','fldCatastral');
+    firstInvalid ||= catastralInput;
+  } else if(state.catastralState !== 'valid'){
+    // Duplicated or too short — state already handled by updateCatastralState
+    firstInvalid ||= catastralInput;
+  }
+  if(!state.correo){
+    fldCorreo.classList.add('naowee-textfield--error');
+    helpCorreo.classList.add('naowee-helper--negative');
+    helpCorreoMsg.textContent = 'Este campo es obligatorio';
+    helpCorreo.hidden = false;
+    firstInvalid ||= correoInput;
+  } else if(state.emailState !== 'valid'){
+    firstInvalid ||= correoInput;
+  }
+  if(firstInvalid && firstInvalid.focus){
+    firstInvalid.focus();
+    firstInvalid.scrollIntoView?.({block:'center',behavior:'smooth'});
+  }
+  return !firstInvalid;
+}
+
 document.getElementById('prevalidacionForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const action = siguienteBtn.dataset.action;
-  if(action === 'login'){
-    window.wizardNavigate
-      ? window.wizardNavigate('escenario-01-login.html')
-      : (window.location.href = 'escenario-01-login.html');
-  } else {
-    window.wizardNavigate
-      ? window.wizardNavigate('escenario-05-registrar-georreferenciacion.html')
-      : (window.location.href = 'escenario-05-registrar-georreferenciacion.html');
-  }
+  if(!validateAllRequired()) return;
+  window.wizardNavigate
+    ? window.wizardNavigate('escenario-05-registrar-georreferenciacion.html')
+    : (window.location.href = 'escenario-05-registrar-georreferenciacion.html');
 });
 </script>
+<script src="shared/wizard-shell.js"></script>
 <script src="shared/transitions.js"></script>
 
 </body>

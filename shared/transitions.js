@@ -7,9 +7,13 @@
 (function(){
   const EXIT_MS = 240;
 
-  // Entrance on load
+  // Entrance on load — remove class after animation completes
+  // so the matrix transform doesn't break position:sticky descendants
   function enter(){
     document.body.classList.add('wizard-page-enter');
+    setTimeout(() => {
+      document.body.classList.remove('wizard-page-enter');
+    }, 500);
   }
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', enter);

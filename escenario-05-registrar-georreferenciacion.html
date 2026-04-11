@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <link rel="stylesheet" href="shared/design-system.css"/>
+<link rel="stylesheet" href="shared/wizard-shell.css"/>
 <link rel="stylesheet" href="shared/transitions.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -17,38 +18,10 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* ═══ SHELL ═══ */
-.auth-shell{min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;overflow:hidden}
-.auth-shell::before{
-  content:'';position:absolute;right:-280px;bottom:-280px;width:720px;height:720px;
-  background:radial-gradient(circle,rgba(255,117,0,.10) 0%,rgba(255,117,0,0) 70%);
-  pointer-events:none;z-index:0;
-}
-
-/* ═══ HEADER ═══ */
-.auth-header{
-  padding:40px 40px 0 40px;display:flex;align-items:flex-start;justify-content:space-between;
-  position:relative;z-index:10;gap:24px;
-}
-.auth-header__logos{display:flex;align-items:center;gap:24px}
-.logo-naowee{height:33px;width:auto;display:block}
-.logo-sep{width:1px;height:32px;background:var(--naowee-color-border-default,#d0d4e6)}
-.logo-ministerio{height:46px;width:auto;display:block}
-.logo-colombia{height:48px;width:auto;display:block}
-.auth-header__actions{
-  padding-top:12px;font-size:16px;line-height:24px;
-  color:var(--naowee-color-text-secondary,#646587);text-align:right;
-}
-.auth-header__actions a{
-  color:var(--naowee-color-text-accent,#d74009);
-  font-weight:600;text-decoration:underline;margin-left:4px;
-}
-.auth-header__actions a:hover{color:#b03507}
-
 /* ═══ MAIN ═══ */
 .auth-main{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  padding:60px 24px 40px 24px;position:relative;z-index:1;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:40px 24px 60px 24px;position:relative;z-index:1;
 }
 .wizard-form{width:100%;max-width:528px;display:flex;flex-direction:column;gap:48px}
 
@@ -138,10 +111,6 @@ body{
 
 /* Responsive */
 @media(max-width:640px){
-  .auth-header{padding:24px 20px 0 20px;flex-wrap:wrap}
-  .auth-header__logos{gap:12px}
-  .logo-sep,.logo-ministerio,.logo-colombia{display:none}
-  .auth-header__actions{padding-top:0;font-size:14px}
   .wizard-title{font-size:24px;line-height:32px}
   .wizard-row{flex-direction:column}
   .wizard-footer__group{width:100%}
@@ -204,7 +173,7 @@ body{
           <!-- Lat + Lon row -->
           <div class="wizard-row">
 
-            <div class="geo-textfield geo-textfield--number">
+            <div class="geo-textfield geo-textfield--number" id="fldLat">
               <label class="geo-textfield__label" for="lat">
                 Latitud<span class="req">*</span>
                 <span class="geo-textfield__tooltip">
@@ -221,9 +190,15 @@ body{
                 autocomplete="off"
                 required
               />
+              <div class="naowee-helper naowee-helper--negative" id="helpLat" hidden>
+                <div class="naowee-helper__text">
+                  <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  Este campo es obligatorio
+                </div>
+              </div>
             </div>
 
-            <div class="geo-textfield geo-textfield--number">
+            <div class="geo-textfield geo-textfield--number" id="fldLon">
               <label class="geo-textfield__label" for="lon">
                 Longitud<span class="req">*</span>
                 <span class="geo-textfield__tooltip">
@@ -240,12 +215,33 @@ body{
                 autocomplete="off"
                 required
               />
+              <div class="naowee-helper naowee-helper--negative" id="helpLon" hidden>
+                <div class="naowee-helper__text">
+                  <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  Este campo es obligatorio
+                </div>
+              </div>
             </div>
 
           </div>
 
+          <!-- Informative helper: Google Maps link -->
+          <div class="naowee-helper naowee-helper--informative" style="padding-top:0">
+            <div class="naowee-helper__text" style="flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:flex-start;gap:4px">
+                <span class="naowee-helper__badge" style="margin-top:2px"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="4" x2="6" y2="6"/><line x1="6" y1="8" x2="6" y2="8.01"/></svg></span>
+                <div>
+                  <div style="font-weight:400;color:var(--naowee-color-text-secondary,#646587)">¿Cómo obtener coordenadas desde Google Maps?</div>
+                  <div style="font-weight:400;color:var(--naowee-color-text-secondary,#646587);padding-top:4px">
+                    Para el registro manual puede dirigirse a <a href="https://www.google.com/maps" target="_blank" rel="noopener" style="color:var(--naowee-color-text-link-idle,#006aff);text-decoration:underline">Google Maps.</a> Ubique el marcador en la ubicación correspondiente, haga clic derecho sobre el icono y seleccione la primera opción.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Dirección -->
-          <div class="geo-textfield">
+          <div class="geo-textfield" id="fldDireccion">
             <label class="geo-textfield__label" for="direccion">Dirección del escenario<span class="req">*</span></label>
             <input
               type="text"
@@ -257,6 +253,12 @@ body{
               autocomplete="street-address"
               required
             />
+            <div class="naowee-helper naowee-helper--negative" id="helpDireccion" hidden>
+              <div class="naowee-helper__text">
+                <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                Este campo es obligatorio
+              </div>
+            </div>
           </div>
 
           <!-- Corregimiento + Zona row -->
@@ -285,6 +287,12 @@ body{
                 </span>
               </button>
               <div class="naowee-dropdown__menu" role="listbox" id="zonaMenu"></div>
+              <div class="naowee-helper naowee-helper--negative" id="helpZona" hidden>
+                <div class="naowee-helper__text">
+                  <span class="naowee-helper__badge"><svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  Este campo es obligatorio
+                </div>
+              </div>
             </div>
 
           </div>
@@ -331,6 +339,24 @@ const state = {
   corregimiento: '',
   zona: ''
 };
+
+/* Helper utilities */
+function showHelperError(helperId, fieldId){
+  const el = document.getElementById(helperId);
+  if(el) el.hidden = false;
+  if(fieldId){
+    const f = document.getElementById(fieldId);
+    if(f) f.classList.add('naowee-dropdown--error');
+  }
+}
+function hideHelperError(helperId, fieldId){
+  const el = document.getElementById(helperId);
+  if(el) el.hidden = true;
+  if(fieldId){
+    const f = document.getElementById(fieldId);
+    if(f) f.classList.remove('naowee-dropdown--error');
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════════
    LEAFLET MAP (Puerto Colombia default)
@@ -441,6 +467,7 @@ latInput.addEventListener('input', (e) => {
   const lat = parseFloat(cleaned);
   if(!isNaN(lat) && lat >= -4.23 && lat <= 12.53){
     state.lat = lat;
+    hideHelperError('helpLat');
     if(state.lon != null){
       marker.setLatLng([lat, state.lon]);
       map.panTo([lat, state.lon]);
@@ -450,6 +477,9 @@ latInput.addEventListener('input', (e) => {
   }
   validate();
 });
+latInput.addEventListener('blur', () => {
+  if(state.lat == null){ showHelperError('helpLat'); }
+});
 
 lonInput.addEventListener('input', (e) => {
   const cleaned = sanitizeDecimal(e.target.value);
@@ -457,6 +487,7 @@ lonInput.addEventListener('input', (e) => {
   const lon = parseFloat(cleaned);
   if(!isNaN(lon) && lon >= -81.73 && lon <= -66.87){
     state.lon = lon;
+    hideHelperError('helpLon');
     if(state.lat != null){
       marker.setLatLng([state.lat, lon]);
       map.panTo([state.lat, lon]);
@@ -466,13 +497,21 @@ lonInput.addEventListener('input', (e) => {
   }
   validate();
 });
+lonInput.addEventListener('blur', () => {
+  if(state.lon == null){ showHelperError('helpLon'); }
+});
 
 /* ═══════════════════════════════════════════════════════════════
    OTHER FIELDS
    ═══════════════════════════════════════════════════════════════ */
-document.getElementById('direccion').addEventListener('input', (e) => {
+const direccionInput = document.getElementById('direccion');
+direccionInput.addEventListener('input', (e) => {
   state.direccion = e.target.value.trim();
+  if(state.direccion.length >= 5){ hideHelperError('helpDireccion'); }
   validate();
+});
+direccionInput.addEventListener('blur', () => {
+  if(!state.direccion){ showHelperError('helpDireccion'); }
 });
 document.getElementById('corregimiento').addEventListener('input', (e) => {
   state.corregimiento = e.target.value.trim();
@@ -517,6 +556,7 @@ function initDropdown(ddId, options, onSelect){
 
 initDropdown('zonaDD', ['Urbana','Rural'], (val) => {
   state.zona = val;
+  hideHelperError('helpZona','zonaDD');
   validate();
 });
 
@@ -547,8 +587,22 @@ updateCoords(DEFAULT_CENTER[0], DEFAULT_CENTER[1]);
 /* ═══════════════════════════════════════════════════════════════
    SUBMIT
    ═══════════════════════════════════════════════════════════════ */
+function validateAllRequired(){
+  let firstInvalid = null;
+  if(state.lat == null){ showHelperError('helpLat'); firstInvalid ||= latInput; }
+  if(state.lon == null){ showHelperError('helpLon'); firstInvalid ||= lonInput; }
+  if(!state.direccion){ showHelperError('helpDireccion'); firstInvalid ||= direccionInput; }
+  if(!state.zona){ showHelperError('helpZona','zonaDD'); firstInvalid ||= document.getElementById('zonaTrigger'); }
+  if(firstInvalid && firstInvalid.focus){
+    firstInvalid.focus();
+    firstInvalid.scrollIntoView?.({block:'center',behavior:'smooth'});
+  }
+  return !firstInvalid;
+}
+
 document.getElementById('georForm').addEventListener('submit', (e) => {
   e.preventDefault();
+  if(!validateAllRequired()) return;
   const url = 'escenario-06-registrar-propiedad.html';
   if(window.wizardNavigate){
     window.wizardNavigate(url);
@@ -557,6 +611,7 @@ document.getElementById('georForm').addEventListener('submit', (e) => {
   }
 });
 </script>
+<script src="shared/wizard-shell.js"></script>
 <script src="shared/transitions.js"></script>
 
 </body>
