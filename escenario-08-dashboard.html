@@ -317,6 +317,8 @@
   animation:regScale .35s cubic-bezier(.175,.885,.32,1.275);
   overflow:hidden;
 }
+/* Modal 3 es más ancho para acomodar el stepper horizontal con labels al costado */
+#regModal3Overlay .reg-modal{width:680px}
 @keyframes regScale{
   from{opacity:0;transform:scale(.92) translateY(24px)}
   to{opacity:1;transform:scale(1) translateY(0)}
@@ -468,6 +470,11 @@
 }
 .reg-modal .naowee-dropdown__trigger:hover{
   border-color:var(--naowee-color-gray-700,#646587);
+}
+/* Dropdown abierto: border naranja (accent) — override al DS */
+.reg-modal .naowee-dropdown--open .naowee-dropdown__trigger{
+  border-color:var(--accent) !important;
+  border-width:2px;
 }
 /* Los controles de Leaflet dentro del modal deben quedar por debajo */
 .reg-modal .leaflet-top,
@@ -740,7 +747,7 @@
   display:flex;flex-direction:column;gap:16px;
 }
 
-/* Stepper interno del modal (Información general / Documentación) */
+/* Stepper interno del modal — soporta 2, 3 o 4 pasos */
 .reg3-tabs{
   display:flex;gap:0;padding:16px 24px 8px;
   border-bottom:1px solid var(--border);
@@ -758,22 +765,149 @@
   font-size:13px;font-weight:700;
   background:#b5b9d4;color:#fff;
   position:relative;z-index:2;
+  transition:background .2s;
 }
 .reg3-tabs__item--active .reg3-tabs__circle{background:var(--accent)}
 .reg3-tabs__item--done .reg3-tabs__circle{background:var(--naowee-color-feedback-fill-positive-loud,#1f8923)}
+.reg3-tabs__item--done .reg3-tabs__circle svg{width:16px;height:16px;color:#fff}
 .reg3-tabs__label{
-  font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;
+  font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;
+  text-align:center;
 }
+.reg3-tabs__item:first-child .reg3-tabs__label{text-align:left}
+.reg3-tabs__item:last-child .reg3-tabs__label{text-align:right}
 .reg3-tabs__item:not(.reg3-tabs__item--active):not(.reg3-tabs__item--done) .reg3-tabs__label{
   color:var(--text-secondary);
 }
 .reg3-tabs__bar{
   position:absolute;top:14px;height:3px;z-index:1;background:#e7e9f3;
+  transition:background .2s;
 }
 .reg3-tabs__bar--first{left:50%;right:0}
 .reg3-tabs__bar--last{left:0;right:50%}
-.reg3-tabs__item--active .reg3-tabs__bar--first{background:linear-gradient(90deg,var(--accent) 50%,#e7e9f3 50%)}
-.reg3-tabs__item--done .reg3-tabs__bar--first{background:var(--accent)}
+.reg3-tabs__bar--both{left:0;right:0}
+.reg3-tabs__item--active .reg3-tabs__bar--first,
+.reg3-tabs__item--active .reg3-tabs__bar--both{background:linear-gradient(90deg,var(--accent) 50%,#e7e9f3 50%)}
+.reg3-tabs__item--done .reg3-tabs__bar--first,
+.reg3-tabs__item--done .reg3-tabs__bar--both{background:var(--accent)}
+
+/* Steps container — sólo uno visible a la vez */
+.reg3-step{display:flex;flex-direction:column;gap:24px}
+.reg3-step[hidden]{display:none}
+
+/* Containers de fichas dentro del paso 1: gap vertical entre grids */
+#reg3FichaComunContainer,
+#reg3FichaEspecificaFields{
+  display:flex;flex-direction:column;gap:24px;
+}
+
+/* Grid de ficha específica (2 columnas) */
+.reg3-ficha-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+.reg3-ficha-grid--full{grid-template-columns:1fr}
+.reg3-ficha-grid > *{min-width:0}
+
+/* Dotación: grid de toggles con hint opcional */
+.reg3-dotacion{
+  display:flex;flex-direction:column;gap:0;
+}
+.reg3-dotacion__item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+}
+.reg3-dotacion:last-child .reg3-dotacion__item:last-child,
+.reg3-dotacion__item:last-child{border-bottom:none}
+.reg3-dotacion__label{
+  font-size:14px;color:var(--text-primary);
+  display:flex;align-items:center;gap:4px;
+}
+.reg3-dotacion__label .req{color:var(--accent)}
+.reg3-dotacion__subfield{
+  padding:8px 0 18px;
+  border-bottom:1px solid var(--border);
+}
+.reg3-dotacion__subfield[hidden]{display:none}
+
+/* Acordeón por disciplina */
+.reg3-disc-card{
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+  margin-top:12px;
+}
+.reg3-disc-card:first-child{margin-top:0}
+.reg3-disc-card__header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;
+  cursor:pointer;
+  transition:background .15s;
+}
+.reg3-disc-card__header:hover{background:#fafbfc}
+.reg3-disc-card__title{
+  font-size:14px;font-weight:600;color:var(--text-primary);
+  display:flex;align-items:center;gap:10px;
+}
+.reg3-disc-card__title::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--accent);flex-shrink:0;
+}
+.reg3-disc-card__chevron{
+  width:20px;height:20px;color:var(--text-secondary);
+  transition:transform .2s;
+}
+.reg3-disc-card.collapsed .reg3-disc-card__chevron{transform:rotate(-90deg)}
+.reg3-disc-card.collapsed .reg3-disc-card__body{display:none}
+.reg3-disc-card__body{
+  display:flex;flex-direction:column;gap:16px;
+  padding:16px;
+  border-top:1px solid var(--border);
+  background:#fafbfc;
+}
+
+/* Helper hint informativo */
+.reg3-hint{
+  display:flex;gap:8px;align-items:flex-start;
+  padding:12px 14px;
+  background:#eef5ff;
+  border:1px solid #cce0ff;
+  border-radius:8px;
+  font-size:12px;line-height:16px;color:#002b5b;
+}
+.reg3-hint__icon{
+  flex-shrink:0;width:16px;height:16px;color:#006aff;
+  margin-top:1px;
+}
+.reg3-hint__icon svg{width:16px;height:16px}
+.reg3-hint__text{flex:1}
+
+/* Hint informativo debajo del file uploader del DS */
+.reg3-file-hint{
+  font-size:12px;line-height:16px;color:var(--text-secondary);
+  margin:6px 0 0;
+}
+/* Forzar que el file dismiss se muestre en estado uploaded */
+.reg3 .naowee-file-uploader__file-tag--uploaded .naowee-file-uploader__file-dismiss{display:flex}
+
+/* Vista "Próximamente" del paso 3 (documentación stub) */
+.reg3-soon{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:48px 24px;
+  text-align:center;gap:16px;
+  color:var(--text-secondary);
+}
+.reg3-soon__icon{
+  width:64px;height:64px;border-radius:50%;
+  background:#eef5ff;color:#006aff;
+  display:flex;align-items:center;justify-content:center;
+}
+.reg3-soon__icon svg{width:32px;height:32px}
+.reg3-soon__title{
+  font-size:18px;font-weight:700;color:var(--text-primary);margin:0;
+}
+.reg3-soon__desc{font-size:14px;line-height:20px;margin:0;max-width:340px}
 
 /* ═══════════════════════════════════════════════════════════════
    SECONDARY MODALS — Validación exitosa & Advertencia cerrar
@@ -800,9 +934,11 @@
 
 .dialog-card__body{
   padding:40px 40px 24px;
-  display:flex;flex-direction:column;gap:16px;align-items:center;
+  display:flex;flex-direction:column;gap:20px;align-items:center;
   text-align:center;
 }
+.dialog-card__body .dialog-card__title{margin-top:8px}
+.dialog-card__body .dialog-list{margin-top:12px}
 .dialog-card__icon{
   width:72px;height:72px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -1280,15 +1416,20 @@
       </button>
     </div>
 
-    <!-- Stepper interno (2 tabs) -->
-    <div class="reg3-tabs">
-      <div class="reg3-tabs__item reg3-tabs__item--active">
+    <!-- Stepper interno (3 tabs) -->
+    <div class="reg3-tabs" id="reg3Tabs">
+      <div class="reg3-tabs__item reg3-tabs__item--active" data-reg3-tab="1">
         <div class="reg3-tabs__circle">1</div>
-        <div class="reg3-tabs__label">Información general</div>
+        <div class="reg3-tabs__label">Escenario físico</div>
         <div class="reg3-tabs__bar reg3-tabs__bar--first"></div>
       </div>
-      <div class="reg3-tabs__item">
+      <div class="reg3-tabs__item" data-reg3-tab="2">
         <div class="reg3-tabs__circle">2</div>
+        <div class="reg3-tabs__label">Disciplinas</div>
+        <div class="reg3-tabs__bar reg3-tabs__bar--both"></div>
+      </div>
+      <div class="reg3-tabs__item" data-reg3-tab="3">
+        <div class="reg3-tabs__circle">3</div>
         <div class="reg3-tabs__label">Documentación</div>
         <div class="reg3-tabs__bar reg3-tabs__bar--last"></div>
       </div>
@@ -1297,83 +1438,151 @@
     <!-- Body scrollable -->
     <div class="reg-modal__body">
 
-      <!-- Toggle CAR -->
-      <div class="reg3-inline-toggle">
-        <span class="reg3-inline-toggle__label">¿La sede es un centro de alto rendimiento (CAR)?<span class="req">*</span></span>
-        <div class="naowee-switch" id="reg3CarToggle" role="switch" aria-checked="false" aria-label="CAR" tabindex="0">
-          <div class="naowee-switch__track">
-            <div class="naowee-switch__handle"></div>
+      <!-- ══════════════════════════════════════════════════
+           STEP 1 — Escenario físico
+           ══════════════════════════════════════════════════ -->
+      <div class="reg3-step" data-reg3-step="1">
+
+        <!-- Identificación -->
+        <h3 class="reg-section__title">IDENTIFICACIÓN</h3>
+
+        <div class="reg3-inline-toggle">
+          <span class="reg3-inline-toggle__label">¿La sede es un centro de alto rendimiento (CAR)?<span class="req">*</span></span>
+          <div class="naowee-switch" id="reg3CarToggle" role="switch" aria-checked="false" aria-label="CAR" tabindex="0">
+            <div class="naowee-switch__track">
+              <div class="naowee-switch__handle"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Tipo de escenario -->
-      <div class="naowee-dropdown" id="reg3TipoEscDD">
-        <label class="naowee-dropdown__label" for="reg3TipoEscTrigger">Tipo de escenario <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
-        <button type="button" class="naowee-dropdown__trigger" id="reg3TipoEscTrigger" aria-haspopup="listbox" aria-expanded="false">
-          <span class="naowee-dropdown__placeholder" id="reg3TipoEscValue">Seleccione el tipo de escenario</span>
-          <span class="naowee-dropdown__controls">
-            <span class="naowee-dropdown__chevron">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        <div class="naowee-dropdown" id="reg3TipoEscDD">
+          <label class="naowee-dropdown__label" for="reg3TipoEscTrigger">Tipo de escenario <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" id="reg3TipoEscTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="naowee-dropdown__placeholder" id="reg3TipoEscValue">Seleccione el tipo de escenario</span>
+            <span class="naowee-dropdown__controls">
+              <span class="naowee-dropdown__chevron">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
             </span>
-          </span>
-        </button>
-        <div class="naowee-dropdown__menu" role="listbox" id="reg3TipoEscMenu"></div>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox" id="reg3TipoEscMenu"></div>
+        </div>
+
+        <!-- Características físicas (comunes a todos los tipos) -->
+        <h3 class="reg-section__title">CARACTERÍSTICAS FÍSICAS</h3>
+        <div id="reg3FichaComunContainer">
+          <!-- renderizado por JS -->
+        </div>
+
+        <!-- Características específicas por tipo (condicional) -->
+        <div id="reg3FichaEspecificaContainer" hidden>
+          <h3 class="reg-section__title" id="reg3FichaEspecificaTitle">FICHA TÉCNICA</h3>
+          <div id="reg3FichaEspecificaFields"></div>
+        </div>
+
+        <!-- Dotación y servicios -->
+        <h3 class="reg-section__title">DOTACIÓN Y SERVICIOS</h3>
+        <div class="reg3-dotacion" id="reg3DotacionContainer">
+          <!-- renderizado por JS -->
+        </div>
+
       </div>
 
-      <!-- Disciplinas deportivas (multi-select) -->
-      <div class="reg-multi" id="reg3DiscMulti">
-        <label class="reg-multi__label">Disciplinas deportivas que alberga</label>
-        <button type="button" class="reg-multi__trigger" id="reg3DiscTrigger" aria-haspopup="listbox" aria-expanded="false">
-          <span class="reg-multi__chips" id="reg3DiscChips">
-            <span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>
-          </span>
-          <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
-        <div class="reg-multi__menu" role="listbox">
-          <div class="reg-multi__options" id="reg3DiscOptions"></div>
-          <div class="reg-multi__menu-footer">
-            <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small" id="reg3DiscConfirm">
-              Agregar
-            </button>
+      <!-- ══════════════════════════════════════════════════
+           STEP 2 — Disciplinas deportivas
+           ══════════════════════════════════════════════════ -->
+      <div class="reg3-step" data-reg3-step="2" hidden>
+
+        <div class="naowee-message naowee-message--informative" id="reg3DiscHint" hidden>
+          <div class="naowee-message__header">
+            <div class="naowee-message__icon">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="4" x2="8" y2="8"/>
+                <line x1="8" y1="11" x2="8" y2="11.01"/>
+              </svg>
+            </div>
+            <div class="naowee-message__title">Información del escenario</div>
+          </div>
+          <p class="naowee-message__text" id="reg3DiscHintText">
+            Selecciona las disciplinas que se practican en este escenario.
+          </p>
+        </div>
+
+        <!-- Multi-select de disciplinas (filtradas por tipo de escenario) -->
+        <div class="reg-multi" id="reg3DiscMulti">
+          <label class="reg-multi__label">Disciplinas deportivas que alberga <span class="req" style="color:var(--accent)">*</span></label>
+          <button type="button" class="reg-multi__trigger" id="reg3DiscTrigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="reg-multi__chips" id="reg3DiscChips">
+              <span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>
+            </span>
+            <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="reg-multi__menu" role="listbox">
+            <div class="reg-multi__options" id="reg3DiscOptions"></div>
+            <div class="reg-multi__menu-footer">
+              <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small" id="reg3DiscConfirm">
+                Agregar
+              </button>
+            </div>
           </div>
         </div>
+
+        <!-- Sección expandida (aparece cuando hay disciplinas) -->
+        <div id="reg3DynamicSection" hidden>
+
+          <!-- Toggle: ¿Los deportes comparten el mismo escenario? -->
+          <div class="reg3-inline-toggle">
+            <span class="reg3-inline-toggle__label">¿Los deportes comparten el mismo escenario físico?<span class="req">*</span></span>
+            <div class="naowee-switch" id="reg3CompartenToggle" role="switch" aria-checked="false" tabindex="0">
+              <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+            </div>
+          </div>
+
+          <!-- Toggle: ¿Los escenarios comparten los mismos detalles? (sólo visible si compartenEscenario == OFF) -->
+          <div class="reg3-inline-toggle" id="reg3DetallesToggleWrap" hidden>
+            <span class="reg3-inline-toggle__label">¿Copiar los detalles del primer escenario a los demás?</span>
+            <div class="naowee-switch" id="reg3DetallesToggle" role="switch" aria-checked="false" tabindex="0">
+              <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+            </div>
+          </div>
+
+          <!-- Secciones por disciplina (renderizadas por JS) -->
+          <div id="reg3DisciplinesList"></div>
+
+        </div>
+
       </div>
 
-      <!-- Sección expandida (aparece cuando hay disciplinas) -->
-      <div id="reg3DynamicSection" hidden>
-
-        <!-- Toggle: ¿Los deportes comparten el mismo escenario? -->
-        <div class="reg3-inline-toggle">
-          <span class="reg3-inline-toggle__label">¿Los deportes comparten el mismo escenario?<span class="req">*</span></span>
-          <div class="naowee-switch" id="reg3CompartenToggle" role="switch" aria-checked="false" tabindex="0">
-            <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+      <!-- ══════════════════════════════════════════════════
+           STEP 3 — Documentación (stub)
+           ══════════════════════════════════════════════════ -->
+      <div class="reg3-step" data-reg3-step="3" hidden>
+        <div class="reg3-soon">
+          <div class="reg3-soon__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="9" y1="13" x2="15" y2="13"/>
+              <line x1="9" y1="17" x2="15" y2="17"/>
+            </svg>
           </div>
+          <h3 class="reg3-soon__title">Documentación — próximamente</h3>
+          <p class="reg3-soon__desc">
+            En este paso podrás adjuntar fotografías del escenario, planos arquitectónicos y certificaciones. Por ahora puedes guardar el registro como borrador con los datos completados hasta aquí.
+          </p>
         </div>
-
-        <!-- Toggle: ¿Los escenarios comparten los mismos detalles? -->
-        <div class="reg3-inline-toggle">
-          <span class="reg3-inline-toggle__label">¿Los escenarios comparten los mismos detalles?<span class="req">*</span></span>
-          <div class="naowee-switch" id="reg3DetallesToggle" role="switch" aria-checked="false" tabindex="0">
-            <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
-          </div>
-        </div>
-
-        <!-- Secciones por disciplina (renderizadas por JS) -->
-        <div id="reg3DisciplinesList"></div>
-
       </div>
 
     </div>
 
-    <!-- Footer: Volver + Guardar y continuar -->
+    <!-- Footer: Volver + Continuar/Guardar -->
     <div class="reg-modal__footer" style="display:flex;gap:12px;justify-content:space-between">
       <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--large" id="reg3BtnBack" style="width:auto;min-width:120px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
         Volver
       </button>
       <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="reg3SubmitBtn" style="width:auto;flex:1;max-width:320px" disabled>
-        Guardar y continuar
+        <span id="reg3SubmitBtnLabel">Continuar</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
     </div>
@@ -3132,58 +3341,360 @@
   const modal3 = document.getElementById('regModal3Overlay');
   const reg3SubmitBtn = document.getElementById('reg3SubmitBtn');
 
-  const TIPOS_ESCENARIO = [
-    'Cancha múltiple',
-    'Piscina',
-    'Coliseo',
-    'Estadio',
-    'Pista atlética',
-    'Gimnasio',
-    'Velódromo',
-    'Escenario náutico',
-    'Patódromo',
-    'Villa Olímpica',
-    'Complejo deportivo',
-    'Otro'
+  /* ═══════════════════════════════════════════════════════════════
+     MODALIDADES POR DISCIPLINA (adaptado del SPORTS_DB de digitación)
+     ═══════════════════════════════════════════════════════════════ */
+  const MODALIDADES_POR_DISCIPLINA = {
+    // Piscina
+    'Natación': ['Libre','Mariposa','Espalda','Pecho','Combinada (Medley)','Relevos'],
+    'Para Natación': ['Libre','Espalda','Pecho','Combinada','Relevos'],
+    'Waterpolo': ['Masculino','Femenino','Mixto'],
+    'Nado sincronizado': ['Solo','Dúo','Equipo','Libre combinada'],
+    'Natación artística': ['Solo','Dúo','Equipo','Rutina técnica','Rutina libre'],
+    'Clavados': ['Trampolín 1m','Trampolín 3m','Plataforma 5m','Plataforma 7.5m','Plataforma 10m','Sincronizados'],
+    'Apnea': ['Estática','Dinámica con aletas','Dinámica sin aletas','Profundidad constante'],
+    'Buceo': ['Deportivo','Técnico','Científico','Recreativo'],
+    'Polo acuático': ['Masculino','Femenino','Mixto'],
+    'Natación aguas abiertas': ['5 km','10 km','25 km'],
+    // Cancha múltiple / Coliseo / Gimnasio
+    'Baloncesto': ['5x5','3x3','Mini baloncesto','Silla de ruedas'],
+    'Voleibol': ['Indoor 6x6','Playa 2x2','Sentado','Mini voleibol'],
+    'Fútbol sala': ['Masculino','Femenino','Mixto','Sub-15','Sub-18','Mayores'],
+    'Microfútbol': ['Masculino','Femenino','Mixto'],
+    'Fútbol Sala': ['Masculino','Femenino','Mixto','Sub-15','Sub-18','Mayores'],
+    'Fútbol Salón': ['Masculino','Femenino','Mixto'],
+    'Mini Fútbol': ['Masculino','Femenino','Mixto'],
+    'Balonmano': ['Masculino','Femenino','Playa','Silla de ruedas'],
+    'Bádminton': ['Individual','Dobles','Dobles mixtos','Equipo'],
+    'Hockey sobre patines': ['Masculino','Femenino','Categorías formativas'],
+    'Tenis': ['Individual','Dobles','Dobles mixtos','Silla de ruedas'],
+    'Gimnasia': ['Artística','Rítmica','Aeróbica','Acrobática','Trampolín'],
+    'Gimnasia artística': ['All-around','Piso','Caballo con arcos','Anillas','Salto','Barras paralelas','Barra fija','Barras asimétricas','Viga de equilibrio'],
+    'Gimnasia rítmica': ['Individual','Conjunto','Mano libre','Aro','Pelota','Mazas','Cuerda','Cinta'],
+    'Boxeo': ['Peso mosca','Peso gallo','Peso pluma','Peso ligero','Peso welter','Peso medio','Peso pesado'],
+    'Tenis de mesa': ['Individual','Dobles','Dobles mixtos','Equipo'],
+    'Karate': ['Kata individual','Kata equipo','Kumite'],
+    'Taekwondo': ['Kyorugi (combate)','Poomsae (formas)','Paratae','Pareja mixta'],
+    'Esgrima': ['Florete','Espada','Sable','Individual','Equipo'],
+    'Lucha': ['Grecorromana','Libre','Femenina','Playa'],
+    'Levantamiento de pesas': ['Arranque','Envión','Total olímpico'],
+    'Aeróbicos': ['Individual','Parejas','Trío','Grupo','Step'],
+    'Yoga': ['Vinyasa','Hatha','Ashtanga','Power yoga','Meditación'],
+    'Pilates': ['Mat','Reformer','Tower','Chair'],
+    'Zumba': ['Fitness','Step','Gold','Kids'],
+    'Artes marciales': ['Kung Fu','Jiu-jitsu','Judo','Krav Maga','Aikido'],
+    // Estadio
+    'Fútbol': ['11 contra 11','Sub-13','Sub-15','Sub-17','Sub-20','Mayores','Femenino','Walking football'],
+    'Rugby': ['Union XV','Sevens','Touch','Tag','Rugby femenino'],
+    'Fútbol americano': ['Touch','Tackle','Flag football'],
+    'Béisbol': ['Profesional','Amateur','Juvenil','Infantil'],
+    'Softbol': ['Rápido','Lento','Modificado','Slow pitch'],
+    'Atletismo': ['Velocidad','Fondo','Medio fondo','Saltos','Lanzamientos','Combinadas','Relevos','Marcha'],
+    // Pista atlética
+    'Carreras 100m': ['Individual','Relevos 4x100'],
+    'Carreras 200m': ['Individual','Relevos'],
+    'Carreras 400m': ['Individual','Relevos 4x400'],
+    'Carreras 800m': ['Individual'],
+    'Carreras 1500m': ['Individual'],
+    'Carreras 5000m': ['Individual'],
+    'Carreras 10000m': ['Individual'],
+    'Maratón': ['42 km','Media maratón','10K','5K'],
+    'Salto largo': ['Individual'],
+    'Salto alto': ['Individual'],
+    'Triple salto': ['Individual'],
+    'Salto con pértiga': ['Individual'],
+    'Lanzamiento de bala': ['Individual'],
+    'Lanzamiento de disco': ['Individual'],
+    'Lanzamiento de martillo': ['Individual'],
+    'Lanzamiento de jabalina': ['Individual'],
+    'Decatlón': ['Combinada 10 pruebas'],
+    'Heptatlón': ['Combinada 7 pruebas'],
+    'Marcha atlética': ['20 km','50 km'],
+    // Velódromo
+    'Ciclismo velocidad': ['Individual','Equipos'],
+    'Persecución individual': ['4 km'],
+    'Persecución por equipos': ['4 km','4 ciclistas'],
+    'Madison': ['25 km','40 km'],
+    'Keirin': ['Clasificatoria','Semifinal','Final'],
+    'Kilómetro contrarreloj': ['Individual'],
+    'Scratch': ['10 km','15 km'],
+    'Ómnium': ['Combinada 4 pruebas'],
+    'BMX': ['Racing','Freestyle park','Freestyle street'],
+    // Escenario náutico
+    'Vela ligera': ['Laser','470','Finn','49er','Optimist'],
+    'Vela de crucero': ['ORC','IRC','Monotipo'],
+    'Windsurf': ['Slalom','Freestyle','Olas','Foil'],
+    'Kitesurf': ['Freestyle','Olas','Twin tip','Foil'],
+    'Remo': ['Skiff (1x)','Doble par (2x)','Cuádruple par (4x)','Doble (2-)','Cuatro con timonel (4+)','Ocho con timonel (8+)'],
+    'Canotaje C1': ['200m','500m','1000m'],
+    'Canotaje C2': ['200m','500m','1000m'],
+    'Canotaje K1': ['200m','500m','1000m','5000m'],
+    'Canotaje K2': ['200m','500m','1000m'],
+    'Canotaje K4': ['500m','1000m'],
+    'Piragüismo': ['Sprint','Slalom','Maratón','Polo','Descenso'],
+    'Esquí acuático': ['Slalom','Saltos','Figuras','Combinada'],
+    'Wakeboard': ['Pro','Amateur','Kids','Cable','Boat'],
+    'SUP (Stand Up Paddle)': ['Surf','Race','Flatwater','Yoga'],
+    'Vela': ['Ligera','Crucero','Windsurf','Kitesurf'],
+    // Pádel (si aparece)
+    'Padel': ['Individual','Dobles','Dobles mixtos']
+  };
+  function getModalidades(disc){
+    return MODALIDADES_POR_DISCIPLINA[disc] || ['Modalidad única','Categoría infantil','Categoría juvenil','Categoría mayores'];
+  }
+
+  // Superficies disponibles para ficha física de disciplinas (cuando NO es compartido)
+  const SUPERFICIES_DEPORTIVAS = [
+    'Parquet','Sintético','Concreto','Goma','Madera','Asfalto','Grass natural','Grass sintético','Tartán','Tierra','Otra'
   ];
 
-  // Disciplinas disponibles por tipo de escenario
-  const DISCIPLINAS_POR_TIPO = {
-    'Piscina': ['Apnea','Natación','Vela','Waterpolo','Voleibol acuático','Buceo','Nado sincronizado'],
-    'Coliseo': ['Baloncesto','Voleibol','Fútbol sala','Balonmano','Bádminton','Gimnasia','Boxeo','Tenis de mesa'],
-    'Estadio': ['Fútbol','Atletismo','Rugby'],
-    'Pista atlética': ['Atletismo','Carreras','Salto largo','Salto alto','Lanzamiento'],
-    'Gimnasio': ['Baloncesto','Voleibol','Gimnasia','Tenis de mesa','Levantamiento de pesas'],
-    'Velódromo': ['Ciclismo de pista','Ciclismo BMX'],
-    'Escenario náutico': ['Vela','Canotaje','Remo','Esquí acuático'],
-    'Patódromo': ['Patinaje artístico','Patinaje de velocidad','Hockey sobre patines'],
-    'Villa Olímpica': ['Baloncesto','Fútbol','Voleibol','Atletismo','Natación','Tenis'],
-    'Complejo deportivo': ['Baloncesto','Fútbol','Voleibol','Tenis','Atletismo','Natación','Béisbol','Softbol'],
-    'Cancha múltiple': ['Baloncesto','Voleibol','Fútbol sala','Microfútbol','Tenis','Balonmano'],
-    'Otro': []
-  };
-
-  const TIPOS_ESPACIO_POR_DISCIPLINA = {
-    'default': ['Cancha','Campo','Pista','Piscina','Sala','Otro']
-  };
-
+  /* ═══════════════════════════════════════════════════════════════
+     CONFIGURACIÓN DE ESCENARIOS
+     Define por cada tipo de escenario:
+       - fichaEspecifica: campos específicos del contenedor físico
+       - disciplinas: deportes que puede albergar
+       - fichaPorDisciplina: campos específicos por deporte (sólo reglas/modalidad
+         si el toggle "compartenEscenario" está ON, porque las dimensiones
+         físicas vienen heredadas del escenario)
+     ═══════════════════════════════════════════════════════════════ */
   const ESTADO_SUPERFICIE = ['Excelente','Bueno','Regular','Malo'];
 
-  /* ─── STATE del modal 3 ─── */
+  const SCENARIO_CONFIG = {
+    'Cancha múltiple': {
+      hint: '1 espacio físico plano con líneas reglamentarias superpuestas de varios deportes. Típicamente el toggle "compartir escenario" está activo.',
+      fichaEspecifica: [
+        { id:'dimLargo', label:'Largo de la cancha (m)', type:'decimal', required:true },
+        { id:'dimAncho', label:'Ancho de la cancha (m)', type:'decimal', required:true },
+        { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
+          options:['Parquet','Sintético','Concreto','Goma','Asfalto','Otra'] },
+        { id:'cubierta', label:'Cubierta', type:'dropdown', required:true,
+          options:['Techado','Semi-techado','Abierto'] }
+      ],
+      disciplinas: ['Fútbol sala','Microfútbol','Baloncesto','Voleibol','Balonmano','Tenis','Bádminton','Hockey sobre patines'],
+      fichaPorDisciplina: [
+        { id:'modalidad', label:'Modalidad', type:'text', placeholder:'Ej: 5x5 / 3x3 / libre' },
+        { id:'lineasReglamentarias', label:'Líneas reglamentarias pintadas', type:'toggle' },
+        { id:'equipamiento', label:'Equipamiento reglamentario (canastas/arcos/redes)', type:'toggle' }
+      ]
+    },
+    'Piscina': {
+      hint: 'Estanque único donde se practican deportes acuáticos. Todos los deportes comparten el mismo cuerpo de agua.',
+      fichaEspecifica: [
+        { id:'longitud', label:'Longitud (m)', type:'decimal', required:true },
+        { id:'ancho', label:'Ancho (m)', type:'decimal', required:true },
+        { id:'profMin', label:'Profundidad mínima (m)', type:'decimal', required:true },
+        { id:'profMax', label:'Profundidad máxima (m)', type:'decimal', required:true },
+        { id:'carriles', label:'Número de carriles', type:'int', required:true },
+        { id:'tipoPiscina', label:'Tipo de piscina', type:'dropdown', required:true,
+          options:['Olímpica','Semi-olímpica','Recreativa','Enseñanza','Clavados'] },
+        { id:'tratamiento', label:'Sistema de tratamiento de agua', type:'dropdown', required:true,
+          options:['Cloro','Ozono','Sal','UV','Combinado'] },
+        { id:'temperatura', label:'Temperatura del agua (°C)', type:'decimal' },
+        { id:'climatizada', label:'Piscina climatizada', type:'toggle' },
+        { id:'trampolines', label:'Cuenta con trampolines', type:'toggle' },
+        { id:'conceptoSanitario', label:'Concepto sanitario vigente', type:'file', required:true,
+          hint:'Certificado del concepto sanitario emitido por la autoridad de salud (PDF o imagen)' }
+      ],
+      disciplinas: ['Natación','Waterpolo','Nado sincronizado','Clavados','Apnea','Buceo','Natación artística','Natación aguas abiertas'],
+      fichaPorDisciplina: [
+        { id:'modalidad', label:'Modalidad', type:'text', placeholder:'Ej: Libre / Mariposa / Espalda / Pecho' },
+        { id:'categoria', label:'Categoría', type:'dropdown',
+          options:['Infantil','Juvenil','Mayores','Máster','Todas'] }
+      ]
+    },
+    'Coliseo': {
+      hint: 'Estructura techada multipropósito con tribuna y cancha central. Los deportes rotan sobre la misma cancha.',
+      fichaEspecifica: [
+        { id:'largoCancha', label:'Largo cancha central (m)', type:'decimal', required:true },
+        { id:'anchoCancha', label:'Ancho cancha central (m)', type:'decimal', required:true },
+        { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
+          options:['Parquet','Sintético','Madera','Goma'] },
+        { id:'alturaTecho', label:'Altura del techo (m)', type:'decimal' },
+        { id:'canchasAux', label:'Número de canchas auxiliares', type:'int' }
+      ],
+      disciplinas: ['Baloncesto','Voleibol','Fútbol sala','Balonmano','Bádminton','Gimnasia','Boxeo','Tenis de mesa','Karate','Taekwondo','Esgrima','Lucha'],
+      fichaPorDisciplina: [
+        { id:'modalidad', label:'Modalidad', type:'text' },
+        { id:'plataformaEspecifica', label:'Ring / plataforma específica', type:'toggle' },
+        { id:'iluminacionEspecial', label:'Iluminación especial para el deporte', type:'toggle' }
+      ]
+    },
+    'Estadio': {
+      hint: 'Escenario grande con 1 cancha principal y tribunas. Puede reconfigurarse para diferentes deportes (ej. fútbol → rugby → béisbol).',
+      fichaEspecifica: [
+        { id:'largoTerreno', label:'Largo terreno de juego (m)', type:'decimal', required:true },
+        { id:'anchoTerreno', label:'Ancho terreno de juego (m)', type:'decimal', required:true },
+        { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
+          options:['Grass natural','Grass sintético','Híbrido','Tierra'] },
+        { id:'cubierta', label:'Cubierta', type:'dropdown', required:true,
+          options:['Total','Parcial','Descubierto'] },
+        { id:'iluminacionPro', label:'Iluminación profesional', type:'toggle' },
+        { id:'pistaAtletica', label:'Tiene pista atlética perimetral', type:'toggle' }
+      ],
+      disciplinas: ['Fútbol','Rugby','Fútbol americano','Béisbol','Softbol','Atletismo'],
+      fichaPorDisciplina: [
+        { id:'modalidad', label:'Modalidad', type:'text' },
+        { id:'porteriasReglamentarias', label:'Porterías/bases reglamentarias', type:'toggle' },
+        { id:'marcadorElectronico', label:'Marcador electrónico', type:'toggle' }
+      ]
+    },
+    'Pista atlética': {
+      hint: 'Pista lineal u ovalada con carriles. Incluye zonas de saltos y lanzamientos.',
+      fichaEspecifica: [
+        { id:'longitud', label:'Longitud total de la pista (m)', type:'decimal', required:true },
+        { id:'carriles', label:'Número de carriles', type:'int', required:true },
+        { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
+          options:['Tartán','Sintética','Cemento','Tierra'] },
+        { id:'indoor', label:'Pista indoor', type:'toggle' },
+        { id:'zonasSalto', label:'Cuenta con zonas de salto', type:'toggle' },
+        { id:'zonasLanzamiento', label:'Cuenta con zonas de lanzamiento', type:'toggle' }
+      ],
+      disciplinas: ['Carreras 100m','Carreras 200m','Carreras 400m','Carreras 800m','Carreras 1500m','Carreras 5000m','Carreras 10000m','Maratón','Salto largo','Salto alto','Triple salto','Salto con pértiga','Lanzamiento de bala','Lanzamiento de disco','Lanzamiento de martillo','Lanzamiento de jabalina','Decatlón','Heptatlón','Marcha atlética'],
+      fichaPorDisciplina: [
+        { id:'modalidad', label:'Modalidad / categoría', type:'text' },
+        { id:'zonaAsignada', label:'Zona específica asignada', type:'text', placeholder:'Ej: pista 1-4 / zona de salto largo' }
+      ]
+    },
+    'Gimnasio': {
+      hint: 'Espacio cubierto multipropósito, generalmente escolar o comunitario.',
+      fichaEspecifica: [
+        { id:'largo', label:'Largo (m)', type:'decimal', required:true },
+        { id:'ancho', label:'Ancho (m)', type:'decimal', required:true },
+        { id:'alturaTecho', label:'Altura del techo (m)', type:'decimal' },
+        { id:'tipoPiso', label:'Tipo de piso', type:'dropdown', required:true,
+          options:['Parquet','Vinilo','Goma','Sintético'] },
+        { id:'climatizacion', label:'Climatización', type:'toggle' },
+        { id:'espejos', label:'Cuenta con espejos', type:'toggle' },
+        { id:'equipamientoFijo', label:'Equipamiento fijo (barras, colchonetas, aparatos)', type:'toggle' }
+      ],
+      disciplinas: ['Gimnasia artística','Gimnasia rítmica','Levantamiento de pesas','Aeróbicos','Yoga','Pilates','Zumba','Artes marciales','Boxeo','Tenis de mesa','Bádminton'],
+      fichaPorDisciplina: [
+        { id:'modalidad', label:'Modalidad', type:'text' },
+        { id:'equipamiento', label:'Equipamiento específico', type:'text', placeholder:'Ej: Aparatos, colchonetas' }
+      ]
+    },
+    'Velódromo': {
+      hint: 'Pista ovalada peraltada para ciclismo de pista. Todas las modalidades usan la misma pista.',
+      fichaEspecifica: [
+        { id:'longitud', label:'Longitud de la pista (m)', type:'decimal', required:true },
+        { id:'peralte', label:'Peralte máximo (°)', type:'decimal', required:true },
+        { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
+          options:['Madera','Cemento','Asfalto'] },
+        { id:'indoor', label:'Velódromo indoor', type:'toggle' },
+        { id:'iluminacionPro', label:'Iluminación profesional', type:'toggle' },
+        { id:'areaInterior', label:'Tiene área interior utilizable', type:'toggle' }
+      ],
+      disciplinas: ['Ciclismo velocidad','Persecución individual','Persecución por equipos','Madison','Keirin','Kilómetro contrarreloj','Scratch','Ómnium','BMX'],
+      fichaPorDisciplina: [
+        { id:'modalidad', label:'Modalidad', type:'text' },
+        { id:'categoria', label:'Categoría', type:'dropdown',
+          options:['Elite','Sub-23','Juvenil','Máster'] }
+      ]
+    },
+    'Escenario náutico': {
+      hint: 'Cuerpo de agua natural o artificial para deportes de agua abierta.',
+      fichaEspecifica: [
+        { id:'tipoCuerpoAgua', label:'Tipo de cuerpo de agua', type:'dropdown', required:true,
+          options:['Mar','Río','Laguna','Embalse','Canal artificial'] },
+        { id:'areaAprox', label:'Área aproximada (m²)', type:'decimal', required:true },
+        { id:'profPromedio', label:'Profundidad promedio (m)', type:'decimal', required:true },
+        { id:'profMax', label:'Profundidad máxima (m)', type:'decimal' },
+        { id:'longNavegable', label:'Longitud navegable (m)', type:'decimal' },
+        { id:'tieneMuelle', label:'Tiene muelle', type:'toggle' },
+        { id:'rampaBotadura', label:'Tiene rampa de botadura', type:'toggle' },
+        { id:'corrientes', label:'Presenta corrientes / mareas', type:'toggle' }
+      ],
+      disciplinas: ['Vela ligera','Vela de crucero','Windsurf','Kitesurf','Remo','Canotaje C1','Canotaje C2','Canotaje K1','Canotaje K2','Canotaje K4','Piragüismo','Esquí acuático','Wakeboard','SUP (Stand Up Paddle)','Natación aguas abiertas'],
+      fichaPorDisciplina: [
+        { id:'categoria', label:'Categoría', type:'dropdown',
+          options:['Elite','Sub-23','Juvenil','Máster','Recreativo'] },
+        { id:'embarcacion', label:'Tipo de embarcación permitida', type:'text' }
+      ]
+    }
+  };
+
+  // Fallback para tipos sin ficha específica (Villa Olímpica, Complejo deportivo, Patódromo, Otro)
+  const SCENARIO_CONFIG_DEFAULT = {
+    hint: 'Configuración genérica. Define las dimensiones principales y las disciplinas albergadas.',
+    fichaEspecifica: [
+      { id:'largo', label:'Largo (m)', type:'decimal', required:true },
+      { id:'ancho', label:'Ancho (m)', type:'decimal', required:true },
+      { id:'superficie', label:'Tipo de superficie', type:'text' }
+    ],
+    disciplinas: ['Baloncesto','Fútbol','Voleibol','Tenis','Atletismo','Natación'],
+    fichaPorDisciplina: [
+      { id:'modalidad', label:'Modalidad', type:'text' }
+    ]
+  };
+  SCENARIO_CONFIG['Villa Olímpica'] = SCENARIO_CONFIG_DEFAULT;
+  SCENARIO_CONFIG['Complejo deportivo'] = SCENARIO_CONFIG_DEFAULT;
+  SCENARIO_CONFIG['Patódromo'] = {
+    hint: 'Escenario para patinaje sobre pista.',
+    fichaEspecifica: [
+      { id:'longitud', label:'Longitud de la pista (m)', type:'decimal', required:true },
+      { id:'ancho', label:'Ancho de la pista (m)', type:'decimal', required:true },
+      { id:'superficie', label:'Superficie', type:'dropdown', required:true,
+        options:['Cemento pulido','Asfalto','Sintético'] },
+      { id:'indoor', label:'Indoor', type:'toggle' }
+    ],
+    disciplinas: ['Patinaje artístico','Patinaje de velocidad','Hockey sobre patines','Patinaje agresivo'],
+    fichaPorDisciplina: [
+      { id:'modalidad', label:'Modalidad', type:'text' },
+      { id:'categoria', label:'Categoría', type:'dropdown',
+        options:['Infantil','Juvenil','Mayores','Todas'] }
+    ]
+  };
+  SCENARIO_CONFIG['Otro'] = SCENARIO_CONFIG_DEFAULT;
+
+  const TIPOS_ESCENARIO = Object.keys(SCENARIO_CONFIG);
+
+  // Opciones comunes de la ficha física base
+  const CUBIERTO_OPTIONS = ['Cubierto','Descubierto','Mixto'];
+  const ESTADO_CONSERVACION = ['Excelente','Bueno','Regular','Malo'];
+
+  /* ─── STATE del modal 3 (extendido) ─── */
   const reg3State = {
     car: false,
     tipoEscenario: '',
+    fichaComun: {
+      areaTotal: '', areaUtil: '', cubierto: '',
+      capacidad: '', anioCons: '', anioRemod: '', estado: ''
+    },
+    fichaEspecifica: {}, // se llena según SCENARIO_CONFIG[tipo].fichaEspecifica
+    dotacion: {
+      iluminacion: false, tipoIluminacion: '',
+      vestieres: false, numVestieres: '',
+      banos: false, numBanos: '',
+      banosAccesibles: false,
+      tribuna: false, capacidadTribuna: '',
+      bodega: false,
+      parqueadero: false, capacidadParqueadero: '',
+      accesibilidad: false,
+      cafeteria: false,
+      enfermeria: false
+    },
     disciplinas: [],
     compartenEscenario: false,
     compartenDetalles: false,
-    disciplinasData: {} // { 'Baloncesto': { espacioTipo, cantidad, dimLargo, dimAncho, estado, ... } }
+    disciplinasData: {} // { 'Natación': { modalidad, categoria, ... } }
   };
+
+  // Paso interno actual (1: escenario físico, 2: disciplinas, 3: documentación)
+  let reg3Step = 1;
 
   /* ─── Helpers DOM ─── */
   function openModal3(){
     modal3.classList.add('open');
     document.body.style.overflow = 'hidden';
     document.getElementById('regModal3IdChip').textContent = regState.catastral || '—';
+    // Renderizar ficha común y dotación la primera vez
+    renderFichaComun();
+    renderDotacion();
+    // Si ya había un tipo seleccionado (modo edición), renderizar ficha específica
+    if(reg3State.tipoEscenario){
+      renderFichaEspecifica(reg3State.tipoEscenario);
+    }
+    switchReg3Step(1);
   }
   function closeModal3(){
     modal3.classList.remove('open');
@@ -3192,6 +3703,40 @@
 
   document.getElementById('regModal3Close').addEventListener('click', () => closeModal3());
   modal3.addEventListener('click', e => { if(e.target === modal3) closeModal3(); });
+
+  /* ═════════════════════════════════════════════════
+     Navegación entre los 3 tabs internos del modal 3
+     ═════════════════════════════════════════════════ */
+  function switchReg3Step(n){
+    reg3Step = n;
+    // Mostrar/ocultar steps
+    document.querySelectorAll('#regModal3Overlay [data-reg3-step]').forEach(el => {
+      el.hidden = parseInt(el.dataset.reg3Step) !== n;
+    });
+    // Actualizar stepper visual
+    document.querySelectorAll('#reg3Tabs [data-reg3-tab]').forEach(el => {
+      const idx = parseInt(el.dataset.reg3Tab);
+      el.classList.toggle('reg3-tabs__item--active', idx === n);
+      el.classList.toggle('reg3-tabs__item--done', idx < n);
+      const circle = el.querySelector('.reg3-tabs__circle');
+      if(idx < n){
+        circle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      } else {
+        circle.textContent = String(idx);
+      }
+    });
+    // Actualizar label del botón de continuar
+    const label = document.getElementById('reg3SubmitBtnLabel');
+    label.textContent = n === 3 ? 'Guardar borrador' : 'Continuar';
+    // Scroll top del body del modal
+    const body = document.querySelector('#regModal3Overlay .reg-modal__body');
+    if(body) body.scrollTo({top: 0, behavior: 'instant'});
+    validate3();
+  }
+
+  /* ═════════════════════════════════════════════════
+     STEP 1 — Escenario físico
+     ═════════════════════════════════════════════════ */
 
   /* ─── Toggle CAR ─── */
   const carToggle = document.getElementById('reg3CarToggle');
@@ -3206,12 +3751,562 @@
     if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); setCar(!carToggle.classList.contains('naowee-switch--on')); }
   });
 
+  /* ─── Tipo de escenario ─── */
+  initDropdown('reg3TipoEscDD', TIPOS_ESCENARIO, (val) => {
+    if(reg3State.tipoEscenario !== val){
+      // Cambió el tipo → limpiar disciplinas y datos específicos
+      reg3State.disciplinas = [];
+      reg3State.disciplinasData = {};
+      reg3State.fichaEspecifica = {};
+      renderReg3Chips();
+      renderReg3Disciplines();
+      document.getElementById('reg3DynamicSection').hidden = true;
+    }
+    reg3State.tipoEscenario = val;
+    renderFichaEspecifica(val);
+    // Actualizar hint del step 2 con info del tipo
+    const hint = document.getElementById('reg3DiscHint');
+    const hintText = document.getElementById('reg3DiscHintText');
+    if(hint && hintText){
+      const cfg = SCENARIO_CONFIG[val];
+      if(cfg && cfg.hint){
+        hintText.textContent = cfg.hint;
+        hint.hidden = false;
+      }
+    }
+    validate3();
+  });
+
+  /* ─── Render ficha común (bloque característica físicas de todos los tipos) ─── */
+  function renderFichaComun(){
+    const container = document.getElementById('reg3FichaComunContainer');
+    if(!container) return;
+    const c = reg3State.fichaComun;
+    container.innerHTML = `
+      <div class="reg3-ficha-grid">
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label naowee-textfield__label--required">Área total construida (m²)</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="0000" inputmode="decimal" data-comun="areaTotal" data-numeric="decimal" value="${c.areaTotal}"/>
+          </div>
+        </div>
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label naowee-textfield__label--required">Área útil deportiva (m²)</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="0000" inputmode="decimal" data-comun="areaUtil" data-numeric="decimal" value="${c.areaUtil}"/>
+          </div>
+        </div>
+      </div>
+      <div class="reg3-ficha-grid">
+        <div class="naowee-dropdown" id="reg3CubiertoDD">
+          <label class="naowee-dropdown__label">Cubierta <span style="color:var(--accent)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="${c.cubierto ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${c.cubierto || 'Selecciona'}</span>
+            <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox"></div>
+        </div>
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label naowee-textfield__label--required">Capacidad de espectadores</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="Ej: 5.000" inputmode="numeric" data-comun="capacidad" data-numeric="thousands" value="${formatThousands(c.capacidad)}"/>
+          </div>
+        </div>
+      </div>
+      <div class="reg3-ficha-grid">
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label naowee-textfield__label--required">Año de construcción</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="YYYY" inputmode="numeric" maxlength="4" data-comun="anioCons" data-numeric="year" value="${c.anioCons}"/>
+          </div>
+        </div>
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label">Año de última remodelación</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="YYYY" inputmode="numeric" maxlength="4" data-comun="anioRemod" data-numeric="year" value="${c.anioRemod}"/>
+          </div>
+        </div>
+      </div>
+      <div class="naowee-dropdown" id="reg3EstadoDD">
+        <label class="naowee-dropdown__label">Estado de conservación <span style="color:var(--accent)">*</span></label>
+        <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="${c.estado ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${c.estado || 'Selecciona una opción'}</span>
+          <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+        </button>
+        <div class="naowee-dropdown__menu" role="listbox"></div>
+      </div>
+    `;
+
+    // Listeners de los inputs comunes (con sanitización)
+    container.querySelectorAll('[data-comun]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const f = inp.dataset.comun;
+        const mode = inp.dataset.numeric;
+        let v = inp.value;
+        if(mode === 'int'){
+          v = v.replace(/\D/g,'');
+          reg3State.fichaComun[f] = v;
+        } else if(mode === 'decimal'){
+          v = v.replace(/[^0-9.]/g,'');
+          const parts = v.split('.');
+          if(parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+          reg3State.fichaComun[f] = v;
+        } else if(mode === 'year'){
+          v = v.replace(/\D/g,'').slice(0,4);
+          reg3State.fichaComun[f] = v;
+        } else if(mode === 'thousands'){
+          const unformatted = unformatThousands(v);
+          v = formatThousands(unformatted);
+          reg3State.fichaComun[f] = unformatted;
+        }
+        if(v !== inp.value){
+          inp.value = v;
+          inp.setSelectionRange(v.length, v.length);
+        }
+        validate3();
+      });
+    });
+
+    // Dropdown cubierto
+    initDropdown('reg3CubiertoDD', CUBIERTO_OPTIONS, (val) => {
+      reg3State.fichaComun.cubierto = val;
+      validate3();
+    });
+    // Dropdown estado de conservación
+    initDropdown('reg3EstadoDD', ESTADO_CONSERVACION, (val) => {
+      reg3State.fichaComun.estado = val;
+      validate3();
+    });
+    // Re-observar dropdowns recién creados para floating
+    setTimeout(() => {
+      container.querySelectorAll('.naowee-dropdown').forEach(dd => {
+        ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
+      });
+    }, 50);
+  }
+
+  /* ─── Render ficha específica por tipo de escenario ─── */
+  function renderFichaEspecifica(tipo){
+    const container = document.getElementById('reg3FichaEspecificaContainer');
+    const fields = document.getElementById('reg3FichaEspecificaFields');
+    const title = document.getElementById('reg3FichaEspecificaTitle');
+    const cfg = SCENARIO_CONFIG[tipo];
+    if(!cfg || !cfg.fichaEspecifica || cfg.fichaEspecifica.length === 0){
+      container.hidden = true;
+      return;
+    }
+    container.hidden = false;
+    title.textContent = `FICHA TÉCNICA — ${tipo.toUpperCase()}`;
+    fields.innerHTML = '';
+    // Renderizar en grid 2 columnas (excepto toggles y file que son full-width)
+    const pairs = [];
+    let currentPair = [];
+    cfg.fichaEspecifica.forEach(f => {
+      if(f.type === 'toggle' || f.type === 'file'){
+        if(currentPair.length > 0){
+          pairs.push(currentPair);
+          currentPair = [];
+        }
+        pairs.push([f]);
+      } else {
+        currentPair.push(f);
+        if(currentPair.length === 2){
+          pairs.push(currentPair);
+          currentPair = [];
+        }
+      }
+    });
+    if(currentPair.length > 0) pairs.push(currentPair);
+
+    pairs.forEach(pair => {
+      const row = document.createElement('div');
+      if(pair.length === 1 && pair[0].type === 'toggle'){
+        row.className = 'reg3-inline-toggle';
+        const f = pair[0];
+        const val = !!reg3State.fichaEspecifica[f.id];
+        row.innerHTML = `
+          <span class="reg3-inline-toggle__label">${f.label}${f.required ? '<span class="req">*</span>' : ''}</span>
+          <div class="naowee-switch${val ? ' naowee-switch--on' : ''}" data-esp-toggle="${f.id}" role="switch" aria-checked="${val}" tabindex="0">
+            <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+          </div>
+        `;
+      } else if(pair.length === 1 && pair[0].type === 'file'){
+        row.innerHTML = renderFichaField(pair[0]);
+      } else {
+        row.className = pair.length === 2 ? 'reg3-ficha-grid' : 'reg3-ficha-grid reg3-ficha-grid--full';
+        row.innerHTML = pair.map(f => renderFichaField(f)).join('');
+      }
+      fields.appendChild(row);
+    });
+
+    // Listeners de inputs de ficha específica
+    fields.querySelectorAll('[data-esp-input]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const f = inp.dataset.espInput;
+        const mode = inp.dataset.numeric;
+        let v = inp.value;
+        if(mode === 'int'){
+          v = v.replace(/\D/g,'');
+        } else if(mode === 'decimal'){
+          v = v.replace(/[^0-9.]/g,'');
+          const parts = v.split('.');
+          if(parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+        }
+        if(v !== inp.value) inp.value = v;
+        reg3State.fichaEspecifica[f] = v;
+        validate3();
+      });
+    });
+
+    // Inicializar dropdowns específicos
+    fields.querySelectorAll('[data-esp-dd]').forEach(dd => {
+      const fid = dd.dataset.espDd;
+      const field = cfg.fichaEspecifica.find(x => x.id === fid);
+      if(!field) return;
+      const trigger = dd.querySelector('.naowee-dropdown__trigger');
+      const menu = dd.querySelector('.naowee-dropdown__menu');
+      const valueSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+      menu.innerHTML = '';
+      (field.options || []).forEach(opt => {
+        const el = document.createElement('div');
+        el.className = 'naowee-dropdown__option';
+        el.setAttribute('role','option');
+        el.textContent = opt;
+        if(opt === reg3State.fichaEspecifica[fid]) el.classList.add('naowee-dropdown__option--selected');
+        el.addEventListener('click', () => {
+          valueSpan.textContent = opt;
+          valueSpan.className = 'naowee-dropdown__value';
+          dd.classList.remove('naowee-dropdown--open');
+          trigger.setAttribute('aria-expanded','false');
+          reg3State.fichaEspecifica[fid] = opt;
+          validate3();
+        });
+        menu.appendChild(el);
+      });
+      trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== dd) o.classList.remove('naowee-dropdown--open'); });
+        dd.classList.toggle('naowee-dropdown--open');
+        trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+      });
+    });
+
+    // Toggles específicos
+    fields.querySelectorAll('[data-esp-toggle]').forEach(tog => {
+      tog.addEventListener('click', () => {
+        const fid = tog.dataset.espToggle;
+        const newVal = !tog.classList.contains('naowee-switch--on');
+        tog.classList.toggle('naowee-switch--on', newVal);
+        tog.setAttribute('aria-checked', String(newVal));
+        reg3State.fichaEspecifica[fid] = newVal;
+        validate3();
+      });
+    });
+
+    // File uploader específicos (ej. Concepto sanitario vigente)
+    fields.querySelectorAll('[data-esp-file-trigger]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        if(e.target.closest('[data-esp-file-remove]')) return;
+        const fid = btn.dataset.espFileTrigger;
+        const input = fields.querySelector(`[data-esp-file="${fid}"]`);
+        if(input) input.click();
+      });
+    });
+    fields.querySelectorAll('[data-esp-file]').forEach(input => {
+      input.addEventListener('change', () => {
+        const fid = input.dataset.espFile;
+        const file = input.files && input.files[0];
+        if(file){
+          reg3State.fichaEspecifica[fid] = file.name;
+          renderFichaEspecifica(reg3State.tipoEscenario);
+          validate3();
+        }
+      });
+    });
+    fields.querySelectorAll('[data-esp-file-remove]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const fid = btn.dataset.espFileRemove;
+        reg3State.fichaEspecifica[fid] = '';
+        renderFichaEspecifica(reg3State.tipoEscenario);
+        validate3();
+      });
+    });
+
+    setTimeout(() => {
+      fields.querySelectorAll('.naowee-dropdown').forEach(dd => {
+        ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
+      });
+    }, 50);
+  }
+
+  function renderFichaField(f){
+    const val = reg3State.fichaEspecifica[f.id] != null ? reg3State.fichaEspecifica[f.id] : '';
+    if(f.type === 'decimal' || f.type === 'int' || f.type === 'text'){
+      const mode = f.type === 'int' ? 'int' : (f.type === 'decimal' ? 'decimal' : '');
+      const inputMode = f.type === 'int' ? 'numeric' : (f.type === 'decimal' ? 'decimal' : 'text');
+      const placeholder = f.placeholder || (f.type === 'decimal' || f.type === 'int' ? '00.0' : 'Escribe');
+      return `
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label${f.required ? ' naowee-textfield__label--required' : ''}">${f.label}</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="${placeholder}" inputmode="${inputMode}" data-esp-input="${f.id}" data-numeric="${mode}" value="${val}"/>
+          </div>
+        </div>
+      `;
+    }
+    if(f.type === 'dropdown'){
+      return `
+        <div class="naowee-dropdown" data-esp-dd="${f.id}">
+          <label class="naowee-dropdown__label">${f.label}${f.required ? ' <span style="color:var(--accent)">*</span>' : ''}</label>
+          <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="${val ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${val || 'Selecciona una opción'}</span>
+            <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox"></div>
+        </div>
+      `;
+    }
+    if(f.type === 'file'){
+      const hasFile = !!val;
+      return `
+        <div class="naowee-file-uploader" data-esp-file-wrap="${f.id}">
+          <label class="naowee-file-uploader__label${f.required ? ' naowee-file-uploader__label--required' : ''}">${f.label}</label>
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-esp-file="${f.id}" style="display:none"/>
+          <div class="naowee-file-uploader__input-wrap">
+            ${hasFile
+              ? `<div class="naowee-file-uploader__file-tag naowee-file-uploader__file-tag--uploaded">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span>${val}</span>
+                  <button type="button" class="naowee-file-uploader__file-dismiss" data-esp-file-remove="${f.id}" aria-label="Quitar archivo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>`
+              : `<span class="naowee-file-uploader__placeholder">Selecciona o arrastra el archivo aquí</span>
+                 <button type="button" class="naowee-file-uploader__action" data-esp-file-trigger="${f.id}">Subir archivo</button>`
+            }
+          </div>
+          ${f.hint ? `<p class="reg3-file-hint">${f.hint}</p>` : ''}
+        </div>
+      `;
+    }
+    return '';
+  }
+
+  /* ─── Render dotación y servicios ─── */
+  const DOTACION_FIELDS = [
+    { id:'iluminacion', label:'Iluminación artificial', sub:{id:'tipoIluminacion', type:'dropdown', label:'Tipo de iluminación', options:['LED','Halógena','Fluorescente','Mixta','Otra'], required:true} },
+    { id:'vestieres', label:'Vestieres', sub:{id:'numVestieres', type:'stepper', label:'Número de vestieres', required:true} },
+    { id:'banos', label:'Baños disponibles', sub:{id:'numBanos', type:'stepper', label:'Número de baños', required:true} },
+    { id:'banosAccesibles', label:'Baños accesibles (PMR)' },
+    { id:'tribuna', label:'Tribuna / gradería', sub:{id:'capacidadTribuna', type:'thousands', label:'Capacidad de la tribuna', required:true, placeholder:'Ej: 5.000'} },
+    { id:'bodega', label:'Bodega / cuarto de implementos' },
+    { id:'parqueadero', label:'Parqueadero', sub:{id:'capacidadParqueadero', type:'stepper', label:'Capacidad de vehículos', required:true} },
+    { id:'accesibilidad', label:'Accesibilidad para personas con discapacidad' },
+    { id:'cafeteria', label:'Cafetería' },
+    { id:'enfermeria', label:'Enfermería / primeros auxilios' }
+  ];
+
+  function renderDotacion(){
+    const container = document.getElementById('reg3DotacionContainer');
+    if(!container) return;
+    container.innerHTML = DOTACION_FIELDS.map(f => {
+      const val = !!reg3State.dotacion[f.id];
+      return `
+        <div class="reg3-dotacion__item">
+          <span class="reg3-dotacion__label">${f.label}</span>
+          <div class="naowee-switch${val ? ' naowee-switch--on' : ''}" data-dot-toggle="${f.id}" role="switch" aria-checked="${val}" tabindex="0">
+            <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+          </div>
+        </div>
+        ${f.sub ? `<div class="reg3-dotacion__subfield" data-dot-subfield="${f.id}" ${val ? '' : 'hidden'}>${renderDotSubfield(f.sub)}</div>` : ''}
+      `;
+    }).join('');
+
+    // Listeners de toggles de dotación
+    container.querySelectorAll('[data-dot-toggle]').forEach(tog => {
+      tog.addEventListener('click', () => {
+        const fid = tog.dataset.dotToggle;
+        const newVal = !tog.classList.contains('naowee-switch--on');
+        tog.classList.toggle('naowee-switch--on', newVal);
+        tog.setAttribute('aria-checked', String(newVal));
+        reg3State.dotacion[fid] = newVal;
+        const sub = container.querySelector(`[data-dot-subfield="${fid}"]`);
+        if(sub) sub.hidden = !newVal;
+        validate3();
+      });
+    });
+
+    // Listeners de subfields de texto/thousands
+    container.querySelectorAll('[data-dot-input]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const f = inp.dataset.dotInput;
+        const mode = inp.dataset.numeric;
+        let v = inp.value;
+        if(mode === 'int') v = v.replace(/\D/g,'');
+        else if(mode === 'thousands'){
+          const unformatted = unformatThousands(v);
+          const formatted = formatThousands(unformatted);
+          v = formatted;
+          reg3State.dotacion[f] = unformatted;
+        }
+        if(v !== inp.value){
+          const cursor = inp.selectionStart;
+          inp.value = v;
+          // Ajustar cursor aproximadamente
+          inp.setSelectionRange(v.length, v.length);
+        }
+        if(mode !== 'thousands') reg3State.dotacion[f] = v;
+        validate3();
+      });
+    });
+
+    // Listeners de input steppers (+/-) en dotación
+    container.querySelectorAll('[data-dot-stepper]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const f = btn.dataset.dotStepper;
+        const op = btn.dataset.step;
+        let cur = parseInt(reg3State.dotacion[f]) || 0;
+        if(op === 'plus') cur++;
+        else cur = Math.max(0, cur - 1);
+        reg3State.dotacion[f] = cur;
+        const valEl = container.querySelector(`[data-dot-stepper-val="${f}"]`);
+        if(valEl) valEl.textContent = cur;
+        validate3();
+      });
+    });
+
+    // Dropdown de tipo de iluminación (si existe)
+    const iluminacionDd = container.querySelector('[data-dot-dd="tipoIluminacion"]');
+    if(iluminacionDd){
+      const trigger = iluminacionDd.querySelector('.naowee-dropdown__trigger');
+      const menu = iluminacionDd.querySelector('.naowee-dropdown__menu');
+      const valueSpan = iluminacionDd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+      const opts = DOTACION_FIELDS[0].sub.options;
+      menu.innerHTML = '';
+      opts.forEach(opt => {
+        const el = document.createElement('div');
+        el.className = 'naowee-dropdown__option';
+        el.setAttribute('role','option');
+        el.textContent = opt;
+        if(opt === reg3State.dotacion.tipoIluminacion) el.classList.add('naowee-dropdown__option--selected');
+        el.addEventListener('click', () => {
+          valueSpan.textContent = opt;
+          valueSpan.className = 'naowee-dropdown__value';
+          iluminacionDd.classList.remove('naowee-dropdown--open');
+          trigger.setAttribute('aria-expanded','false');
+          reg3State.dotacion.tipoIluminacion = opt;
+        });
+        menu.appendChild(el);
+      });
+      trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== iluminacionDd) o.classList.remove('naowee-dropdown--open'); });
+        iluminacionDd.classList.toggle('naowee-dropdown--open');
+        trigger.setAttribute('aria-expanded', iluminacionDd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+      });
+    }
+
+    setTimeout(() => {
+      container.querySelectorAll('.naowee-dropdown').forEach(dd => {
+        ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
+      });
+    }, 50);
+  }
+
+  function renderDotSubfield(sub){
+    const val = reg3State.dotacion[sub.id] != null ? reg3State.dotacion[sub.id] : '';
+    const reqMark = sub.required ? ' <span style="color:var(--accent)">*</span>' : '';
+
+    if(sub.type === 'stepper'){
+      const num = parseInt(val) || 0;
+      return `
+        <label class="naowee-textfield__label">${sub.label}${reqMark}</label>
+        <div class="reg3-stepper-wrap" style="width:168px;margin-top:6px">
+          <div class="naowee-input-stepper">
+            <div class="naowee-input-stepper__content">
+              <div class="naowee-input-stepper__input">
+                <button type="button" class="naowee-input-stepper__btn" data-dot-stepper="${sub.id}" data-step="minus" aria-label="Disminuir">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <div class="naowee-input-stepper__value">
+                  <span class="naowee-input-stepper__value-text" data-dot-stepper-val="${sub.id}">${num}</span>
+                </div>
+                <button type="button" class="naowee-input-stepper__btn" data-dot-stepper="${sub.id}" data-step="plus" aria-label="Aumentar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    if(sub.type === 'thousands'){
+      return `
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label${sub.required ? ' naowee-textfield__label--required' : ''}">${sub.label}</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="${sub.placeholder || '0'}" inputmode="numeric" data-dot-input="${sub.id}" data-numeric="thousands" value="${formatThousands(val)}"/>
+          </div>
+        </div>
+      `;
+    }
+    if(sub.type === 'int' || sub.type === 'decimal'){
+      return `
+        <div class="naowee-textfield">
+          <label class="naowee-textfield__label${sub.required ? ' naowee-textfield__label--required' : ''}">${sub.label}</label>
+          <div class="naowee-textfield__input-wrap">
+            <input type="text" class="naowee-textfield__input" placeholder="0" inputmode="numeric" data-dot-input="${sub.id}" data-numeric="${sub.type}" value="${val}"/>
+          </div>
+        </div>
+      `;
+    }
+    if(sub.type === 'dropdown'){
+      return `
+        <div class="naowee-dropdown" data-dot-dd="${sub.id}">
+          <label class="naowee-dropdown__label">${sub.label}${reqMark}</label>
+          <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="${val ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${val || 'Selecciona'}</span>
+            <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox"></div>
+        </div>
+      `;
+    }
+    return '';
+  }
+
+  /* ─── Helpers: máscara de miles (1.000, 10.000, 100.000) ─── */
+  function formatThousands(v){
+    if(v == null || v === '') return '';
+    const s = String(v).replace(/\./g,''); // quitar puntos
+    const digits = s.replace(/\D/g,'');
+    if(!digits) return '';
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  function unformatThousands(v){
+    return String(v || '').replace(/\./g,'').replace(/\D/g,'');
+  }
+
+  /* ═════════════════════════════════════════════════
+     STEP 2 — Disciplinas deportivas
+     ═════════════════════════════════════════════════ */
+
   /* ─── Toggle compartenEscenario ─── */
   const compartenToggle = document.getElementById('reg3CompartenToggle');
   function setComparten(on){
     compartenToggle.classList.toggle('naowee-switch--on', on);
     compartenToggle.setAttribute('aria-checked', String(on));
     reg3State.compartenEscenario = on;
+    // Si ON, ocultamos el toggle "compartenDetalles" (no aplica)
+    document.getElementById('reg3DetallesToggleWrap').hidden = on;
+    if(on){
+      reg3State.compartenDetalles = false;
+      setDetalles(false);
+    }
+    // Re-render las fichas de disciplina (los campos físicos se ocultan si ON)
+    renderReg3Disciplines();
+    validate3();
   }
   compartenToggle.addEventListener('click', () => setComparten(!compartenToggle.classList.contains('naowee-switch--on')));
 
@@ -3221,22 +4316,20 @@
     detallesToggle.classList.toggle('naowee-switch--on', on);
     detallesToggle.setAttribute('aria-checked', String(on));
     reg3State.compartenDetalles = on;
+    if(on && reg3State.disciplinas.length >= 2){
+      // Autocompletar: copiar los datos del primer deporte a los demás
+      const first = reg3State.disciplinasData[reg3State.disciplinas[0]] || {};
+      reg3State.disciplinas.slice(1).forEach(d => {
+        // Clonar sólo los campos físicos, mantener reglas/modalidad individuales
+        if(!reg3State.disciplinasData[d]) reg3State.disciplinasData[d] = {};
+        ['largo','ancho','superficie','estado','numCanchas'].forEach(k => {
+          if(first[k] != null && first[k] !== '') reg3State.disciplinasData[d][k] = first[k];
+        });
+      });
+      renderReg3Disciplines();
+    }
   }
   detallesToggle.addEventListener('click', () => setDetalles(!detallesToggle.classList.contains('naowee-switch--on')));
-
-  /* ─── Tipo de escenario ─── */
-  initDropdown('reg3TipoEscDD', TIPOS_ESCENARIO, (val) => {
-    if(reg3State.tipoEscenario !== val){
-      // Cambió el tipo → limpiar disciplinas
-      reg3State.disciplinas = [];
-      reg3State.disciplinasData = {};
-      renderReg3Chips();
-      renderReg3Disciplines();
-      document.getElementById('reg3DynamicSection').hidden = true;
-    }
-    reg3State.tipoEscenario = val;
-    validate3();
-  });
 
   /* ─── Multi-select Disciplinas ─── */
   const reg3DiscEl = document.getElementById('reg3DiscMulti');
@@ -3272,11 +4365,16 @@
     menu.style.width = menu.style.left = menu.style.top = menu.style.bottom = '';
   }
 
+  function getDisciplinasDisponibles(){
+    const cfg = SCENARIO_CONFIG[reg3State.tipoEscenario];
+    return (cfg && cfg.disciplinas) ? cfg.disciplinas : [];
+  }
+
   function renderReg3DiscOptions(){
-    const opts = DISCIPLINAS_POR_TIPO[reg3State.tipoEscenario] || [];
+    const opts = getDisciplinasDisponibles();
     reg3DiscOptionsEl.innerHTML = '';
     if(opts.length === 0){
-      reg3DiscOptionsEl.innerHTML = '<div class="reg-multi__option" style="color:#9c9ebf;cursor:default">Primero selecciona el tipo de escenario</div>';
+      reg3DiscOptionsEl.innerHTML = '<div class="reg-multi__option" style="color:#9c9ebf;cursor:default">Primero selecciona el tipo de escenario en el paso anterior</div>';
       return;
     }
     opts.forEach(opt => {
@@ -3307,10 +4405,11 @@
       reg3DiscChips.innerHTML = '<span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>';
       return;
     }
-    const chipsHtml = disc.map((d, i) => `
+    // Usamos el nombre del deporte como identificador (no el índice) para evitar el bug de desincronización
+    const chipsHtml = disc.map((d) => `
       <span class="naowee-tag naowee-tag--small naowee-tag--accent">
         ${d}
-        <span class="naowee-tag__active-area" data-remove-disc="${i}" role="button" aria-label="Quitar ${d}">
+        <span class="naowee-tag__active-area" data-remove-disc-name="${d}" role="button" aria-label="Quitar ${d}">
           <span class="naowee-tag__close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </span>
@@ -3318,12 +4417,13 @@
       </span>
     `).join('');
     reg3DiscChips.innerHTML = chipsHtml;
-    reg3DiscChips.querySelectorAll('[data-remove-disc]').forEach(el => {
+    reg3DiscChips.querySelectorAll('[data-remove-disc-name]').forEach(el => {
       el.addEventListener('click', e => {
         e.stopPropagation();
-        const idx = parseInt(el.dataset.removeDisc);
-        const removed = reg3State.disciplinas.splice(idx, 1)[0];
-        delete reg3State.disciplinasData[removed];
+        e.preventDefault();
+        const name = el.dataset.removeDiscName;
+        reg3State.disciplinas = reg3State.disciplinas.filter(x => x !== name);
+        delete reg3State.disciplinasData[name];
         renderReg3Chips();
         renderReg3Disciplines();
         document.getElementById('reg3DynamicSection').hidden = reg3State.disciplinas.length === 0;
@@ -3332,127 +4432,93 @@
     });
   }
 
-  /* ─── Renderizar secciones dinámicas por disciplina ─── */
+  /* ─── Renderizar fichas por disciplina según toggle compartenEscenario ─── */
   function renderReg3Disciplines(){
     const listEl = document.getElementById('reg3DisciplinesList');
     listEl.innerHTML = '';
+    const cfg = SCENARIO_CONFIG[reg3State.tipoEscenario];
+    const fichaDiscTemplate = cfg && cfg.fichaPorDisciplina ? cfg.fichaPorDisciplina : [];
+    const compartido = reg3State.compartenEscenario;
+
     reg3State.disciplinas.forEach(disc => {
       if(!reg3State.disciplinasData[disc]){
-        reg3State.disciplinasData[disc] = {
-          espacioTipo:'', cantidad:0, largo:'', ancho:'', numCanchas:'', estado:''
-        };
+        reg3State.disciplinasData[disc] = {};
       }
       const data = reg3State.disciplinasData[disc];
-      const section = document.createElement('div');
-      section.className = 'reg3-discipline';
-      section.innerHTML = `
-        <h4 class="reg3-discipline__title">${disc}</h4>
-
-        <div class="reg-row" style="align-items:flex-end">
-          <div class="naowee-dropdown" data-disc-dd="${disc}">
-            <label class="naowee-dropdown__label">Tipo de espacio interno <span style="color:var(--accent)">*</span></label>
-            <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
-              <span class="${data.espacioTipo ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${data.espacioTipo || 'Selecciona un espacio'}</span>
-              <span class="naowee-dropdown__controls">
-                <span class="naowee-dropdown__chevron">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </span>
-              </span>
-            </button>
-            <div class="naowee-dropdown__menu" role="listbox"></div>
-          </div>
-
-          <div class="reg3-stepper-wrap">
-            <div class="naowee-input-stepper">
-              <div class="naowee-input-stepper__content">
-                <div class="naowee-input-stepper__input">
-                  <button type="button" class="naowee-input-stepper__btn" data-disc-step="minus" data-disc="${disc}" aria-label="Disminuir">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  </button>
-                  <div class="naowee-input-stepper__value">
-                    <span class="naowee-input-stepper__value-text">${data.cantidad}</span>
-                  </div>
-                  <button type="button" class="naowee-input-stepper__btn" data-disc-step="plus" data-disc="${disc}" aria-label="Aumentar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+      const card = document.createElement('div');
+      card.className = 'reg3-disc-card';
+      card.innerHTML = `
+        <div class="reg3-disc-card__header" data-disc-toggle="${disc}">
+          <span class="reg3-disc-card__title">${disc}</span>
+          <svg class="reg3-disc-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
-
-        ${data.cantidad > 0 ? `
-          <div class="reg3-space" data-disc-space="${disc}">
-            <div class="reg3-space__header">
-              <div class="reg3-space__title">
-                <span class="reg3-space__num">1</span>
-                ${data.espacioTipo || 'Espacio'}<span class="req">*</span>
-              </div>
-              <svg class="reg3-space__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-            <div class="reg3-space__body">
-              <div class="reg-row">
-                <div class="naowee-textfield">
-                  <label class="naowee-textfield__label naowee-textfield__label--required">Dimensiones de largo (m)</label>
-                  <div class="naowee-textfield__input-wrap">
-                    <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-field="largo" data-numeric="decimal" data-disc="${disc}" value="${data.largo}"/>
-                  </div>
-                </div>
-                <div class="naowee-textfield">
-                  <label class="naowee-textfield__label naowee-textfield__label--required">Dimensiones de ancho (m)</label>
-                  <div class="naowee-textfield__input-wrap">
-                    <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-field="ancho" data-numeric="decimal" data-disc="${disc}" value="${data.ancho}"/>
-                  </div>
-                </div>
-              </div>
-              <div class="reg-row">
-                <div class="naowee-textfield">
-                  <label class="naowee-textfield__label naowee-textfield__label--required">Número de espacios</label>
-                  <div class="naowee-textfield__input-wrap">
-                    <input type="text" class="naowee-textfield__input" placeholder="000" inputmode="numeric" data-disc-field="numCanchas" data-numeric="int" data-disc="${disc}" value="${data.numCanchas}"/>
-                  </div>
-                </div>
-                <div class="naowee-dropdown" data-disc-estado="${disc}">
-                  <label class="naowee-dropdown__label">Estado de la superficie <span style="color:var(--accent)">*</span></label>
-                  <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
-                    <span class="${data.estado ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${data.estado || 'Selecciona una opción'}</span>
-                    <span class="naowee-dropdown__controls">
-                      <span class="naowee-dropdown__chevron">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                      </span>
-                    </span>
-                  </button>
-                  <div class="naowee-dropdown__menu" role="listbox"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ` : ''}
+        <div class="reg3-disc-card__body">
+          ${renderFichaDisciplinaFields(disc, fichaDiscTemplate, compartido, data)}
+        </div>
       `;
-      listEl.appendChild(section);
+      listEl.appendChild(card);
 
-      // Inicializar dropdowns de esta disciplina
-      const dd = section.querySelector(`[data-disc-dd="${CSS.escape(disc)}"]`);
-      if(dd){
-        const espacios = TIPOS_ESPACIO_POR_DISCIPLINA['default'];
-        // Reinit dropdown DS
+      // Toggle colapsar
+      card.querySelector('.reg3-disc-card__header').addEventListener('click', () => {
+        card.classList.toggle('collapsed');
+      });
+
+      // Listeners de inputs de la disciplina
+      card.querySelectorAll('[data-disc-input]').forEach(inp => {
+        inp.addEventListener('input', () => {
+          const fid = inp.dataset.discInput;
+          const mode = inp.dataset.numeric;
+          let v = inp.value;
+          if(mode === 'int') v = v.replace(/\D/g,'');
+          else if(mode === 'decimal'){
+            v = v.replace(/[^0-9.]/g,'');
+            const parts = v.split('.');
+            if(parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+          }
+          if(v !== inp.value) inp.value = v;
+          reg3State.disciplinasData[disc][fid] = v;
+          validate3();
+        });
+      });
+
+      // Dropdowns de la disciplina (template + extra como superficie/estado/modalidad)
+      card.querySelectorAll('[data-disc-dd]').forEach(dd => {
+        const fid = dd.dataset.discDd;
+        const optsSource = dd.dataset.discOptions;
+        // Resolver las opciones:
+        // 1) Si data-disc-options está presente, usar la lista dinámica (SUPERFICIES_DEPORTIVAS / ESTADO_SUPERFICIE / MODALIDADES)
+        // 2) Si no, buscar en el template
+        let options = [];
+        if(optsSource === 'SUPERFICIES_DEPORTIVAS') options = SUPERFICIES_DEPORTIVAS;
+        else if(optsSource === 'ESTADO_SUPERFICIE') options = ESTADO_SUPERFICIE;
+        else if(optsSource === 'MODALIDADES') options = getModalidades(disc);
+        else {
+          const field = fichaDiscTemplate.find(x => x.id === fid);
+          if(field && field.options) options = field.options;
+        }
+        if(options.length === 0) return;
+
         const trigger = dd.querySelector('.naowee-dropdown__trigger');
         const menu = dd.querySelector('.naowee-dropdown__menu');
         const valueSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
         menu.innerHTML = '';
-        espacios.forEach(opt => {
+        const currentVal = reg3State.disciplinasData[disc][fid];
+        options.forEach(opt => {
           const el = document.createElement('div');
           el.className = 'naowee-dropdown__option';
           el.setAttribute('role','option');
           el.textContent = opt;
-          if(opt === data.espacioTipo) el.classList.add('naowee-dropdown__option--selected');
+          if(opt === currentVal) el.classList.add('naowee-dropdown__option--selected');
           el.addEventListener('click', () => {
+            // Marcar selected correctamente
+            menu.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+            el.classList.add('naowee-dropdown__option--selected');
+            // Actualizar trigger
             valueSpan.textContent = opt;
             valueSpan.className = 'naowee-dropdown__value';
             dd.classList.remove('naowee-dropdown--open');
             trigger.setAttribute('aria-expanded','false');
-            reg3State.disciplinasData[disc].espacioTipo = opt;
-            renderReg3Disciplines(); // re-render para actualizar el título del espacio
+            reg3State.disciplinasData[disc][fid] = opt;
             validate3();
           });
           menu.appendChild(el);
@@ -3463,95 +4529,113 @@
           dd.classList.toggle('naowee-dropdown--open');
           trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
         });
-      }
+      });
 
-      // Estado de superficie dropdown
-      const ddEstado = section.querySelector(`[data-disc-estado="${CSS.escape(disc)}"]`);
-      if(ddEstado){
-        const trigger = ddEstado.querySelector('.naowee-dropdown__trigger');
-        const menu = ddEstado.querySelector('.naowee-dropdown__menu');
-        const valueSpan = ddEstado.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
-        menu.innerHTML = '';
-        ESTADO_SUPERFICIE.forEach(opt => {
-          const el = document.createElement('div');
-          el.className = 'naowee-dropdown__option';
-          el.setAttribute('role','option');
-          el.textContent = opt;
-          if(opt === data.estado) el.classList.add('naowee-dropdown__option--selected');
-          el.addEventListener('click', () => {
-            valueSpan.textContent = opt;
-            valueSpan.className = 'naowee-dropdown__value';
-            ddEstado.classList.remove('naowee-dropdown--open');
-            trigger.setAttribute('aria-expanded','false');
-            reg3State.disciplinasData[disc].estado = opt;
-            validate3();
-          });
-          menu.appendChild(el);
-        });
-        trigger.addEventListener('click', e => {
-          e.stopPropagation();
-          document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== ddEstado) o.classList.remove('naowee-dropdown--open'); });
-          ddEstado.classList.toggle('naowee-dropdown--open');
-          trigger.setAttribute('aria-expanded', ddEstado.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
-        });
-      }
-
-      // Steppers +/-
-      section.querySelectorAll('[data-disc-step]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const d = btn.dataset.disc;
-          const op = btn.dataset.discStep;
-          if(op === 'plus'){
-            reg3State.disciplinasData[d].cantidad++;
-          } else {
-            reg3State.disciplinasData[d].cantidad = Math.max(0, reg3State.disciplinasData[d].cantidad - 1);
-          }
-          renderReg3Disciplines();
+      // Toggles de la disciplina
+      card.querySelectorAll('[data-disc-toggle-field]').forEach(tog => {
+        tog.addEventListener('click', () => {
+          const fid = tog.dataset.discToggleField;
+          const newVal = !tog.classList.contains('naowee-switch--on');
+          tog.classList.toggle('naowee-switch--on', newVal);
+          tog.setAttribute('aria-checked', String(newVal));
+          reg3State.disciplinasData[disc][fid] = newVal;
           validate3();
         });
       });
-
-      // Inputs de largo, ancho, numCanchas (con sanitización numérica)
-      section.querySelectorAll('[data-disc-field]').forEach(inp => {
-        inp.addEventListener('input', () => {
-          const d = inp.dataset.disc;
-          const f = inp.dataset.discField;
-          const mode = inp.dataset.numeric;
-          let v = inp.value;
-          if(mode === 'int'){
-            v = v.replace(/\D/g,'');
-          } else if(mode === 'decimal'){
-            // Solo dígitos y un punto decimal
-            v = v.replace(/[^0-9.]/g,'');
-            const parts = v.split('.');
-            if(parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
-          }
-          if(v !== inp.value) inp.value = v;
-          reg3State.disciplinasData[d][f] = v;
-          validate3();
-        });
-        inp.addEventListener('keypress', e => {
-          const mode = inp.dataset.numeric;
-          if(mode === 'int' && !/[0-9]/.test(e.key) && e.key.length === 1) e.preventDefault();
-          if(mode === 'decimal' && !/[0-9.]/.test(e.key) && e.key.length === 1) e.preventDefault();
-        });
-      });
-
-      // Toggle colapsar/expandir space
-      const spaceEl = section.querySelector('[data-disc-space]');
-      if(spaceEl){
-        spaceEl.querySelector('.reg3-space__header').addEventListener('click', () => {
-          spaceEl.classList.toggle('collapsed');
-        });
-      }
     });
 
-    // Observer para el float del multi-select cuando hay nuevos dropdowns dentro del modal 3
+    // Observer para floating de dropdowns internos
     setTimeout(() => {
       listEl.querySelectorAll('.naowee-dropdown').forEach(dd => {
         ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
       });
-    }, 100);
+    }, 50);
+  }
+
+  function renderFichaDisciplinaFields(disc, template, compartido, data){
+    // Si el escenario NO es compartido, agregar también campos físicos por disciplina
+    let extraFields = '';
+    if(!compartido){
+      extraFields = `
+        <div class="reg3-ficha-grid">
+          <div class="naowee-textfield">
+            <label class="naowee-textfield__label naowee-textfield__label--required">Largo del espacio (m)</label>
+            <div class="naowee-textfield__input-wrap">
+              <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-input="largo" data-numeric="decimal" value="${data.largo || ''}"/>
+            </div>
+          </div>
+          <div class="naowee-textfield">
+            <label class="naowee-textfield__label naowee-textfield__label--required">Ancho del espacio (m)</label>
+            <div class="naowee-textfield__input-wrap">
+              <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-input="ancho" data-numeric="decimal" value="${data.ancho || ''}"/>
+            </div>
+          </div>
+        </div>
+        <div class="reg3-ficha-grid">
+          <div class="naowee-dropdown" data-disc-dd="superficie" data-disc-options="SUPERFICIES_DEPORTIVAS">
+            <label class="naowee-dropdown__label">Tipo de superficie <span style="color:var(--accent)">*</span></label>
+            <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="${data.superficie ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${data.superficie || 'Selecciona'}</span>
+              <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+            </button>
+            <div class="naowee-dropdown__menu" role="listbox"></div>
+          </div>
+          <div class="naowee-dropdown" data-disc-dd="estado" data-disc-options="ESTADO_SUPERFICIE">
+            <label class="naowee-dropdown__label">Estado de la superficie <span style="color:var(--accent)">*</span></label>
+            <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="${data.estado ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${data.estado || 'Selecciona'}</span>
+              <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+            </button>
+            <div class="naowee-dropdown__menu" role="listbox"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Renderizar los campos de template (modalidad, categoría, toggles, etc.)
+    const templateHtml = template.map(f => {
+      const val = data[f.id] != null ? data[f.id] : '';
+      // Si el campo es type:'text' pero el id es 'modalidad', lo convertimos a dropdown dinámico
+      const isModalidad = f.id === 'modalidad';
+      const effectiveType = isModalidad ? 'dropdown' : f.type;
+
+      if(effectiveType === 'text'){
+        return `
+          <div class="naowee-textfield">
+            <label class="naowee-textfield__label">${f.label}</label>
+            <div class="naowee-textfield__input-wrap">
+              <input type="text" class="naowee-textfield__input" placeholder="${f.placeholder || 'Escribe'}" data-disc-input="${f.id}" value="${val}"/>
+            </div>
+          </div>
+        `;
+      }
+      if(effectiveType === 'dropdown'){
+        return `
+          <div class="naowee-dropdown" data-disc-dd="${f.id}"${isModalidad ? ' data-disc-options="MODALIDADES"' : ''}>
+            <label class="naowee-dropdown__label">${f.label}</label>
+            <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="${val ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${val || 'Selecciona'}</span>
+              <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+            </button>
+            <div class="naowee-dropdown__menu" role="listbox"></div>
+          </div>
+        `;
+      }
+      if(effectiveType === 'toggle'){
+        const vB = !!val;
+        return `
+          <div class="reg3-inline-toggle">
+            <span class="reg3-inline-toggle__label">${f.label}</span>
+            <div class="naowee-switch${vB ? ' naowee-switch--on' : ''}" data-disc-toggle-field="${f.id}" role="switch" aria-checked="${vB}" tabindex="0">
+              <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+            </div>
+          </div>
+        `;
+      }
+      return '';
+    }).join('');
+
+    return extraFields + templateHtml;
   }
 
   reg3DiscTrigger.addEventListener('click', e => {
@@ -3591,30 +4675,72 @@
     }
   });
 
-  /* ─── Validación modal 3 ─── */
+  /* ═════════════════════════════════════════════════
+     Validación modal 3 por paso
+     ═════════════════════════════════════════════════ */
   function validate3(){
     const s = reg3State;
-    let ok = !!s.tipoEscenario;
-    if(s.disciplinas.length > 0){
-      // Si hay disciplinas, cada una debe tener al menos tipo de espacio + cantidad
-      for(const d of s.disciplinas){
-        const dd = s.disciplinasData[d];
-        if(!dd || !dd.espacioTipo || dd.cantidad < 1) { ok = false; break; }
-        if(!dd.largo || !dd.ancho || !dd.numCanchas || !dd.estado) { ok = false; break; }
+    let ok = false;
+
+    if(reg3Step === 1){
+      // Paso 1: tipo + ficha común obligatoria + ficha específica requerida completa
+      const c = s.fichaComun;
+      let common = !!s.tipoEscenario
+        && c.areaTotal && c.areaUtil && c.cubierto
+        && c.capacidad && c.anioCons && c.estado;
+      let specific = true;
+      const cfg = SCENARIO_CONFIG[s.tipoEscenario];
+      if(cfg && cfg.fichaEspecifica){
+        for(const f of cfg.fichaEspecifica){
+          if(f.required){
+            const v = s.fichaEspecifica[f.id];
+            if(v == null || v === '') { specific = false; break; }
+          }
+        }
       }
+      // Dotación: cuando el toggle está ON, el subfield requerido debe tener valor
+      let dotOk = true;
+      for(const field of DOTACION_FIELDS){
+        if(field.sub && s.dotacion[field.id] && field.sub.required){
+          const v = s.dotacion[field.sub.id];
+          if(field.sub.type === 'stepper'){
+            if(!v || parseInt(v) < 1) { dotOk = false; break; }
+          } else if(v == null || v === '') {
+            dotOk = false; break;
+          }
+        }
+      }
+      ok = common && specific && dotOk;
+    } else if(reg3Step === 2){
+      // Paso 2: al menos 1 disciplina
+      ok = s.disciplinas.length > 0;
+    } else if(reg3Step === 3){
+      // Paso 3: stub — siempre válido (permite guardar borrador)
+      ok = true;
     }
     reg3SubmitBtn.disabled = !ok;
   }
 
-  /* ─── Botón Volver del modal 3 ─── */
+  /* ═════════════════════════════════════════════════
+     Handlers de navegación Volver / Continuar
+     ═════════════════════════════════════════════════ */
   document.getElementById('reg3BtnBack').addEventListener('click', () => {
-    closeModal3();
-    modal2.classList.add('open');
+    if(reg3Step > 1){
+      switchReg3Step(reg3Step - 1);
+    } else {
+      // Desde el paso 1 vuelve al modal 2
+      closeModal3();
+      modal2.classList.add('open');
+    }
   });
 
-  /* ─── Submit modal 3: guarda todo y navega ─── */
   reg3SubmitBtn.addEventListener('click', () => {
     if(reg3SubmitBtn.disabled) return;
+    if(reg3Step < 3){
+      switchReg3Step(reg3Step + 1);
+      return;
+    }
+    // Paso 3 → guarda y cierra
     reg3SubmitBtn.classList.add('naowee-btn--loading');
     setTimeout(() => {
       try {
@@ -3631,9 +4757,12 @@
           direccion: regState.direccion || prev.direccion || '',
           corregimiento: regState.corregimiento || prev.corregimiento || '',
           zona: regState.zona || prev.zona || '',
-          // datos deportivos
+          // datos deportivos extendidos
           car: reg3State.car,
           tipoEscenario: reg3State.tipoEscenario,
+          fichaComun: JSON.parse(JSON.stringify(reg3State.fichaComun)),
+          fichaEspecifica: JSON.parse(JSON.stringify(reg3State.fichaEspecifica)),
+          dotacion: JSON.parse(JSON.stringify(reg3State.dotacion)),
           disciplinas: [...reg3State.disciplinas],
           compartenEscenario: reg3State.compartenEscenario,
           compartenDetalles: reg3State.compartenDetalles,
@@ -3666,14 +4795,25 @@
         const d = arr[editingDraftIdx] || {};
         reg3State.car = !!d.car;
         reg3State.tipoEscenario = d.tipoEscenario || '';
+        // Ficha común
+        if(d.fichaComun){
+          Object.assign(reg3State.fichaComun, d.fichaComun);
+        }
+        // Ficha específica
+        reg3State.fichaEspecifica = d.fichaEspecifica ? JSON.parse(JSON.stringify(d.fichaEspecifica)) : {};
+        // Dotación
+        if(d.dotacion){
+          Object.assign(reg3State.dotacion, d.dotacion);
+        }
         reg3State.disciplinas = Array.isArray(d.disciplinas) ? [...d.disciplinas] : [];
         reg3State.compartenEscenario = !!d.compartenEscenario;
         reg3State.compartenDetalles = !!d.compartenDetalles;
         reg3State.disciplinasData = d.disciplinasData ? JSON.parse(JSON.stringify(d.disciplinasData)) : {};
-        // Pintar UI
+        // Pintar UI toggles
         setCar(reg3State.car);
         setComparten(reg3State.compartenEscenario);
         setDetalles(reg3State.compartenDetalles);
+        // Pintar tipo de escenario
         const tipoEscSpan = document.querySelector('#reg3TipoEscDD .naowee-dropdown__placeholder, #reg3TipoEscDD .naowee-dropdown__value');
         if(tipoEscSpan){
           if(reg3State.tipoEscenario){
@@ -3684,6 +4824,7 @@
             tipoEscSpan.className = 'naowee-dropdown__placeholder';
           }
         }
+        // Chips de disciplinas
         renderReg3Chips();
         renderReg3Disciplines();
         document.getElementById('reg3DynamicSection').hidden = reg3State.disciplinas.length === 0;
