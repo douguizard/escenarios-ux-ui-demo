@@ -917,18 +917,21 @@
 /* Vista "Próximamente" del paso 3 (documentación stub) */
 /* Tabla de documentos (paso 4) */
 .reg3-doc-table{
-  width:100%;border-collapse:collapse;
+  width:100%;border-collapse:separate;border-spacing:0;
   font-family:var(--naowee-font-family,'Inter',sans-serif);
   font-size:14px;
+}
+.reg3-doc-table thead tr{
+  background:var(--naowee-color-background-secondary,#f4f5f9);
+  border-radius:10px;
 }
 .reg3-doc-table thead th{
   text-align:left;padding:10px 12px;
   font-size:13px;font-weight:600;color:var(--text-secondary);
-  background:var(--naowee-color-background-secondary,#f4f5f9);
-  border-radius:8px 8px 0 0;
+  background:inherit;
 }
-.reg3-doc-table thead th:first-child{border-radius:8px 0 0 0}
-.reg3-doc-table thead th:last-child{border-radius:0 8px 0 0}
+.reg3-doc-table thead th:first-child{border-radius:10px 0 0 10px}
+.reg3-doc-table thead th:last-child{border-radius:0 10px 10px 0}
 .reg3-doc-table tbody td{
   padding:14px 12px;vertical-align:middle;
   border-bottom:1px solid var(--border,#e7e9f3);
@@ -4574,6 +4577,72 @@
         validate3();
       });
     });
+    // ── REGISTRO FOTOGRÁFICO del sub-espacio (1 obligatoria + 4 opcionales) ──
+    const PHOTO_SLOTS = [
+      { id:'foto_frontal', label:'Foto frontal', required:true },
+      { id:'foto_2', label:'Foto lateral' },
+      { id:'foto_3', label:'Foto detalle' },
+      { id:'foto_4', label:'Foto adicional' },
+      { id:'foto_5', label:'Foto adicional' }
+    ];
+    // Asegurar que subEspacios[idx] tenga objeto fotos
+    if(!reg3State.subEspacios[idx]) reg3State.subEspacios[idx] = { nombre:'', ficha:{} };
+    if(!reg3State.subEspacios[idx].fotos) reg3State.subEspacios[idx].fotos = {};
+    const photosData = reg3State.subEspacios[idx].fotos;
+
+    const photosDiv = document.createElement('div');
+    photosDiv.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-top:8px';
+    const cameraIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+
+    photosDiv.innerHTML = `
+      <div class="reg3-section-divider">REGISTRO FOTOGRÁFICO</div>
+      <div class="reg3-photos">
+        ${PHOTO_SLOTS.map(s => {
+          const hasPhoto = !!photosData[s.id];
+          return `
+            <div class="reg3-photos__slot${hasPhoto ? ' reg3-photos__slot--filled' : ''}" data-photo-slot="${s.id}" data-photo-idx="${idx}">
+              <input type="file" accept=".jpg,.jpeg,.png" data-photo-file="${s.id}" data-photo-file-idx="${idx}" style="display:none"/>
+              <div class="reg3-photos__slot-icon">${cameraIcon}</div>
+              <div class="reg3-photos__slot-label">${hasPhoto ? photosData[s.id] : s.label}${s.required && !hasPhoto ? ' <span style="color:var(--accent)">*</span>' : ''}</div>
+              ${hasPhoto ? `<button type="button" class="reg3-photos__slot-remove" data-photo-remove="${s.id}" data-photo-remove-idx="${idx}" aria-label="Quitar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    bodyEl.appendChild(photosDiv);
+
+    // Listeners de fotos
+    photosDiv.querySelectorAll(`[data-photo-slot]`).forEach(slot => {
+      slot.addEventListener('click', e => {
+        if(e.target.closest('[data-photo-remove]')) return;
+        if(slot.classList.contains('reg3-photos__slot--filled')) return;
+        const fid = slot.dataset.photoSlot;
+        const fileIdx = slot.dataset.photoIdx;
+        const inp = photosDiv.querySelector(`[data-photo-file="${fid}"][data-photo-file-idx="${fileIdx}"]`);
+        if(inp) inp.click();
+      });
+    });
+    photosDiv.querySelectorAll(`[data-photo-file]`).forEach(inp => {
+      inp.addEventListener('change', () => {
+        const fid = inp.dataset.photoFile;
+        const file = inp.files && inp.files[0];
+        if(file){
+          reg3State.subEspacios[idx].fotos[fid] = file.name;
+          renderFichaEspecifica(reg3State.tipoEscenario);
+          validate3();
+        }
+      });
+    });
+    photosDiv.querySelectorAll(`[data-photo-remove]`).forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const fid = btn.dataset.photoRemove;
+        reg3State.subEspacios[idx].fotos[fid] = '';
+        renderFichaEspecifica(reg3State.tipoEscenario);
+        validate3();
+      });
+    });
   } // fin renderOneFichaBlock
 
   /* renderFichaFieldSub: genera el HTML de un campo con data-sub-idx para N sub-espacios */
@@ -5344,7 +5413,13 @@
           }
         }
       }
-      ok = common && specific && dotOk;
+      // Foto frontal obligatoria por cada sub-espacio
+      let photosOk = true;
+      for(let si = 0; si < (s.subCount || 1); si++){
+        const sub = s.subEspacios[si];
+        if(!sub || !sub.fotos || !sub.fotos.foto_frontal) { photosOk = false; break; }
+      }
+      ok = common && specific && dotOk && photosOk;
     } else if(reg3Step === 3){
       // Paso 3 (Disciplinas): al menos 1 disciplina
       // Si el escenario es multiEspacio, cada disciplina debe tener largo, ancho, superficie y estado
@@ -5434,6 +5509,19 @@
               }
             }
           });
+        }
+      }
+      // Foto frontal por sub-espacio
+      for(let si = 0; si < (s.subCount || 1); si++){
+        const sub = s.subEspacios[si];
+        if(!sub || !sub.fotos || !sub.fotos.foto_frontal){
+          const slot = step.querySelector(`[data-photo-slot="foto_frontal"][data-photo-idx="${si}"]`);
+          if(slot){
+            slot.style.borderColor = 'var(--accent)';
+            slot.style.background = 'var(--red-bg,#fff0ee)';
+            slot.classList.add('field-error-wiggle');
+            slot.addEventListener('animationend', () => slot.classList.remove('field-error-wiggle'), {once:true});
+          }
         }
       }
     } else if(reg3Step === 3){
