@@ -2425,7 +2425,7 @@
   gap: var(--naowee-spacing-gap-xmicro);
   transition: background var(--naowee-transition-fast);
 }
-.naowee-dropdown__option:hover { background: var(--naowee-color-fill-secondary); }
+.naowee-dropdown__option:hover { background: var(--naowee-color-background-secondary, #F4F5F9); }
 .naowee-dropdown__option--selected {
   background: var(--naowee-color-interactive-fill-quiet-idle);
   color: var(--naowee-color-text-accent);

@@ -308,6 +308,14 @@
 /* Cuando hay un dialog encima, ocultar el modal principal (reemplazo visual) */
 .reg-modal-overlay.behind-dialog{display:none}
 @keyframes regFade{from{opacity:0}to{opacity:1}}
+@keyframes wiggle{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-4px)}
+  40%{transform:translateX(4px)}
+  60%{transform:translateX(-3px)}
+  80%{transform:translateX(2px)}
+}
+.field-error-wiggle{animation:wiggle .4s ease}
 
 .reg-modal{
   width:576px;max-width:100%;max-height:calc(100vh - 48px);
@@ -366,7 +374,9 @@
 .reg-section__title{
   font-size:12px;font-weight:600;line-height:16px;letter-spacing:.2px;
   color:#9c9ebf;text-transform:uppercase;
-  margin:0;
+  margin:0 0 12px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--border,#e7e9f3);
 }
 .reg-section__title:not(:first-child){margin-top:8px}
 
@@ -555,49 +565,7 @@
 .reg-modal__id-chip strong{color:#002b5b;font-weight:600}
 
 /* Stepper (tabs con número + línea conectora) */
-.reg-stepper{
-  display:flex;align-items:flex-start;gap:0;
-  padding:16px 24px 8px;
-  border-bottom:1px solid var(--border);
-}
-.reg-stepper__item{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;
-  position:relative;
-}
-.reg-stepper__item:first-child{align-items:flex-start}
-.reg-stepper__item:last-child{align-items:flex-end}
-.reg-stepper__circle{
-  width:28px;height:28px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:700;
-  background:#b5b9d4;color:#fff;
-  position:relative;z-index:2;
-}
-.reg-stepper__item--active .reg-stepper__circle{
-  background:var(--accent);
-}
-.reg-stepper__item--done .reg-stepper__circle{
-  background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);
-}
-.reg-stepper__label{
-  font-size:14px;font-weight:600;color:var(--text-primary);
-  white-space:nowrap;
-}
-.reg-stepper__item:not(.reg-stepper__item--active):not(.reg-stepper__item--done) .reg-stepper__label{
-  color:var(--text-secondary);
-}
-.reg-stepper__bar{
-  position:absolute;top:14px;height:3px;z-index:1;
-  background:#e7e9f3;
-}
-.reg-stepper__bar--first{left:50%;right:0}
-.reg-stepper__bar--last{left:0;right:50%}
-.reg-stepper__item--active .reg-stepper__bar--first{
-  background:linear-gradient(90deg,var(--accent) 50%,#e7e9f3 50%);
-}
-.reg-stepper__item--done .reg-stepper__bar--first{
-  background:var(--accent);
-}
+/* Stepper unificado: usa .reg3-tabs (definido más abajo) en Modal 2 y Modal 3 */
 
 /* Acceso público — row con label a la izquierda + switch del DS a la derecha */
 .reg-toggle-row{
@@ -747,52 +715,58 @@
   display:flex;flex-direction:column;gap:16px;
 }
 
-/* Stepper interno del modal — soporta 2, 3 o 4 pasos */
+/* Stepper interno del modal — layout horizontal estilo DS naowee-stepper */
 .reg3-tabs{
-  display:flex;gap:0;padding:16px 24px 8px;
+  display:flex;align-items:center;gap:0;
+  padding:16px 20px;
   border-bottom:1px solid var(--border);
-  align-items:flex-start;
 }
 .reg3-tabs__item{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;
-  position:relative;
+  display:flex;align-items:center;gap:6px;
+  padding:4px 4px;
+  flex-shrink:0;
 }
-.reg3-tabs__item:first-child{align-items:flex-start}
-.reg3-tabs__item:last-child{align-items:flex-end}
+.reg3-tabs__item:first-child{padding-left:0}
+.reg3-tabs__item:last-child{padding-right:0}
 .reg3-tabs__circle{
-  width:28px;height:28px;border-radius:50%;
+  width:24px;height:24px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:700;
+  font-size:12px;font-weight:700;
   background:#b5b9d4;color:#fff;
-  position:relative;z-index:2;
+  flex-shrink:0;
   transition:background .2s;
 }
 .reg3-tabs__item--active .reg3-tabs__circle{background:var(--accent)}
 .reg3-tabs__item--done .reg3-tabs__circle{background:var(--naowee-color-feedback-fill-positive-loud,#1f8923)}
-.reg3-tabs__item--done .reg3-tabs__circle svg{width:16px;height:16px;color:#fff}
+.reg3-tabs__item--done .reg3-tabs__circle svg{width:14px;height:14px;color:#fff}
 .reg3-tabs__label{
-  font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;
-  text-align:center;
+  font-size:12px;font-weight:400;color:var(--text-secondary);
+  white-space:nowrap;
+  transition:color .2s, font-weight .2s;
 }
-.reg3-tabs__item:first-child .reg3-tabs__label{text-align:left}
-.reg3-tabs__item:last-child .reg3-tabs__label{text-align:right}
-.reg3-tabs__item:not(.reg3-tabs__item--active):not(.reg3-tabs__item--done) .reg3-tabs__label{
-  color:var(--text-secondary);
+.reg3-tabs__item--active .reg3-tabs__label{
+  color:var(--text-primary);font-weight:600;
 }
-.reg3-tabs__bar{
-  position:absolute;top:14px;height:3px;z-index:1;background:#e7e9f3;
+.reg3-tabs__item--done .reg3-tabs__label{
+  color:var(--text-primary);font-weight:500;
+}
+.reg3-tabs__connector{
+  flex:1;height:2px;
+  background:#e7e9f3;
+  min-width:8px;
+  margin:0 4px;
   transition:background .2s;
 }
-.reg3-tabs__bar--first{left:50%;right:0}
-.reg3-tabs__bar--last{left:0;right:50%}
-.reg3-tabs__bar--both{left:0;right:0}
-.reg3-tabs__item--active .reg3-tabs__bar--first,
-.reg3-tabs__item--active .reg3-tabs__bar--both{background:linear-gradient(90deg,var(--accent) 50%,#e7e9f3 50%)}
-.reg3-tabs__item--done .reg3-tabs__bar--first,
-.reg3-tabs__item--done .reg3-tabs__bar--both{background:var(--accent)}
+.reg3-tabs__connector--done{
+  background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);
+}
+.reg3-tabs__connector--active{
+  background:linear-gradient(90deg,var(--naowee-color-feedback-fill-positive-loud,#1f8923) 50%,#e7e9f3 50%);
+}
 
 /* Steps container — sólo uno visible a la vez */
 .reg3-step{display:flex;flex-direction:column;gap:24px}
+#reg3DynamicSection{display:flex;flex-direction:column;gap:16px}
 .reg3-step[hidden]{display:none}
 
 /* Containers de fichas dentro del paso 1: gap vertical entre grids */
@@ -837,15 +811,22 @@
   background:#fff;
   overflow:hidden;
   margin-top:12px;
+  transition:border-color .2s, box-shadow .2s;
 }
 .reg3-disc-card:first-child{margin-top:0}
+.reg3-disc-card:not(.collapsed){
+  border-color:var(--border-dark);
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
 .reg3-disc-card__header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 16px;
+  padding:16px 18px;
   cursor:pointer;
   transition:background .15s;
+  user-select:none;
 }
 .reg3-disc-card__header:hover{background:#fafbfc}
+.reg3-disc-card__header:active{background:#f3f4fa}
 .reg3-disc-card__title{
   font-size:14px;font-weight:600;color:var(--text-primary);
   display:flex;align-items:center;gap:10px;
@@ -856,16 +837,44 @@
 }
 .reg3-disc-card__chevron{
   width:20px;height:20px;color:var(--text-secondary);
-  transition:transform .2s;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  transform:rotate(180deg); /* expanded por defecto: chevron arriba */
 }
-.reg3-disc-card.collapsed .reg3-disc-card__chevron{transform:rotate(-90deg)}
-.reg3-disc-card.collapsed .reg3-disc-card__body{display:none}
+.reg3-disc-card.collapsed .reg3-disc-card__chevron{
+  transform:rotate(0deg); /* colapsado: chevron abajo */
+}
+/* Smooth slide animation usando grid-template-rows trick (sin medir alturas) */
+.reg3-disc-card__body-wrap{
+  display:grid;
+  grid-template-rows:1fr;
+  transition:grid-template-rows .25s cubic-bezier(.4,0,.2,1);
+}
+.reg3-disc-card.collapsed .reg3-disc-card__body-wrap{
+  grid-template-rows:0fr;
+}
+.reg3-disc-card__body-inner{
+  overflow:hidden;
+  min-height:0;
+}
 .reg3-disc-card__body{
   display:flex;flex-direction:column;gap:16px;
-  padding:16px;
+  padding:18px;
   border-top:1px solid var(--border);
   background:#fafbfc;
 }
+.reg3-disc-card.collapsed .reg3-disc-card__body{
+  border-top-color:transparent;
+}
+/* Divider entre secciones de la card de disciplina (modo multiEspacio) */
+.reg3-section-divider{
+  font-size:11px;font-weight:700;
+  color:var(--text-secondary);
+  letter-spacing:.5px;
+  padding:12px 0 4px;
+  border-top:1px dashed var(--border);
+  margin-top:8px;
+}
+.reg3-section-divider:first-child{border-top:none;padding-top:0;margin-top:0}
 
 /* Helper hint informativo */
 .reg3-hint{
@@ -1406,7 +1415,7 @@
     <!-- Header -->
     <div class="reg-modal__header">
       <div class="reg-modal__titles">
-        <span class="reg-modal__step">2 de 2</span>
+        <span class="reg-modal__step" id="regModal3StepChip">2 de 4</span>
         <h2 class="reg-modal__title" id="regModal3Title">Datos deportivos</h2>
         <p class="reg-modal__subtitle">Completa la información requerida para registrar la sede o el escenario deportivo.</p>
         <span class="reg-modal__id-chip">ID único: <strong id="regModal3IdChip">—</strong></span>
@@ -1416,22 +1425,28 @@
       </button>
     </div>
 
-    <!-- Stepper interno (3 tabs) -->
+    <!-- Stepper unificado (4 pasos) -->
     <div class="reg3-tabs" id="reg3Tabs">
-      <div class="reg3-tabs__item reg3-tabs__item--active" data-reg3-tab="1">
-        <div class="reg3-tabs__circle">1</div>
-        <div class="reg3-tabs__label">Escenario físico</div>
-        <div class="reg3-tabs__bar reg3-tabs__bar--first"></div>
+      <div class="reg3-tabs__item reg3-tabs__item--done" data-reg3-tab="1">
+        <div class="reg3-tabs__circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="reg3-tabs__label">Información general</div>
       </div>
-      <div class="reg3-tabs__item" data-reg3-tab="2">
+      <div class="reg3-tabs__connector reg3-tabs__connector--done" data-reg3-conn="1-2"></div>
+      <div class="reg3-tabs__item reg3-tabs__item--active" data-reg3-tab="2">
         <div class="reg3-tabs__circle">2</div>
-        <div class="reg3-tabs__label">Disciplinas</div>
-        <div class="reg3-tabs__bar reg3-tabs__bar--both"></div>
+        <div class="reg3-tabs__label">Escenario físico</div>
       </div>
+      <div class="reg3-tabs__connector" data-reg3-conn="2-3"></div>
       <div class="reg3-tabs__item" data-reg3-tab="3">
         <div class="reg3-tabs__circle">3</div>
+        <div class="reg3-tabs__label">Disciplinas</div>
+      </div>
+      <div class="reg3-tabs__connector" data-reg3-conn="3-4"></div>
+      <div class="reg3-tabs__item" data-reg3-tab="4">
+        <div class="reg3-tabs__circle">4</div>
         <div class="reg3-tabs__label">Documentación</div>
-        <div class="reg3-tabs__bar reg3-tabs__bar--last"></div>
       </div>
     </div>
 
@@ -1441,7 +1456,7 @@
       <!-- ══════════════════════════════════════════════════
            STEP 1 — Escenario físico
            ══════════════════════════════════════════════════ -->
-      <div class="reg3-step" data-reg3-step="1">
+      <div class="reg3-step" data-reg3-step="2">
 
         <!-- Identificación -->
         <h3 class="reg-section__title">IDENTIFICACIÓN</h3>
@@ -1474,7 +1489,27 @@
           <!-- renderizado por JS -->
         </div>
 
-        <!-- Características específicas por tipo (condicional) -->
+        <!-- Cantidad de sub-espacios (condicional al tipo) -->
+        <div id="reg3SubCountWrap" hidden>
+          <div class="naowee-input-stepper" id="reg3SubCountStepper">
+            <label class="naowee-input-stepper__label naowee-textfield__label--required" id="reg3SubCountLabel">Cantidad</label>
+            <div class="naowee-input-stepper__content">
+              <div class="naowee-input-stepper__input">
+                <button type="button" class="naowee-input-stepper__btn" id="reg3SubCountMinus" aria-label="Disminuir">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <div class="naowee-input-stepper__value">
+                  <span class="naowee-input-stepper__value-text" id="reg3SubCountVal">1</span>
+                </div>
+                <button type="button" class="naowee-input-stepper__btn" id="reg3SubCountPlus" aria-label="Aumentar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fichas específicas por sub-espacio (N cards colapsables) -->
         <div id="reg3FichaEspecificaContainer" hidden>
           <h3 class="reg-section__title" id="reg3FichaEspecificaTitle">FICHA TÉCNICA</h3>
           <div id="reg3FichaEspecificaFields"></div>
@@ -1491,7 +1526,7 @@
       <!-- ══════════════════════════════════════════════════
            STEP 2 — Disciplinas deportivas
            ══════════════════════════════════════════════════ -->
-      <div class="reg3-step" data-reg3-step="2" hidden>
+      <div class="reg3-step" data-reg3-step="3" hidden>
 
         <div class="naowee-message naowee-message--informative" id="reg3DiscHint" hidden>
           <div class="naowee-message__header">
@@ -1529,26 +1564,23 @@
 
         <!-- Sección expandida (aparece cuando hay disciplinas) -->
         <div id="reg3DynamicSection" hidden>
-
-          <!-- Toggle: ¿Los deportes comparten el mismo escenario? -->
-          <div class="reg3-inline-toggle">
-            <span class="reg3-inline-toggle__label">¿Los deportes comparten el mismo escenario físico?<span class="req">*</span></span>
-            <div class="naowee-switch" id="reg3CompartenToggle" role="switch" aria-checked="false" tabindex="0">
-              <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+          <!-- Hint multi-espacio: aparece sólo si el tipo de escenario tiene multiEspacio=true -->
+          <div class="naowee-message naowee-message--informative" id="reg3MultiHint" hidden>
+            <div class="naowee-message__header">
+              <div class="naowee-message__icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="4" x2="8" y2="8"/>
+                  <line x1="8" y1="11" x2="8" y2="11.01"/>
+                </svg>
+              </div>
+              <div class="naowee-message__title">Escenario con varios espacios físicos</div>
             </div>
+            <p class="naowee-message__text">
+              Este tipo de escenario contiene varias canchas o sub-espacios. Completa las dimensiones y características físicas específicas de cada deporte.
+            </p>
           </div>
-
-          <!-- Toggle: ¿Los escenarios comparten los mismos detalles? (sólo visible si compartenEscenario == OFF) -->
-          <div class="reg3-inline-toggle" id="reg3DetallesToggleWrap" hidden>
-            <span class="reg3-inline-toggle__label">¿Copiar los detalles del primer escenario a los demás?</span>
-            <div class="naowee-switch" id="reg3DetallesToggle" role="switch" aria-checked="false" tabindex="0">
-              <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
-            </div>
-          </div>
-
           <!-- Secciones por disciplina (renderizadas por JS) -->
           <div id="reg3DisciplinesList"></div>
-
         </div>
 
       </div>
@@ -1556,7 +1588,7 @@
       <!-- ══════════════════════════════════════════════════
            STEP 3 — Documentación (stub)
            ══════════════════════════════════════════════════ -->
-      <div class="reg3-step" data-reg3-step="3" hidden>
+      <div class="reg3-step" data-reg3-step="4" hidden>
         <div class="reg3-soon">
           <div class="reg3-soon__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1581,7 +1613,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
         Volver
       </button>
-      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="reg3SubmitBtn" style="width:auto;flex:1;max-width:320px" disabled>
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="reg3SubmitBtn" style="width:auto">
         <span id="reg3SubmitBtnLabel">Continuar</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
@@ -1689,7 +1721,7 @@
     <!-- Header -->
     <div class="reg-modal__header">
       <div class="reg-modal__titles">
-        <span class="reg-modal__step">1 de 2</span>
+        <span class="reg-modal__step">1 de 4</span>
         <h2 class="reg-modal__title" id="regModal2Title">Datos de propiedad y administración</h2>
         <p class="reg-modal__subtitle">Completa la información requerida para registrar la sede o el escenario deportivo.</p>
         <span class="reg-modal__id-chip">ID único: <strong id="regModal2IdChip">10000101010</strong></span>
@@ -1699,17 +1731,26 @@
       </button>
     </div>
 
-    <!-- Stepper -->
-    <div class="reg-stepper">
-      <div class="reg-stepper__item reg-stepper__item--active">
-        <div class="reg-stepper__circle">1</div>
-        <div class="reg-stepper__label">Información general</div>
-        <div class="reg-stepper__bar reg-stepper__bar--first"></div>
+    <!-- Stepper unificado (4 pasos) -->
+    <div class="reg3-tabs" id="reg2Tabs">
+      <div class="reg3-tabs__item reg3-tabs__item--active">
+        <div class="reg3-tabs__circle">1</div>
+        <div class="reg3-tabs__label">Información general</div>
       </div>
-      <div class="reg-stepper__item">
-        <div class="reg-stepper__circle">2</div>
-        <div class="reg-stepper__label">Documentación</div>
-        <div class="reg-stepper__bar reg-stepper__bar--last"></div>
+      <div class="reg3-tabs__connector"></div>
+      <div class="reg3-tabs__item">
+        <div class="reg3-tabs__circle">2</div>
+        <div class="reg3-tabs__label">Escenario físico</div>
+      </div>
+      <div class="reg3-tabs__connector"></div>
+      <div class="reg3-tabs__item">
+        <div class="reg3-tabs__circle">3</div>
+        <div class="reg3-tabs__label">Disciplinas</div>
+      </div>
+      <div class="reg3-tabs__connector"></div>
+      <div class="reg3-tabs__item">
+        <div class="reg3-tabs__circle">4</div>
+        <div class="reg3-tabs__label">Documentación</div>
       </div>
     </div>
 
@@ -1829,7 +1870,7 @@
       </div>
 
       <div class="reg-toggle-row">
-        <span class="reg-toggle-row__label">Acceso público<span class="req">*</span></span>
+        <span class="reg-toggle-row__label">Acceso público</span>
         <div class="naowee-switch" id="reg2AccesoToggle" role="switch" aria-checked="false" aria-label="Acceso público" tabindex="0">
           <div class="naowee-switch__track">
             <div class="naowee-switch__handle"></div>
@@ -1891,7 +1932,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
         Volver
       </button>
-      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="reg2SubmitBtn" style="width:auto;flex:1;max-width:320px" disabled>
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="reg2SubmitBtn" style="width:auto">
         Guardar y continuar
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
@@ -2087,7 +2128,7 @@
   function renderRow(item, idx){
     const icon = item.action === 'edit' ? ICON_EDIT : ICON_VIEW;
     const actionLabel = item.action === 'edit' ? 'Editar' : 'Ver detalle';
-    const draftAttr = item.isDraft ? ` data-draft-idx="${idx}"` : '';
+    const draftAttr = item.action === 'edit' ? ` data-draft-idx="${idx}"` : '';
     return `
       <tr>
         <td><div class="cell-name">${item.name}</div></td>
@@ -2337,8 +2378,18 @@
       trigger.addEventListener('click', (e) => {
         if(dd.classList.contains('naowee-dropdown--disabled')) return;
         e.stopPropagation();
+        // Cerrar otros dropdowns
         document.querySelectorAll('.naowee-dropdown--open').forEach(other => {
           if(other !== dd) other.classList.remove('naowee-dropdown--open');
+        });
+        // Cerrar multi-selects abiertos (Usos actuales, Disciplinas, etc.)
+        document.querySelectorAll('.reg-multi.open').forEach(m => {
+          m.classList.remove('open');
+          const fMenu = m.querySelector('.reg-multi__menu--floating');
+          if(fMenu){
+            fMenu.classList.remove('reg-multi__menu--floating');
+            fMenu.style.cssText = '';
+          }
         });
         dd.classList.toggle('naowee-dropdown--open');
         trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
@@ -3210,12 +3261,109 @@
   });
   reg2CorreoInput.addEventListener('blur', updateCorreoState);
 
+  /* ═════════════════════════════════════════════════
+     HELPERS DE VALIDACIÓN: error visual + wiggle + autoscroll
+     ═════════════════════════════════════════════════ */
+  const HELPER_SVG = '<svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  function showFieldError(wrap){
+    if(!wrap) return;
+    // Determinar tipo de componente
+    if(wrap.classList.contains('naowee-textfield'))
+      wrap.classList.add('naowee-textfield--error');
+    else if(wrap.classList.contains('naowee-dropdown'))
+      wrap.classList.add('naowee-dropdown--error');
+    else if(wrap.classList.contains('naowee-input-stepper'))
+      wrap.classList.add('naowee-input-stepper--error');
+    else if(wrap.classList.contains('reg-multi'))
+      wrap.classList.add('naowee-textfield--error'); // fallback visual
+
+    // Wiggle
+    wrap.classList.add('field-error-wiggle');
+    wrap.addEventListener('animationend', () => wrap.classList.remove('field-error-wiggle'), { once: true });
+
+    // Helper de texto debajo
+    if(!wrap.querySelector('.field-req-helper')){
+      const h = document.createElement('div');
+      h.className = 'naowee-helper naowee-helper--negative field-req-helper';
+      h.innerHTML = '<div class="naowee-helper__text"><span class="naowee-helper__badge">' + HELPER_SVG + '</span>Este campo es obligatorio</div>';
+      wrap.appendChild(h);
+    }
+  }
+
+  function clearFieldError(wrap){
+    if(!wrap) return;
+    wrap.classList.remove('naowee-textfield--error','naowee-dropdown--error','naowee-input-stepper--error');
+    const h = wrap.querySelector('.field-req-helper');
+    if(h) h.remove();
+  }
+
+  // Limpiar error en tiempo real cuando el usuario escribe o selecciona
+  function autoCleanErrors(container){
+    container.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const wrap = inp.closest('.naowee-textfield');
+        if(wrap) clearFieldError(wrap);
+      }, { once: true });
+    });
+    // Para dropdowns: limpiar error cuando se selecciona una opción
+    container.querySelectorAll('.naowee-dropdown--error').forEach(dd => {
+      const obs = new MutationObserver(() => {
+        if(dd.querySelector('.naowee-dropdown__value')){
+          clearFieldError(dd);
+          obs.disconnect();
+        }
+      });
+      obs.observe(dd, { childList:true, subtree:true });
+    });
+    // Para multi-selects con error
+    container.querySelectorAll('.reg-multi.naowee-textfield--error').forEach(m => {
+      const obs = new MutationObserver(() => {
+        if(m.querySelector('.naowee-tag')){
+          clearFieldError(m);
+          obs.disconnect();
+        }
+      });
+      obs.observe(m, { childList:true, subtree:true });
+    });
+  }
+
+  // Scroll al primer campo con error dentro de un modal body
+  function scrollToFirstError(modalBody){
+    const first = modalBody.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error');
+    if(first) first.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+
+  /* ─── Highlight errores modal 2 ─── */
+  function highlightReg2Errors(){
+    const r = reg2State;
+    // Limpiar errores previos
+    document.querySelectorAll('#regModal2Overlay .naowee-textfield--error, #regModal2Overlay .naowee-dropdown--error').forEach(el => clearFieldError(el));
+    // Campos required: id del wrapper → condición de vacío
+    const checks = [
+      { id:'reg2FldEntidad', empty: !r.entidad },
+      { id:'reg2PropietarioDD', empty: !r.propietario },
+      { id:'reg2TenenciaDD', empty: !r.tenencia },
+      { id:'reg2FldResponsable', empty: !r.responsable },
+      { id:'reg2FldTelefono', empty: r.telefono.length !== 10 },
+      { id:'reg2CostoDD', empty: !r.costo },
+      { id:'reg2UsosMulti', empty: r.usos.length === 0 },
+      { id:'reg2UsuariosDD', empty: !r.usuarios }
+    ];
+    checks.forEach(c => {
+      if(c.empty) showFieldError(document.getElementById(c.id));
+    });
+    autoCleanErrors(document.getElementById('regModal2Overlay'));
+    // Scroll al primer error
+    scrollToFirstError(document.querySelector('#regModal2Overlay .reg-modal__body'));
+  }
+
   /* ─── Validación modal 2 ─── */
+  let reg2Valid = false;
   function validate2(){
     const r = reg2State;
-    // Correo es opcional, pero si tiene valor debe ser válido
     const correoOk = !r.correoResp || emailRegex.test(r.correoResp);
-    const ok = (
+    reg2Valid = (
       r.entidad && r.propietario &&
       r.tenencia &&
       (!TENENCIAS_CON_VENCIMIENTO.has(r.tenencia) || r.vencimiento) &&
@@ -3223,7 +3371,7 @@
       correoOk &&
       r.costo && r.usos.length > 0 && r.usuarios
     );
-    reg2SubmitBtn.disabled = !ok;
+    // Ya no deshabilitamos el botón — el handler decide si avanza o muestra errores
   }
 
   /* ─── Botón Volver ─── */
@@ -3453,15 +3601,15 @@
      Define por cada tipo de escenario:
        - fichaEspecifica: campos específicos del contenedor físico
        - disciplinas: deportes que puede albergar
-       - fichaPorDisciplina: campos específicos por deporte (sólo reglas/modalidad
-         si el toggle "compartenEscenario" está ON, porque las dimensiones
-         físicas vienen heredadas del escenario)
+       - fichaPorDisciplina: campos específicos por deporte (modalidad, categoría,
+         equipamiento). Las dimensiones físicas vienen heredadas del escenario
+         (step 2) y NO se duplican aquí — un escenario = un espacio físico.
      ═══════════════════════════════════════════════════════════════ */
   const ESTADO_SUPERFICIE = ['Excelente','Bueno','Regular','Malo'];
 
   const SCENARIO_CONFIG = {
     'Cancha múltiple': {
-      hint: '1 espacio físico plano con líneas reglamentarias superpuestas de varios deportes. Típicamente el toggle "compartir escenario" está activo.',
+      hint: '1 espacio físico plano con líneas reglamentarias superpuestas de varios deportes (microfútbol, baloncesto, voleibol, etc.).',
       fichaEspecifica: [
         { id:'dimLargo', label:'Largo de la cancha (m)', type:'decimal', required:true },
         { id:'dimAncho', label:'Ancho de la cancha (m)', type:'decimal', required:true },
@@ -3484,7 +3632,7 @@
         { id:'ancho', label:'Ancho (m)', type:'decimal', required:true },
         { id:'profMin', label:'Profundidad mínima (m)', type:'decimal', required:true },
         { id:'profMax', label:'Profundidad máxima (m)', type:'decimal', required:true },
-        { id:'carriles', label:'Número de carriles', type:'int', required:true },
+        { id:'carriles', label:'Número de carriles', type:'stepper', required:true },
         { id:'tipoPiscina', label:'Tipo de piscina', type:'dropdown', required:true,
           options:['Olímpica','Semi-olímpica','Recreativa','Enseñanza','Clavados'] },
         { id:'tratamiento', label:'Sistema de tratamiento de agua', type:'dropdown', required:true,
@@ -3510,7 +3658,7 @@
         { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
           options:['Parquet','Sintético','Madera','Goma'] },
         { id:'alturaTecho', label:'Altura del techo (m)', type:'decimal' },
-        { id:'canchasAux', label:'Número de canchas auxiliares', type:'int' }
+        { id:'canchasAux', label:'Número de canchas auxiliares', type:'stepper' }
       ],
       disciplinas: ['Baloncesto','Voleibol','Fútbol sala','Balonmano','Bádminton','Gimnasia','Boxeo','Tenis de mesa','Karate','Taekwondo','Esgrima','Lucha'],
       fichaPorDisciplina: [
@@ -3542,7 +3690,7 @@
       hint: 'Pista lineal u ovalada con carriles. Incluye zonas de saltos y lanzamientos.',
       fichaEspecifica: [
         { id:'longitud', label:'Longitud total de la pista (m)', type:'decimal', required:true },
-        { id:'carriles', label:'Número de carriles', type:'int', required:true },
+        { id:'carriles', label:'Número de carriles', type:'stepper', required:true },
         { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
           options:['Tartán','Sintética','Cemento','Tierra'] },
         { id:'indoor', label:'Pista indoor', type:'toggle' },
@@ -3613,21 +3761,21 @@
     }
   };
 
-  // Fallback para tipos sin ficha específica (Villa Olímpica, Complejo deportivo, Patódromo, Otro)
-  const SCENARIO_CONFIG_DEFAULT = {
-    hint: 'Configuración genérica. Define las dimensiones principales y las disciplinas albergadas.',
-    fichaEspecifica: [
-      { id:'largo', label:'Largo (m)', type:'decimal', required:true },
-      { id:'ancho', label:'Ancho (m)', type:'decimal', required:true },
-      { id:'superficie', label:'Tipo de superficie', type:'text' }
-    ],
-    disciplinas: ['Baloncesto','Fútbol','Voleibol','Tenis','Atletismo','Natación'],
+  // Configuración para escenarios COMPLEJOS (multi-espacio): cada disciplina ocupa
+  // un sub-espacio físicamente distinto con sus propias dimensiones, superficie y estado.
+  const SCENARIO_CONFIG_COMPLEJO = {
+    hint: 'Este escenario contiene varios espacios físicos distintos. Indica cuántos sub-espacios tiene y configura cada uno con su tipo y ficha técnica.',
+    multiEspacio: true,
+    fichaEspecifica: [], // sin ficha propia — cada sub-espacio define su tipo y ficha
+    disciplinas: ['Baloncesto','Fútbol','Fútbol sala','Microfútbol','Voleibol','Tenis','Atletismo','Natación','Patinaje','Bádminton','Tenis de mesa','Béisbol','Softbol','Rugby'],
     fichaPorDisciplina: [
-      { id:'modalidad', label:'Modalidad', type:'text' }
+      { id:'modalidad', label:'Modalidad', type:'text' },
+      { id:'categoria', label:'Categoría', type:'dropdown',
+        options:['Infantil','Juvenil','Mayores','Máster','Todas'] }
     ]
   };
-  SCENARIO_CONFIG['Villa Olímpica'] = SCENARIO_CONFIG_DEFAULT;
-  SCENARIO_CONFIG['Complejo deportivo'] = SCENARIO_CONFIG_DEFAULT;
+  SCENARIO_CONFIG['Villa Olímpica'] = SCENARIO_CONFIG_COMPLEJO;
+  SCENARIO_CONFIG['Complejo deportivo'] = SCENARIO_CONFIG_COMPLEJO;
   SCENARIO_CONFIG['Patódromo'] = {
     hint: 'Escenario para patinaje sobre pista.',
     fichaEspecifica: [
@@ -3644,7 +3792,7 @@
         options:['Infantil','Juvenil','Mayores','Todas'] }
     ]
   };
-  SCENARIO_CONFIG['Otro'] = SCENARIO_CONFIG_DEFAULT;
+  SCENARIO_CONFIG['Otro'] = SCENARIO_CONFIG_COMPLEJO;
 
   const TIPOS_ESCENARIO = Object.keys(SCENARIO_CONFIG);
 
@@ -3660,7 +3808,9 @@
       areaTotal: '', areaUtil: '', cubierto: '',
       capacidad: '', anioCons: '', anioRemod: '', estado: ''
     },
-    fichaEspecifica: {}, // se llena según SCENARIO_CONFIG[tipo].fichaEspecifica
+    fichaEspecifica: {}, // datos del sub-espacio 1 (retrocompatible)
+    subEspacios: [], // [{ nombre:'Piscina 1', ficha:{} }, { nombre:'Piscina 2', ficha:{} }]
+    subCount: 1,
     dotacion: {
       iluminacion: false, tipoIluminacion: '',
       vestieres: false, numVestieres: '',
@@ -3674,13 +3824,16 @@
       enfermeria: false
     },
     disciplinas: [],
-    compartenEscenario: false,
-    compartenDetalles: false,
     disciplinasData: {} // { 'Natación': { modalidad, categoria, ... } }
   };
 
-  // Paso interno actual (1: escenario físico, 2: disciplinas, 3: documentación)
-  let reg3Step = 1;
+  // Paso del stepper unificado (1: info general, 2: escenario físico, 3: disciplinas, 4: documentación)
+  // Modal 3 sólo maneja los pasos 2, 3 y 4
+  let reg3Step = 2;
+  let reg3Valid = false;
+
+  // Estado transitorio de uploads en curso (fid → { name, progress })
+  const reg3FileUploads = {};
 
   /* ─── Helpers DOM ─── */
   function openModal3(){
@@ -3694,7 +3847,7 @@
     if(reg3State.tipoEscenario){
       renderFichaEspecifica(reg3State.tipoEscenario);
     }
-    switchReg3Step(1);
+    switchReg3Step(2);
   }
   function closeModal3(){
     modal3.classList.remove('open');
@@ -3705,15 +3858,18 @@
   modal3.addEventListener('click', e => { if(e.target === modal3) closeModal3(); });
 
   /* ═════════════════════════════════════════════════
-     Navegación entre los 3 tabs internos del modal 3
+     Navegación entre los tabs del modal 3 (stepper unificado 2/3/4)
      ═════════════════════════════════════════════════ */
   function switchReg3Step(n){
     reg3Step = n;
-    // Mostrar/ocultar steps
+    // Mostrar/ocultar steps (data-reg3-step matches tab index: 2, 3, 4)
     document.querySelectorAll('#regModal3Overlay [data-reg3-step]').forEach(el => {
       el.hidden = parseInt(el.dataset.reg3Step) !== n;
     });
-    // Actualizar stepper visual
+    // Actualizar chip del header
+    const chip = document.getElementById('regModal3StepChip');
+    if(chip) chip.textContent = n + ' de 4';
+    // Actualizar stepper visual (los 4 tabs del stepper)
     document.querySelectorAll('#reg3Tabs [data-reg3-tab]').forEach(el => {
       const idx = parseInt(el.dataset.reg3Tab);
       el.classList.toggle('reg3-tabs__item--active', idx === n);
@@ -3725,9 +3881,15 @@
         circle.textContent = String(idx);
       }
     });
-    // Actualizar label del botón de continuar
+    // Actualizar conectores entre pasos
+    document.querySelectorAll('#reg3Tabs [data-reg3-conn]').forEach(el => {
+      const [from, to] = el.dataset.reg3Conn.split('-').map(Number);
+      el.classList.toggle('reg3-tabs__connector--done', to <= n);
+      el.classList.toggle('reg3-tabs__connector--active', false);
+    });
+    // Actualizar label del botón de continuar (paso 4 = guardar borrador)
     const label = document.getElementById('reg3SubmitBtnLabel');
-    label.textContent = n === 3 ? 'Guardar borrador' : 'Continuar';
+    label.textContent = n === 4 ? 'Guardar borrador' : 'Continuar';
     // Scroll top del body del modal
     const body = document.querySelector('#regModal3Overlay .reg-modal__body');
     if(body) body.scrollTo({top: 0, behavior: 'instant'});
@@ -3752,23 +3914,62 @@
   });
 
   /* ─── Tipo de escenario ─── */
+  // Labels contextuales para el stepper de sub-espacios
+  const SUB_LABELS = {
+    'Piscina':'¿Cuántas piscinas tiene?','Cancha múltiple':'¿Cuántas canchas tiene?',
+    'Coliseo':'¿Cuántos coliseos tiene?','Estadio':'¿Cuántos estadios tiene?',
+    'Pista atlética':'¿Cuántas pistas tiene?','Gimnasio':'¿Cuántos gimnasios tiene?',
+    'Velódromo':'¿Cuántos velódromos tiene?','Escenario náutico':'¿Cuántos escenarios náuticos tiene?',
+    'Patódromo':'¿Cuántos patódromos tiene?'
+  };
+  const subCountLabel = document.getElementById('reg3SubCountLabel');
+  const subCountVal = document.getElementById('reg3SubCountVal');
+  const subCountWrap = document.getElementById('reg3SubCountWrap');
+
+  function updateSubCount(n){
+    reg3State.subCount = Math.max(1, n);
+    subCountVal.textContent = reg3State.subCount;
+    // Asegurar que subEspacios tenga la longitud correcta
+    while(reg3State.subEspacios.length < reg3State.subCount){
+      reg3State.subEspacios.push({ nombre: `${reg3State.tipoEscenario} ${reg3State.subEspacios.length + 1}`, ficha: {} });
+    }
+    while(reg3State.subEspacios.length > reg3State.subCount){
+      reg3State.subEspacios.pop();
+    }
+    renderFichaEspecifica(reg3State.tipoEscenario);
+    validate3();
+  }
+
+  document.getElementById('reg3SubCountMinus').addEventListener('click', () => updateSubCount(reg3State.subCount - 1));
+  document.getElementById('reg3SubCountPlus').addEventListener('click', () => updateSubCount(reg3State.subCount + 1));
+
   initDropdown('reg3TipoEscDD', TIPOS_ESCENARIO, (val) => {
     if(reg3State.tipoEscenario !== val){
-      // Cambió el tipo → limpiar disciplinas y datos específicos
       reg3State.disciplinas = [];
       reg3State.disciplinasData = {};
       reg3State.fichaEspecifica = {};
+      reg3State.subEspacios = [{ nombre: `${val} 1`, ficha: {} }];
+      reg3State.subCount = 1;
       renderReg3Chips();
       renderReg3Disciplines();
       document.getElementById('reg3DynamicSection').hidden = true;
     }
     reg3State.tipoEscenario = val;
+    // Mostrar stepper de cantidad para TODOS los tipos
+    const cfg = SCENARIO_CONFIG[val];
+    if(cfg){
+      subCountLabel.textContent = cfg.multiEspacio
+        ? '¿Cuántos sub-espacios tiene el complejo?'
+        : (SUB_LABELS[val] || '¿Cuántos tiene?');
+      subCountVal.textContent = reg3State.subCount;
+      subCountWrap.hidden = false;
+    } else {
+      subCountWrap.hidden = true;
+    }
     renderFichaEspecifica(val);
-    // Actualizar hint del step 2 con info del tipo
     const hint = document.getElementById('reg3DiscHint');
     const hintText = document.getElementById('reg3DiscHintText');
     if(hint && hintText){
-      const cfg = SCENARIO_CONFIG[val];
       if(cfg && cfg.hint){
         hintText.textContent = cfg.hint;
         hint.hidden = false;
@@ -3817,13 +4018,13 @@
         <div class="naowee-textfield">
           <label class="naowee-textfield__label naowee-textfield__label--required">Año de construcción</label>
           <div class="naowee-textfield__input-wrap">
-            <input type="text" class="naowee-textfield__input" placeholder="YYYY" inputmode="numeric" maxlength="4" data-comun="anioCons" data-numeric="year" value="${c.anioCons}"/>
+            <input type="text" class="naowee-textfield__input" placeholder="Ej: 2015" inputmode="numeric" maxlength="4" data-comun="anioCons" data-numeric="year" value="${c.anioCons}"/>
           </div>
         </div>
         <div class="naowee-textfield">
           <label class="naowee-textfield__label">Año de última remodelación</label>
           <div class="naowee-textfield__input-wrap">
-            <input type="text" class="naowee-textfield__input" placeholder="YYYY" inputmode="numeric" maxlength="4" data-comun="anioRemod" data-numeric="year" value="${c.anioRemod}"/>
+            <input type="text" class="naowee-textfield__input" placeholder="Ej: 2015" inputmode="numeric" maxlength="4" data-comun="anioRemod" data-numeric="year" value="${c.anioRemod}"/>
           </div>
         </div>
       </div>
@@ -3885,35 +4086,186 @@
     }, 50);
   }
 
-  /* ─── Render ficha específica por tipo de escenario ─── */
+  /* ─── Render ficha específica por tipo de escenario (soporta N sub-espacios) ─── */
+  function getSubFicha(idx){ return (reg3State.subEspacios[idx] || {}).ficha || {}; }
+  function setSubFicha(idx, key, val){
+    if(!reg3State.subEspacios[idx]) reg3State.subEspacios[idx] = { nombre: `${reg3State.tipoEscenario} ${idx+1}`, ficha:{} };
+    reg3State.subEspacios[idx].ficha[key] = val;
+    // Sincronizar retrocompat con fichaEspecifica cuando idx===0
+    if(idx === 0) reg3State.fichaEspecifica[key] = val;
+  }
+
+  // Tipos disponibles para sub-espacios (excluye los complejos)
+  const TIPOS_SUB_ESPACIO = TIPOS_ESCENARIO.filter(t => !SCENARIO_CONFIG[t]?.multiEspacio);
+
   function renderFichaEspecifica(tipo){
     const container = document.getElementById('reg3FichaEspecificaContainer');
-    const fields = document.getElementById('reg3FichaEspecificaFields');
+    const fieldsWrap = document.getElementById('reg3FichaEspecificaFields');
     const title = document.getElementById('reg3FichaEspecificaTitle');
     const cfg = SCENARIO_CONFIG[tipo];
-    if(!cfg || !cfg.fichaEspecifica || cfg.fichaEspecifica.length === 0){
+    if(!cfg) { container.hidden = true; return; }
+
+    const isComplex = !!cfg.multiEspacio;
+    const n = reg3State.subCount || 1;
+
+    // Complejos sin fichaEspecifica propia: siempre mostrar cards
+    // Monolíticos sin ficha: ocultar sección
+    if(!isComplex && (!cfg.fichaEspecifica || cfg.fichaEspecifica.length === 0)){
       container.hidden = true;
       return;
     }
     container.hidden = false;
-    title.textContent = `FICHA TÉCNICA — ${tipo.toUpperCase()}`;
-    fields.innerHTML = '';
-    // Renderizar en grid 2 columnas (excepto toggles y file que son full-width)
+
+    title.textContent = isComplex
+      ? `SUB-ESPACIOS • ${tipo.toUpperCase()} (${n})`
+      : (n > 1 ? `FICHAS TÉCNICAS • ${tipo.toUpperCase()} (${n})` : `FICHA TÉCNICA • ${tipo.toUpperCase()}`);
+    fieldsWrap.innerHTML = '';
+
+    // Asegurar subEspacios
+    while(reg3State.subEspacios.length < n){
+      const defaultName = isComplex ? `Sub-espacio ${reg3State.subEspacios.length+1}` : `${tipo} ${reg3State.subEspacios.length+1}`;
+      reg3State.subEspacios.push({ nombre: defaultName, tipo: isComplex ? '' : tipo, ficha:{} });
+    }
+
+    for(let idx = 0; idx < n; idx++){
+      const sub = reg3State.subEspacios[idx];
+      const subData = sub.ficha;
+      const subName = sub.nombre;
+      const wrapper = document.createElement('div');
+
+      // Siempre envolver en card cuando hay N > 1 o es complejo
+      if(n > 1 || isComplex){
+        wrapper.className = 'reg3-disc-card'; wrapper.style.marginTop = idx > 0 ? '12px' : '0';
+        wrapper.innerHTML = `
+          <div class="reg3-disc-card__header" role="button" aria-expanded="true" tabindex="0" data-sub-card-toggle="${idx}">
+            <span class="reg3-disc-card__title" style="gap:8px">
+              <input type="text" class="reg3-sub-name" value="${subName}" data-sub-name="${idx}" placeholder="Nombre del sub-espacio" style="border:none;background:transparent;font:inherit;font-weight:600;padding:0;width:100%;outline:none;color:inherit"/>
+            </span>
+            <svg class="reg3-disc-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="reg3-disc-card__body-wrap"><div class="reg3-disc-card__body-inner"><div class="reg3-disc-card__body" data-sub-body="${idx}"></div></div></div>
+        `;
+      } else {
+        wrapper.setAttribute('data-sub-body', '0');
+        wrapper.style.cssText = 'display:flex;flex-direction:column;gap:20px';
+      }
+      fieldsWrap.appendChild(wrapper);
+      const bodyEl = wrapper.querySelector(`[data-sub-body="${idx}"]`) || wrapper;
+
+      // ── COMPLEJO: dropdown de tipo + ficha dinámica ──
+      if(isComplex){
+        const subTipo = sub.tipo || '';
+        const ddWrap = document.createElement('div');
+        ddWrap.className = 'naowee-dropdown';
+        ddWrap.setAttribute('data-sub-tipo-dd', String(idx));
+        ddWrap.innerHTML = `
+          <label class="naowee-dropdown__label">Tipo de sub-espacio <span style="color:var(--accent)">*</span></label>
+          <button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="${subTipo ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${subTipo || 'Selecciona el tipo'}</span>
+            <span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span>
+          </button>
+          <div class="naowee-dropdown__menu" role="listbox"></div>
+        `;
+        bodyEl.appendChild(ddWrap);
+
+        // Init dropdown de tipo
+        const trigger = ddWrap.querySelector('.naowee-dropdown__trigger');
+        const menu = ddWrap.querySelector('.naowee-dropdown__menu');
+        const valSpan = ddWrap.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+        TIPOS_SUB_ESPACIO.forEach(t => {
+          const el = document.createElement('div');
+          el.className = 'naowee-dropdown__option' + (t === subTipo ? ' naowee-dropdown__option--selected' : '');
+          el.setAttribute('role','option');
+          el.textContent = t;
+          el.addEventListener('click', () => {
+            menu.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+            el.classList.add('naowee-dropdown__option--selected');
+            valSpan.textContent = t;
+            valSpan.className = 'naowee-dropdown__value';
+            ddWrap.classList.remove('naowee-dropdown--open');
+            trigger.setAttribute('aria-expanded','false');
+            // Actualizar tipo del sub-espacio y re-renderizar su ficha
+            sub.tipo = t;
+            sub.ficha = {}; // limpiar ficha anterior
+            sub.nombre = sub.nombre === `Sub-espacio ${idx+1}` ? `${t} ${idx+1}` : sub.nombre;
+            const nameInput = wrapper.querySelector(`[data-sub-name="${idx}"]`);
+            if(nameInput) nameInput.value = sub.nombre;
+            // Re-renderizar solo la ficha de este sub-espacio
+            const fichaWrap = bodyEl.querySelector('[data-sub-ficha-fields]');
+            if(fichaWrap) fichaWrap.remove();
+            const subCfg = SCENARIO_CONFIG[t];
+            if(subCfg && subCfg.fichaEspecifica && subCfg.fichaEspecifica.length > 0){
+              const fichaDiv = document.createElement('div');
+              fichaDiv.setAttribute('data-sub-ficha-fields','');
+              fichaDiv.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding-top:8px';
+              bodyEl.appendChild(fichaDiv);
+              renderOneFichaBlock(fichaDiv, subCfg.fichaEspecifica, sub.ficha, idx);
+            }
+            validate3();
+          });
+          menu.appendChild(el);
+        });
+        trigger.addEventListener('click', e => {
+          e.stopPropagation();
+          document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== ddWrap) o.classList.remove('naowee-dropdown--open'); });
+          ddWrap.classList.toggle('naowee-dropdown--open');
+          trigger.setAttribute('aria-expanded', ddWrap.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+        });
+
+        // Si ya tiene tipo seleccionado, renderizar ficha
+        if(subTipo){
+          const subCfg = SCENARIO_CONFIG[subTipo];
+          if(subCfg && subCfg.fichaEspecifica && subCfg.fichaEspecifica.length > 0){
+            const fichaDiv = document.createElement('div');
+            fichaDiv.setAttribute('data-sub-ficha-fields','');
+            fichaDiv.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding-top:8px';
+            bodyEl.appendChild(fichaDiv);
+            renderOneFichaBlock(fichaDiv, subCfg.fichaEspecifica, sub.ficha, idx);
+          }
+        }
+      } else {
+        // ── MONOLÍTICO: ficha directa ──
+        renderOneFichaBlock(bodyEl, cfg.fichaEspecifica, subData, idx);
+      }
+
+      // Toggle colapsar (si multi)
+      if(n > 1 || isComplex){
+        const header = wrapper.querySelector(`[data-sub-card-toggle="${idx}"]`);
+        if(header){
+          header.addEventListener('click', e => {
+            if(e.target.closest('.reg3-sub-name')) return;
+            wrapper.classList.toggle('collapsed');
+            header.setAttribute('aria-expanded', String(!wrapper.classList.contains('collapsed')));
+          });
+        }
+        const nameInput = wrapper.querySelector(`[data-sub-name="${idx}"]`);
+        if(nameInput){
+          nameInput.addEventListener('input', e => {
+            reg3State.subEspacios[idx].nombre = e.target.value;
+          });
+        }
+      }
+    }
+
+    // Re-observar dropdowns para floating
+    setTimeout(() => {
+      fieldsWrap.querySelectorAll('.naowee-dropdown').forEach(dd => {
+        ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
+      });
+    }, 50);
+  }
+
+  /* Renderiza los campos de UNA ficha específica dentro de un contenedor */
+  function renderOneFichaBlock(bodyEl, fichaTemplate, subData, idx){
     const pairs = [];
     let currentPair = [];
-    cfg.fichaEspecifica.forEach(f => {
-      if(f.type === 'toggle' || f.type === 'file'){
-        if(currentPair.length > 0){
-          pairs.push(currentPair);
-          currentPair = [];
-        }
+    fichaTemplate.forEach(f => {
+      if(f.type === 'toggle' || f.type === 'file' || f.type === 'stepper'){
+        if(currentPair.length > 0){ pairs.push(currentPair); currentPair = []; }
         pairs.push([f]);
       } else {
         currentPair.push(f);
-        if(currentPair.length === 2){
-          pairs.push(currentPair);
-          currentPair = [];
-        }
+        if(currentPair.length === 2){ pairs.push(currentPair); currentPair = []; }
       }
     });
     if(currentPair.length > 0) pairs.push(currentPair);
@@ -3923,62 +4275,84 @@
       if(pair.length === 1 && pair[0].type === 'toggle'){
         row.className = 'reg3-inline-toggle';
         const f = pair[0];
-        const val = !!reg3State.fichaEspecifica[f.id];
+        const val = !!subData[f.id];
         row.innerHTML = `
           <span class="reg3-inline-toggle__label">${f.label}${f.required ? '<span class="req">*</span>' : ''}</span>
-          <div class="naowee-switch${val ? ' naowee-switch--on' : ''}" data-esp-toggle="${f.id}" role="switch" aria-checked="${val}" tabindex="0">
+          <div class="naowee-switch${val ? ' naowee-switch--on' : ''}" data-esp-toggle="${f.id}" data-sub-idx="${idx}" role="switch" aria-checked="${val}" tabindex="0">
             <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
           </div>
         `;
-      } else if(pair.length === 1 && pair[0].type === 'file'){
-        row.innerHTML = renderFichaField(pair[0]);
+      } else if(pair.length === 1 && (pair[0].type === 'file' || pair[0].type === 'stepper')){
+        row.innerHTML = renderFichaFieldSub(pair[0], subData, idx);
       } else {
         row.className = pair.length === 2 ? 'reg3-ficha-grid' : 'reg3-ficha-grid reg3-ficha-grid--full';
-        row.innerHTML = pair.map(f => renderFichaField(f)).join('');
+        row.innerHTML = pair.map(f => renderFichaFieldSub(f, subData, idx)).join('');
       }
-      fields.appendChild(row);
+      bodyEl.appendChild(row);
     });
 
-    // Listeners de inputs de ficha específica
-    fields.querySelectorAll('[data-esp-input]').forEach(inp => {
+    // Listeners scoped por sub-idx
+    bodyEl.querySelectorAll(`[data-esp-input][data-sub-idx="${idx}"]`).forEach(inp => {
       inp.addEventListener('input', () => {
         const f = inp.dataset.espInput;
         const mode = inp.dataset.numeric;
         let v = inp.value;
-        if(mode === 'int'){
-          v = v.replace(/\D/g,'');
-        } else if(mode === 'decimal'){
+        if(mode === 'int') v = v.replace(/\D/g,'');
+        else if(mode === 'decimal'){
           v = v.replace(/[^0-9.]/g,'');
-          const parts = v.split('.');
-          if(parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+          const parts = v.split('.'); if(parts.length > 2) v = parts[0]+'.'+parts.slice(1).join('');
         }
         if(v !== inp.value) inp.value = v;
-        reg3State.fichaEspecifica[f] = v;
+        setSubFicha(idx, f, v);
+        validate3();
+      });
+    });
+    bodyEl.querySelectorAll(`[data-esp-stepper][data-sub-idx="${idx}"]`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fid = btn.dataset.espStepper;
+        const op = btn.dataset.step;
+        let cur = parseInt(getSubFicha(idx)[fid]) || 0;
+        if(op === 'plus') cur++; else cur = Math.max(0, cur - 1);
+        setSubFicha(idx, fid, String(cur));
+        const valEl = bodyEl.querySelector(`[data-esp-stepper-val="${fid}"][data-sub-idx="${idx}"]`);
+        if(valEl) valEl.textContent = cur;
+        validate3();
+      });
+    });
+    bodyEl.querySelectorAll(`[data-esp-toggle][data-sub-idx="${idx}"]`).forEach(tog => {
+      tog.addEventListener('click', () => {
+        const fid = tog.dataset.espToggle;
+        const newVal = !tog.classList.contains('naowee-switch--on');
+        tog.classList.toggle('naowee-switch--on', newVal);
+        tog.setAttribute('aria-checked', String(newVal));
+        setSubFicha(idx, fid, newVal);
         validate3();
       });
     });
 
-    // Inicializar dropdowns específicos
-    fields.querySelectorAll('[data-esp-dd]').forEach(dd => {
+    // Dropdowns específicos: inicializar con scope por sub-idx
+    bodyEl.querySelectorAll(`[data-esp-dd][data-sub-idx="${idx}"]`).forEach(dd => {
       const fid = dd.dataset.espDd;
-      const field = cfg.fichaEspecifica.find(x => x.id === fid);
-      if(!field) return;
+      const field = fichaTemplate.find(x => x.id === fid);
+      if(!field || !field.options) return;
       const trigger = dd.querySelector('.naowee-dropdown__trigger');
       const menu = dd.querySelector('.naowee-dropdown__menu');
       const valueSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
       menu.innerHTML = '';
-      (field.options || []).forEach(opt => {
+      field.options.forEach(opt => {
         const el = document.createElement('div');
         el.className = 'naowee-dropdown__option';
         el.setAttribute('role','option');
         el.textContent = opt;
-        if(opt === reg3State.fichaEspecifica[fid]) el.classList.add('naowee-dropdown__option--selected');
+        if(opt === subData[fid]) el.classList.add('naowee-dropdown__option--selected');
         el.addEventListener('click', () => {
+          menu.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+          el.classList.add('naowee-dropdown__option--selected');
           valueSpan.textContent = opt;
           valueSpan.className = 'naowee-dropdown__value';
           dd.classList.remove('naowee-dropdown--open');
           trigger.setAttribute('aria-expanded','false');
-          reg3State.fichaEspecifica[fid] = opt;
+          setSubFicha(idx, fid, opt);
           validate3();
         });
         menu.appendChild(el);
@@ -3986,60 +4360,110 @@
       trigger.addEventListener('click', e => {
         e.stopPropagation();
         document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== dd) o.classList.remove('naowee-dropdown--open'); });
+        document.querySelectorAll('.reg-multi.open').forEach(m => { m.classList.remove('open'); });
         dd.classList.toggle('naowee-dropdown--open');
         trigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
       });
     });
 
-    // Toggles específicos
-    fields.querySelectorAll('[data-esp-toggle]').forEach(tog => {
-      tog.addEventListener('click', () => {
-        const fid = tog.dataset.espToggle;
-        const newVal = !tog.classList.contains('naowee-switch--on');
-        tog.classList.toggle('naowee-switch--on', newVal);
-        tog.setAttribute('aria-checked', String(newVal));
-        reg3State.fichaEspecifica[fid] = newVal;
-        validate3();
-      });
-    });
-
-    // File uploader específicos (ej. Concepto sanitario vigente)
-    fields.querySelectorAll('[data-esp-file-trigger]').forEach(btn => {
+    // File uploader específicos scoped por sub-idx
+    bodyEl.querySelectorAll(`[data-esp-file-trigger][data-sub-idx="${idx}"]`).forEach(btn => {
       btn.addEventListener('click', e => {
         if(e.target.closest('[data-esp-file-remove]')) return;
         const fid = btn.dataset.espFileTrigger;
-        const input = fields.querySelector(`[data-esp-file="${fid}"]`);
+        const input = bodyEl.querySelector(`[data-esp-file="${fid}"][data-sub-idx="${idx}"]`);
         if(input) input.click();
       });
     });
-    fields.querySelectorAll('[data-esp-file]').forEach(input => {
+    bodyEl.querySelectorAll(`[data-esp-file][data-sub-idx="${idx}"]`).forEach(input => {
       input.addEventListener('change', () => {
         const fid = input.dataset.espFile;
+        const fkey = `${fid}_${idx}`;
         const file = input.files && input.files[0];
         if(file){
-          reg3State.fichaEspecifica[fid] = file.name;
+          reg3FileUploads[fkey] = { name: file.name, progress: 0 };
           renderFichaEspecifica(reg3State.tipoEscenario);
-          validate3();
+          const tick = () => {
+            const u = reg3FileUploads[fkey];
+            if(!u) return;
+            u.progress = Math.min(100, u.progress + Math.floor(8 + Math.random() * 14));
+            const progEl = document.querySelector(`[data-esp-file-progress="${fkey}"] .naowee-file-uploader__progress-text`);
+            if(progEl) progEl.textContent = u.progress + '%';
+            if(u.progress >= 100){
+              setSubFicha(idx, fid, u.name);
+              delete reg3FileUploads[fkey];
+              renderFichaEspecifica(reg3State.tipoEscenario);
+              validate3();
+            } else {
+              setTimeout(tick, 180);
+            }
+          };
+          setTimeout(tick, 180);
         }
       });
     });
-    fields.querySelectorAll('[data-esp-file-remove]').forEach(btn => {
+    bodyEl.querySelectorAll(`[data-esp-file-remove][data-sub-idx="${idx}"]`).forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
         const fid = btn.dataset.espFileRemove;
-        reg3State.fichaEspecifica[fid] = '';
+        setSubFicha(idx, fid, '');
         renderFichaEspecifica(reg3State.tipoEscenario);
         validate3();
       });
     });
+  } // fin renderOneFichaBlock
 
-    setTimeout(() => {
-      fields.querySelectorAll('.naowee-dropdown').forEach(dd => {
-        ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
-      });
-    }, 50);
+  /* renderFichaFieldSub: genera el HTML de un campo con data-sub-idx para N sub-espacios */
+  function renderFichaFieldSub(f, subData, idx){
+    const val = subData[f.id] != null ? subData[f.id] : '';
+    const si = ` data-sub-idx="${idx}"`;
+    if(f.type === 'decimal' || f.type === 'int' || f.type === 'text'){
+      const mode = f.type === 'int' ? 'int' : (f.type === 'decimal' ? 'decimal' : '');
+      const inputMode = f.type === 'int' ? 'numeric' : (f.type === 'decimal' ? 'decimal' : 'text');
+      const placeholder = f.placeholder || (f.type === 'decimal' || f.type === 'int' ? '00.0' : 'Escribe');
+      return `<div class="naowee-textfield"><label class="naowee-textfield__label${f.required ? ' naowee-textfield__label--required' : ''}">${f.label}</label><div class="naowee-textfield__input-wrap"><input type="text" class="naowee-textfield__input" placeholder="${placeholder}" inputmode="${inputMode}" data-esp-input="${f.id}"${si} data-numeric="${mode}" value="${val}"/></div></div>`;
+    }
+    if(f.type === 'dropdown'){
+      return `<div class="naowee-dropdown" data-esp-dd="${f.id}"${si}><label class="naowee-dropdown__label">${f.label}${f.required ? ' <span style="color:var(--accent)">*</span>' : ''}</label><button type="button" class="naowee-dropdown__trigger" aria-haspopup="listbox" aria-expanded="false"><span class="${val ? 'naowee-dropdown__value' : 'naowee-dropdown__placeholder'}">${val || 'Selecciona'}</span><span class="naowee-dropdown__controls"><span class="naowee-dropdown__chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></span></button><div class="naowee-dropdown__menu" role="listbox"></div></div>`;
+    }
+    if(f.type === 'stepper'){
+      const cur = parseInt(val) || 0;
+      return `<div class="naowee-input-stepper" data-esp-stepper-wrap="${f.id}"${si}>
+        <label class="naowee-input-stepper__label${f.required ? ' naowee-textfield__label--required' : ''}">${f.label}</label>
+        <div class="naowee-input-stepper__content">
+          <div class="naowee-input-stepper__input">
+            <button type="button" class="naowee-input-stepper__btn" data-esp-stepper="${f.id}" data-step="minus"${si} aria-label="Disminuir">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <div class="naowee-input-stepper__value">
+              <span class="naowee-input-stepper__value-text" data-esp-stepper-val="${f.id}"${si}>${cur}</span>
+            </div>
+            <button type="button" class="naowee-input-stepper__btn" data-esp-stepper="${f.id}" data-step="plus"${si} aria-label="Aumentar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+    if(f.type === 'file'){
+      const fkey = `${f.id}_${idx}`;
+      const upload = reg3FileUploads[fkey];
+      const isUploading = upload && upload.progress < 100;
+      const hasFile = !isUploading && !!val;
+      let inner = '';
+      if(isUploading){
+        inner = `<div class="naowee-file-uploader__file-tag" style="border-color:var(--border-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>${upload.name}</span></div><div class="naowee-file-uploader__progress" data-esp-file-progress="${fkey}" style="margin-left:auto"><div class="naowee-file-uploader__progress-ring"></div><div class="naowee-file-uploader__progress-text">${upload.progress}%</div></div>`;
+      } else if(hasFile){
+        inner = `<div class="naowee-file-uploader__file-tag naowee-file-uploader__file-tag--uploaded"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>${val}</span><button type="button" class="naowee-file-uploader__file-dismiss" data-esp-file-remove="${f.id}"${si} aria-label="Quitar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`;
+      } else {
+        inner = `<span class="naowee-file-uploader__placeholder">Selecciona o arrastra el archivo aquí</span><button type="button" class="naowee-file-uploader__action" data-esp-file-trigger="${f.id}"${si}>Subir archivo</button>`;
+      }
+      return `<div class="naowee-file-uploader" data-esp-file-wrap="${f.id}"${si}><label class="naowee-file-uploader__label${f.required ? ' naowee-file-uploader__label--required' : ''}">${f.label}</label><input type="file" accept=".pdf,.jpg,.jpeg,.png" data-esp-file="${f.id}"${si} style="display:none"/><div class="naowee-file-uploader__input-wrap">${inner}</div>${f.hint ? `<p class="reg3-file-hint">${f.hint}</p>` : ''}</div>`;
+    }
+    return '';
   }
 
+  /* renderFichaField: versión legacy para retrocompatibilidad (usa fichaEspecifica del state raíz) */
   function renderFichaField(f){
     const val = reg3State.fichaEspecifica[f.id] != null ? reg3State.fichaEspecifica[f.id] : '';
     if(f.type === 'decimal' || f.type === 'int' || f.type === 'text'){
@@ -4067,24 +4491,59 @@
         </div>
       `;
     }
-    if(f.type === 'file'){
-      const hasFile = !!val;
+    if(f.type === 'stepper'){
+      const cur = parseInt(val) || 0;
       return `
-        <div class="naowee-file-uploader" data-esp-file-wrap="${f.id}">
-          <label class="naowee-file-uploader__label${f.required ? ' naowee-file-uploader__label--required' : ''}">${f.label}</label>
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-esp-file="${f.id}" style="display:none"/>
-          <div class="naowee-file-uploader__input-wrap">
-            ${hasFile
-              ? `<div class="naowee-file-uploader__file-tag naowee-file-uploader__file-tag--uploaded">
+        <div class="naowee-input-stepper" data-esp-stepper-wrap="${f.id}">
+          <label class="naowee-input-stepper__label${f.required ? ' naowee-textfield__label--required' : ''}">${f.label}</label>
+          <div class="naowee-input-stepper__content">
+            <div class="naowee-input-stepper__input">
+              <button type="button" class="naowee-input-stepper__btn" data-esp-stepper="${f.id}" data-step="minus" aria-label="Disminuir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <div class="naowee-input-stepper__value">
+                <span class="naowee-input-stepper__value-text" data-esp-stepper-val="${f.id}">${cur}</span>
+              </div>
+              <button type="button" class="naowee-input-stepper__btn" data-esp-stepper="${f.id}" data-step="plus" aria-label="Aumentar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    if(f.type === 'file'){
+      const upload = reg3FileUploads[f.id];
+      const isUploading = upload && upload.progress < 100;
+      const hasFile = !isUploading && !!val;
+      let inner = '';
+      if(isUploading){
+        inner = `<div class="naowee-file-uploader__file-tag" style="border-color:var(--border-dark)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span>${upload.name}</span>
+                </div>
+                <div class="naowee-file-uploader__progress" data-esp-file-progress="${f.id}" style="margin-left:auto">
+                  <div class="naowee-file-uploader__progress-ring"></div>
+                  <div class="naowee-file-uploader__progress-text">${upload.progress}%</div>
+                </div>`;
+      } else if(hasFile){
+        inner = `<div class="naowee-file-uploader__file-tag naowee-file-uploader__file-tag--uploaded">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                   <span>${val}</span>
                   <button type="button" class="naowee-file-uploader__file-dismiss" data-esp-file-remove="${f.id}" aria-label="Quitar archivo">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
-                </div>`
-              : `<span class="naowee-file-uploader__placeholder">Selecciona o arrastra el archivo aquí</span>
-                 <button type="button" class="naowee-file-uploader__action" data-esp-file-trigger="${f.id}">Subir archivo</button>`
-            }
+                </div>`;
+      } else {
+        inner = `<span class="naowee-file-uploader__placeholder">Selecciona o arrastra el archivo aquí</span>
+                 <button type="button" class="naowee-file-uploader__action" data-esp-file-trigger="${f.id}">Subir archivo</button>`;
+      }
+      return `
+        <div class="naowee-file-uploader" data-esp-file-wrap="${f.id}">
+          <label class="naowee-file-uploader__label${f.required ? ' naowee-file-uploader__label--required' : ''}">${f.label}</label>
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-esp-file="${f.id}" style="display:none"/>
+          <div class="naowee-file-uploader__input-wrap">
+            ${inner}
           </div>
           ${f.hint ? `<p class="reg3-file-hint">${f.hint}</p>` : ''}
         </div>
@@ -4289,47 +4748,10 @@
   }
 
   /* ═════════════════════════════════════════════════
-     STEP 2 — Disciplinas deportivas
+     STEP 3 — Disciplinas deportivas
+     Sólo datos específicos del deporte (modalidad, categoría, equipamiento).
+     Las dimensiones físicas vienen del Step 2 y NO se duplican aquí.
      ═════════════════════════════════════════════════ */
-
-  /* ─── Toggle compartenEscenario ─── */
-  const compartenToggle = document.getElementById('reg3CompartenToggle');
-  function setComparten(on){
-    compartenToggle.classList.toggle('naowee-switch--on', on);
-    compartenToggle.setAttribute('aria-checked', String(on));
-    reg3State.compartenEscenario = on;
-    // Si ON, ocultamos el toggle "compartenDetalles" (no aplica)
-    document.getElementById('reg3DetallesToggleWrap').hidden = on;
-    if(on){
-      reg3State.compartenDetalles = false;
-      setDetalles(false);
-    }
-    // Re-render las fichas de disciplina (los campos físicos se ocultan si ON)
-    renderReg3Disciplines();
-    validate3();
-  }
-  compartenToggle.addEventListener('click', () => setComparten(!compartenToggle.classList.contains('naowee-switch--on')));
-
-  /* ─── Toggle compartenDetalles ─── */
-  const detallesToggle = document.getElementById('reg3DetallesToggle');
-  function setDetalles(on){
-    detallesToggle.classList.toggle('naowee-switch--on', on);
-    detallesToggle.setAttribute('aria-checked', String(on));
-    reg3State.compartenDetalles = on;
-    if(on && reg3State.disciplinas.length >= 2){
-      // Autocompletar: copiar los datos del primer deporte a los demás
-      const first = reg3State.disciplinasData[reg3State.disciplinas[0]] || {};
-      reg3State.disciplinas.slice(1).forEach(d => {
-        // Clonar sólo los campos físicos, mantener reglas/modalidad individuales
-        if(!reg3State.disciplinasData[d]) reg3State.disciplinasData[d] = {};
-        ['largo','ancho','superficie','estado','numCanchas'].forEach(k => {
-          if(first[k] != null && first[k] !== '') reg3State.disciplinasData[d][k] = first[k];
-        });
-      });
-      renderReg3Disciplines();
-    }
-  }
-  detallesToggle.addEventListener('click', () => setDetalles(!detallesToggle.classList.contains('naowee-switch--on')));
 
   /* ─── Multi-select Disciplinas ─── */
   const reg3DiscEl = document.getElementById('reg3DiscMulti');
@@ -4432,13 +4854,22 @@
     });
   }
 
-  /* ─── Renderizar fichas por disciplina según toggle compartenEscenario ─── */
+  /* ─── Renderizar fichas por disciplina ───
+     Si el escenario es multiEspacio (Villa Olímpica, Complejo deportivo, Otro):
+       cada disciplina tiene su propia ficha física (largo, ancho, superficie, estado)
+       porque ocupa un sub-espacio físicamente distinto.
+     Si NO es multiEspacio:
+       sólo se piden datos del deporte (modalidad, categoría, equipamiento). */
   function renderReg3Disciplines(){
     const listEl = document.getElementById('reg3DisciplinesList');
     listEl.innerHTML = '';
     const cfg = SCENARIO_CONFIG[reg3State.tipoEscenario];
     const fichaDiscTemplate = cfg && cfg.fichaPorDisciplina ? cfg.fichaPorDisciplina : [];
-    const compartido = reg3State.compartenEscenario;
+    const multi = !!(cfg && cfg.multiEspacio);
+
+    // Mostrar/ocultar el hint informativo según multiEspacio
+    const multiHint = document.getElementById('reg3MultiHint');
+    if(multiHint) multiHint.hidden = !multi;
 
     reg3State.disciplinas.forEach(disc => {
       if(!reg3State.disciplinasData[disc]){
@@ -4447,20 +4878,34 @@
       const data = reg3State.disciplinasData[disc];
       const card = document.createElement('div');
       card.className = 'reg3-disc-card';
+      const cardTitle = multi ? `Cancha de ${disc.toLowerCase()}` : disc;
       card.innerHTML = `
-        <div class="reg3-disc-card__header" data-disc-toggle="${disc}">
-          <span class="reg3-disc-card__title">${disc}</span>
+        <div class="reg3-disc-card__header" data-disc-toggle="${disc}" role="button" aria-expanded="true" tabindex="0">
+          <span class="reg3-disc-card__title">${cardTitle}</span>
           <svg class="reg3-disc-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
-        <div class="reg3-disc-card__body">
-          ${renderFichaDisciplinaFields(disc, fichaDiscTemplate, compartido, data)}
+        <div class="reg3-disc-card__body-wrap">
+          <div class="reg3-disc-card__body-inner">
+            <div class="reg3-disc-card__body">
+              ${renderFichaDisciplinaFields(disc, fichaDiscTemplate, data, multi)}
+            </div>
+          </div>
         </div>
       `;
       listEl.appendChild(card);
 
-      // Toggle colapsar
-      card.querySelector('.reg3-disc-card__header').addEventListener('click', () => {
+      // Toggle colapsar (click + teclado Enter/Space)
+      const header = card.querySelector('.reg3-disc-card__header');
+      const toggleCollapse = () => {
         card.classList.toggle('collapsed');
+        header.setAttribute('aria-expanded', String(!card.classList.contains('collapsed')));
+      };
+      header.addEventListener('click', toggleCollapse);
+      header.addEventListener('keydown', e => {
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          toggleCollapse();
+        }
       });
 
       // Listeners de inputs de la disciplina
@@ -4552,20 +4997,22 @@
     }, 50);
   }
 
-  function renderFichaDisciplinaFields(disc, template, compartido, data){
-    // Si el escenario NO es compartido, agregar también campos físicos por disciplina
-    let extraFields = '';
-    if(!compartido){
-      extraFields = `
+  function renderFichaDisciplinaFields(disc, template, data, multi){
+    // multi = el escenario es complejo (Villa Olímpica, etc.) y cada disciplina
+    // ocupa un sub-espacio físicamente distinto. Renderiza campos físicos extra.
+    let physicalFields = '';
+    if(multi){
+      physicalFields = `
+        <div class="reg3-section-divider">CARACTERÍSTICAS FÍSICAS DE LA CANCHA</div>
         <div class="reg3-ficha-grid">
           <div class="naowee-textfield">
-            <label class="naowee-textfield__label naowee-textfield__label--required">Largo del espacio (m)</label>
+            <label class="naowee-textfield__label naowee-textfield__label--required">Largo (m)</label>
             <div class="naowee-textfield__input-wrap">
               <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-input="largo" data-numeric="decimal" value="${data.largo || ''}"/>
             </div>
           </div>
           <div class="naowee-textfield">
-            <label class="naowee-textfield__label naowee-textfield__label--required">Ancho del espacio (m)</label>
+            <label class="naowee-textfield__label naowee-textfield__label--required">Ancho (m)</label>
             <div class="naowee-textfield__input-wrap">
               <input type="text" class="naowee-textfield__input" placeholder="00.0" inputmode="decimal" data-disc-input="ancho" data-numeric="decimal" value="${data.ancho || ''}"/>
             </div>
@@ -4589,10 +5036,10 @@
             <div class="naowee-dropdown__menu" role="listbox"></div>
           </div>
         </div>
+        <div class="reg3-section-divider">DATOS DEL DEPORTE</div>
       `;
     }
 
-    // Renderizar los campos de template (modalidad, categoría, toggles, etc.)
     const templateHtml = template.map(f => {
       const val = data[f.id] != null ? data[f.id] : '';
       // Si el campo es type:'text' pero el id es 'modalidad', lo convertimos a dropdown dinámico
@@ -4635,7 +5082,7 @@
       return '';
     }).join('');
 
-    return extraFields + templateHtml;
+    return physicalFields + templateHtml;
   }
 
   reg3DiscTrigger.addEventListener('click', e => {
@@ -4682,19 +5129,43 @@
     const s = reg3State;
     let ok = false;
 
-    if(reg3Step === 1){
-      // Paso 1: tipo + ficha común obligatoria + ficha específica requerida completa
+    if(reg3Step === 2){
+      // Paso 2 (Escenario físico): tipo + ficha común obligatoria + ficha específica requerida completa
       const c = s.fichaComun;
       let common = !!s.tipoEscenario
         && c.areaTotal && c.areaUtil && c.cubierto
         && c.capacidad && c.anioCons && c.estado;
       let specific = true;
       const cfg = SCENARIO_CONFIG[s.tipoEscenario];
-      if(cfg && cfg.fichaEspecifica){
-        for(const f of cfg.fichaEspecifica){
-          if(f.required){
-            const v = s.fichaEspecifica[f.id];
-            if(v == null || v === '') { specific = false; break; }
+      const isComplex = !!(cfg && cfg.multiEspacio);
+      const count = s.subCount || 1;
+
+      if(isComplex){
+        // Complejo: cada sub-espacio debe tener un tipo seleccionado + sus campos required
+        for(let si = 0; si < count && specific; si++){
+          const sub = s.subEspacios[si] || {};
+          if(!sub.tipo) { specific = false; break; }
+          const subCfg = SCENARIO_CONFIG[sub.tipo];
+          if(subCfg && subCfg.fichaEspecifica){
+            for(const f of subCfg.fichaEspecifica){
+              if(f.required){
+                const v = (sub.ficha || {})[f.id];
+                if(v == null || v === '') { specific = false; break; }
+                if(f.type === 'stepper' && (!v || parseInt(v) < 1)) { specific = false; break; }
+              }
+            }
+          }
+        }
+      } else if(cfg && cfg.fichaEspecifica){
+        // Monolítico: validar N sub-espacios del mismo tipo
+        for(let si = 0; si < count && specific; si++){
+          const subData = (s.subEspacios[si] || {}).ficha || (si === 0 ? s.fichaEspecifica : {});
+          for(const f of cfg.fichaEspecifica){
+            if(f.required){
+              const v = subData[f.id];
+              if(v == null || v === '') { specific = false; break; }
+              if(f.type === 'stepper' && (!v || parseInt(v) < 1)) { specific = false; break; }
+            }
           }
         }
       }
@@ -4711,36 +5182,142 @@
         }
       }
       ok = common && specific && dotOk;
-    } else if(reg3Step === 2){
-      // Paso 2: al menos 1 disciplina
-      ok = s.disciplinas.length > 0;
     } else if(reg3Step === 3){
-      // Paso 3: stub — siempre válido (permite guardar borrador)
+      // Paso 3 (Disciplinas): al menos 1 disciplina
+      // Si el escenario es multiEspacio, cada disciplina debe tener largo, ancho, superficie y estado
+      ok = s.disciplinas.length > 0;
+      const cfgDisc = SCENARIO_CONFIG[s.tipoEscenario];
+      if(ok && cfgDisc && cfgDisc.multiEspacio){
+        for(const d of s.disciplinas){
+          const dd = s.disciplinasData[d] || {};
+          if(!dd.largo || !dd.ancho || !dd.superficie || !dd.estado){
+            ok = false;
+            break;
+          }
+        }
+      }
+    } else if(reg3Step === 4){
+      // Paso 4 (Documentación): stub — siempre válido (permite guardar borrador)
       ok = true;
     }
-    reg3SubmitBtn.disabled = !ok;
+    reg3Valid = ok;
+    // Ya no deshabilitamos el botón — el handler decide si avanza o muestra errores
+  }
+
+  /* ─── Highlight errores Modal 3 por paso ─── */
+  function highlightReg3Errors(){
+    const modal3Body = document.querySelector('#regModal3Overlay .reg-modal__body');
+    // Limpiar errores previos en el paso visible
+    const step = document.querySelector(`#regModal3Overlay [data-reg3-step="${reg3Step}"]`);
+    if(!step) return;
+    step.querySelectorAll('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error').forEach(el => clearFieldError(el));
+
+    const s = reg3State;
+
+    if(reg3Step === 2){
+      // Tipo de escenario
+      if(!s.tipoEscenario) showFieldError(document.getElementById('reg3TipoEscDD'));
+      // Ficha común
+      const comunChecks = [
+        { sel:'[data-comun="areaTotal"]', empty:!s.fichaComun.areaTotal },
+        { sel:'[data-comun="areaUtil"]', empty:!s.fichaComun.areaUtil },
+        { sel:'[data-comun="capacidad"]', empty:!s.fichaComun.capacidad },
+        { sel:'[data-comun="anioCons"]', empty:!s.fichaComun.anioCons }
+      ];
+      comunChecks.forEach(c => {
+        if(c.empty){
+          const inp = step.querySelector(c.sel);
+          if(inp) showFieldError(inp.closest('.naowee-textfield'));
+        }
+      });
+      // Dropdowns de ficha común (cubierto, estado)
+      if(!s.fichaComun.cubierto){
+        const dd = step.querySelector('[data-comun-dd="cubierto"]');
+        if(dd) showFieldError(dd);
+      }
+      if(!s.fichaComun.estado){
+        const dd = step.querySelector('[data-comun-dd="estado"]');
+        if(dd) showFieldError(dd);
+      }
+      // Ficha específica required
+      const cfg = SCENARIO_CONFIG[s.tipoEscenario];
+      if(cfg && cfg.fichaEspecifica){
+        cfg.fichaEspecifica.forEach(f => {
+          if(f.required){
+            const v = s.fichaEspecifica[f.id];
+            const isEmpty = (v == null || v === '' || (f.type === 'stepper' && parseInt(v) < 1));
+            if(isEmpty){
+              // Buscar el wrapper por data attr
+              const inp = step.querySelector(`[data-esp-input="${f.id}"]`);
+              if(inp) showFieldError(inp.closest('.naowee-textfield'));
+              const dd = step.querySelector(`[data-esp-dd="${f.id}"]`);
+              if(dd) showFieldError(dd);
+              const stepper = step.querySelector(`[data-esp-stepper-wrap="${f.id}"]`);
+              if(stepper) showFieldError(stepper);
+            }
+          }
+        });
+      }
+    } else if(reg3Step === 3){
+      // Al menos 1 disciplina
+      if(s.disciplinas.length === 0){
+        showFieldError(document.getElementById('reg3DiscMulti'));
+      }
+      // Si multiEspacio: largo, ancho, superficie, estado por disciplina
+      const cfgDisc = SCENARIO_CONFIG[s.tipoEscenario];
+      if(cfgDisc && cfgDisc.multiEspacio){
+        s.disciplinas.forEach(d => {
+          const dd = s.disciplinasData[d] || {};
+          const card = step.querySelector(`.reg3-disc-card [data-disc-toggle="${d}"]`)?.closest('.reg3-disc-card');
+          if(!card) return;
+          if(!dd.largo){
+            const inp = card.querySelector('[data-disc-input="largo"]');
+            if(inp) showFieldError(inp.closest('.naowee-textfield'));
+          }
+          if(!dd.ancho){
+            const inp = card.querySelector('[data-disc-input="ancho"]');
+            if(inp) showFieldError(inp.closest('.naowee-textfield'));
+          }
+          if(!dd.superficie){
+            const ddEl = card.querySelector('[data-disc-dd="superficie"]');
+            if(ddEl) showFieldError(ddEl);
+          }
+          if(!dd.estado){
+            const ddEl = card.querySelector('[data-disc-dd="estado"]');
+            if(ddEl) showFieldError(ddEl);
+          }
+        });
+      }
+    }
+
+    autoCleanErrors(step);
+    scrollToFirstError(modal3Body);
   }
 
   /* ═════════════════════════════════════════════════
      Handlers de navegación Volver / Continuar
      ═════════════════════════════════════════════════ */
   document.getElementById('reg3BtnBack').addEventListener('click', () => {
-    if(reg3Step > 1){
+    if(reg3Step > 2){
       switchReg3Step(reg3Step - 1);
     } else {
-      // Desde el paso 1 vuelve al modal 2
+      // Desde el paso 2 vuelve al modal 2 (paso 1: Información general)
       closeModal3();
       modal2.classList.add('open');
     }
   });
 
   reg3SubmitBtn.addEventListener('click', () => {
-    if(reg3SubmitBtn.disabled) return;
-    if(reg3Step < 3){
+    validate3();
+    if(!reg3Valid){
+      highlightReg3Errors();
+      return;
+    }
+    if(reg3Step < 4){
       switchReg3Step(reg3Step + 1);
       return;
     }
-    // Paso 3 → guarda y cierra
+    // Paso 4 → guarda y cierra
     reg3SubmitBtn.classList.add('naowee-btn--loading');
     setTimeout(() => {
       try {
@@ -4762,10 +5339,10 @@
           tipoEscenario: reg3State.tipoEscenario,
           fichaComun: JSON.parse(JSON.stringify(reg3State.fichaComun)),
           fichaEspecifica: JSON.parse(JSON.stringify(reg3State.fichaEspecifica)),
+          subEspacios: JSON.parse(JSON.stringify(reg3State.subEspacios)),
+          subCount: reg3State.subCount,
           dotacion: JSON.parse(JSON.stringify(reg3State.dotacion)),
           disciplinas: [...reg3State.disciplinas],
-          compartenEscenario: reg3State.compartenEscenario,
-          compartenDetalles: reg3State.compartenDetalles,
           disciplinasData: JSON.parse(JSON.stringify(reg3State.disciplinasData)),
           savedAt: Date.now()
         });
@@ -4786,7 +5363,11 @@
 
   /* ─── Submit modal 2: abre modal 3 (paso siguiente) ─── */
   reg2SubmitBtn.addEventListener('click', () => {
-    if(reg2SubmitBtn.disabled) return;
+    validate2();
+    if(!reg2Valid){
+      highlightReg2Errors();
+      return;
+    }
     closeModal2();
     // Pre-cargar datos del modal 3 si ya existían (modo edición)
     if(editingDraftIdx != null){
@@ -4799,20 +5380,18 @@
         if(d.fichaComun){
           Object.assign(reg3State.fichaComun, d.fichaComun);
         }
-        // Ficha específica
+        // Ficha específica + sub-espacios
         reg3State.fichaEspecifica = d.fichaEspecifica ? JSON.parse(JSON.stringify(d.fichaEspecifica)) : {};
+        reg3State.subEspacios = Array.isArray(d.subEspacios) ? JSON.parse(JSON.stringify(d.subEspacios)) : [];
+        reg3State.subCount = d.subCount || 1;
         // Dotación
         if(d.dotacion){
           Object.assign(reg3State.dotacion, d.dotacion);
         }
         reg3State.disciplinas = Array.isArray(d.disciplinas) ? [...d.disciplinas] : [];
-        reg3State.compartenEscenario = !!d.compartenEscenario;
-        reg3State.compartenDetalles = !!d.compartenDetalles;
         reg3State.disciplinasData = d.disciplinasData ? JSON.parse(JSON.stringify(d.disciplinasData)) : {};
         // Pintar UI toggles
         setCar(reg3State.car);
-        setComparten(reg3State.compartenEscenario);
-        setDetalles(reg3State.compartenDetalles);
         // Pintar tipo de escenario
         const tipoEscSpan = document.querySelector('#reg3TipoEscDD .naowee-dropdown__placeholder, #reg3TipoEscDD .naowee-dropdown__value');
         if(tipoEscSpan){
@@ -4890,8 +5469,22 @@
   window.openEditDraft = function(idx){
     let arr = [];
     try { arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]'); } catch(e){}
-    const d = arr[idx];
-    if(!d) return;
+    let d = arr[idx];
+    // Si no existe en sessionStorage, crear un draft mock a partir de la data demo
+    if(!d){
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode') || 'empty';
+      const DEMO = {
+        single: [{ nombre:'Centro deportivo Prado', catastral:'10000101010', departamento:'Antioquia', municipio:'Medellín', direccion:'Cra 30 #24-50', corregimiento:'', zona:'Urbana', lat:6.2518, lon:-75.5636 }],
+        multiple: [{ nombre:'Centro deportivo Prado', catastral:'10000101010' }, { nombre:'Centro deportivo Miramar', catastral:'1000020202' }, { nombre:'Centro deportivo Norte', catastral:'1000030303' }, { nombre:'Centro deportivo Sur', catastral:'1000040404' }]
+      };
+      const demos = DEMO[mode] || [];
+      d = demos[idx];
+      if(!d) return;
+      // Guardar en sessionStorage para que el flujo de edición funcione
+      arr[idx] = d;
+      sessionStorage.setItem('regDrafts', JSON.stringify(arr));
+    }
     editingDraftIdx = idx;
 
     // Precargar state del modal 1
