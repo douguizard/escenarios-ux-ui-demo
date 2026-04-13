@@ -2289,7 +2289,10 @@
   function renderRow(item, idx){
     const icon = item.action === 'edit' ? ICON_EDIT : ICON_VIEW;
     const actionLabel = item.action === 'edit' ? 'Editar' : 'Ver detalle';
-    const draftAttr = item.action === 'edit' ? ` data-draft-idx="${idx}"` : '';
+    let actionAttr = '';
+    if(item.action === 'edit') actionAttr = ` data-draft-idx="${idx}"`;
+    else if(item.state.variant === 'caution') actionAttr = ` data-review-idx="${idx}"`;
+    else if(item.state.variant === 'positive') actionAttr = ` data-activo-idx="${idx}"`;
     return `
       <tr>
         <td><div class="cell-name">${item.name}</div></td>
@@ -2307,7 +2310,7 @@
           </div>
         </td>
         <td>
-          <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--icon naowee-btn--small" aria-label="${actionLabel}"${draftAttr}>
+          <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--icon naowee-btn--small" aria-label="${actionLabel}"${actionAttr}>
             ${icon}
           </button>
         </td>
@@ -2989,12 +2992,18 @@
   document.getElementById('dlgSentReviewOk').addEventListener('click', closeSentReview);
   document.getElementById('dlgSentReviewClose').addEventListener('click', closeSentReview);
 
-  // Click en ojo → navega a la página de detalle de revisión
+  // Click en ojo → navega a la página de detalle según estado
   document.addEventListener('click', e => {
-    const btn = e.target.closest('[data-review-idx]');
-    if(!btn) return;
-    const idx = parseInt(btn.dataset.reviewIdx);
-    window.location.href = `escenario-09-detalle-revision.html?idx=${idx}`;
+    const reviewBtn = e.target.closest('[data-review-idx]');
+    if(reviewBtn){
+      window.location.href = `escenario-09-detalle-revision.html?idx=${reviewBtn.dataset.reviewIdx}`;
+      return;
+    }
+    const activoBtn = e.target.closest('[data-activo-idx]');
+    if(activoBtn){
+      window.location.href = `escenario-10-perfil-activo.html?idx=${activoBtn.dataset.activoIdx}`;
+      return;
+    }
   });
 
   // ESC cierra solo el dialog que está arriba
