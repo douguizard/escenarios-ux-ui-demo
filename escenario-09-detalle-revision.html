@@ -60,8 +60,13 @@
 }
 
 /* ═══ STATUS BANNER ═══ */
-/* Status banner uses DS naowee-message--caution */
-.status-banner-wrap{margin-bottom:28px}
+/* Hero container */
+.hero-card{
+  background:var(--surface,#fff);
+  border:1px solid var(--border,#e7e9f3);
+  border-radius:16px;
+  padding:24px;
+}
 
 /* Card container for tabs + content */
 .detail-card{
@@ -297,22 +302,18 @@
     <!-- ═══ PAGE ═══ -->
     <div class="page">
 
-      <!-- Back link (DS btn--link) -->
-      <div class="back-link-wrap">
-        <button class="naowee-btn naowee-btn--link naowee-btn--small" id="btnBack" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Volver al listado
+      <!-- Hero container (back + title + banner) -->
+      <div class="hero-card" style="margin-bottom:24px">
+        <!-- Back link -->
+        <button class="naowee-btn naowee-btn--link naowee-btn--small" id="btnBack" type="button" style="margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+          Regresar a la lista
         </button>
-      </div>
 
-      <!-- Detail header -->
-      <div class="detail-header">
         <h1 class="detail-header__title" id="detailTitle">--</h1>
-        <p class="detail-header__id" id="detailId">ID: --</p>
-      </div>
+        <p class="detail-header__id" id="detailId" style="margin-bottom:16px">ID: --</p>
 
-      <!-- Status banner (DS naowee-message--caution) -->
-      <div class="status-banner-wrap">
+        <!-- Status banner -->
         <div class="naowee-message naowee-message--caution">
           <div class="naowee-message__header">
             <div class="naowee-message__icon">
@@ -521,7 +522,7 @@
 
   // ═══ Back link (must register before early return) ═══
   document.getElementById('btnBack').addEventListener('click', () => {
-    window.location.href = 'escenario-08-dashboard.html';
+    window.location.href = 'escenario-08-dashboard.html?mode=multiple';
   });
 
   // ═══ TAB SWITCHER (must register before early return) ═══
@@ -739,7 +740,7 @@
     docHtml += `<tr data-doc-preview="${id}">
       <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${label}</span></div></td>
       <td style="text-align:center">${statusBadge}</td>
-      <td style="color:var(--text-secondary)">${dateStr}</td>
+      <td style="color:var(--text-secondary);white-space:nowrap">${dateStr}</td>
     </tr>`;
   });
   docBody.innerHTML = docHtml;
@@ -840,7 +841,7 @@
         spHtml += `<tr data-sub-photo="${i}_${pid}" style="cursor:pointer">
           <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${plabel}</span></div></td>
           <td style="text-align:center">${badge}</td>
-          <td style="color:var(--text-secondary)">${dateStr}</td>
+          <td style="color:var(--text-secondary);white-space:nowrap">${dateStr}</td>
         </tr>`;
       });
       spHtml += '</tbody></table>';

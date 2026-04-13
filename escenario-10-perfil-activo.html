@@ -376,15 +376,14 @@
     <!-- ═══ PAGE ═══ -->
     <div class="page">
 
-      <!-- Breadcrumb -->
-      <div class="breadcrumb" style="margin-bottom:20px">
-        <a href="escenario-08-dashboard.html" class="breadcrumb__link">Lista de sedes o escenarios</a>
-        <span class="breadcrumb__sep">›</span>
-        <span class="breadcrumb__current" id="bcName">--</span>
-      </div>
-
       <!-- Hero card -->
       <div class="hero-card">
+        <!-- Back button inside card -->
+        <button class="naowee-btn naowee-btn--link naowee-btn--small" type="button" onclick="window.location.href='escenario-08-dashboard.html?mode=multiple'" style="margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+          Regresar a la lista
+        </button>
+
         <div class="hero-card__header">
           <div class="hero-card__info">
             <h1 class="hero-card__title">
@@ -560,8 +559,8 @@
               <thead>
                 <tr>
                   <th>Documento</th>
-                  <th style="width:120px;text-align:center">Estado</th>
-                  <th style="width:140px;white-space:nowrap">Fecha de cargue</th>
+                  <th style="width:110px;text-align:center">Estado</th>
+                  <th style="width:150px;white-space:nowrap">Fecha de cargue</th>
                 </tr>
               </thead>
               <tbody id="docTableBody"></tbody>
@@ -615,8 +614,8 @@
 <div class="dialog-overlay" id="dlgSolicitud" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:20px;width:90%;max-width:520px;padding:0;animation:scaleIn .3s cubic-bezier(.4,0,.2,1);position:relative">
     <!-- Close -->
-    <button type="button" id="dlgSolicitudClose" style="position:absolute;top:16px;right:16px;width:28px;height:28px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);border-radius:6px" aria-label="Cerrar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <button type="button" id="dlgSolicitudClose" class="naowee-btn naowee-btn--mute naowee-btn--icon naowee-btn--small" style="position:absolute;top:16px;right:16px" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
     <div style="padding:32px 32px 24px;text-align:center">
       <!-- Check icon -->
@@ -644,7 +643,7 @@
       <div class="naowee-textfield" style="text-align:left">
         <label class="naowee-textfield__label naowee-textfield__label--required" for="solicitudMotivo">Motivo de actualización</label>
         <div class="naowee-textfield__input-wrap" style="height:auto">
-          <textarea id="solicitudMotivo" class="naowee-textfield__input" placeholder="Escribe el motivo de la solicitud. Ej.: remodelación, cambio de documentos o ajustes de datos." rows="4" style="resize:vertical;height:auto;padding:10px 12px"></textarea>
+          <textarea id="solicitudMotivo" class="naowee-textfield__input" placeholder="Escribe el motivo de la solicitud. Ej.: remodelación, cambio de documentos o ajustes de datos." rows="4" style="resize:vertical;height:auto"></textarea>
         </div>
       </div>
     </div>
@@ -736,7 +735,6 @@
 
   // ═══ Hero card + breadcrumb ═══
   const savedAt = d.savedAt || Date.now();
-  document.getElementById('bcName').textContent = d.nombre || '--';
   document.getElementById('heroName').textContent = d.nombre || 'Sin nombre';
   document.getElementById('heroId').textContent = 'ID único: ' + (d.catastral || '--');
   if(d.car) document.getElementById('heroCar').hidden = false;
@@ -913,7 +911,7 @@
     docHtml += `<tr data-doc-preview="${id}">
       <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${label}</span></div></td>
       <td style="text-align:center">${statusBadge}</td>
-      <td style="color:var(--text-secondary)">${dateStr}</td>
+      <td style="color:var(--text-secondary);white-space:nowrap">${dateStr}</td>
     </tr>`;
   });
   docBody.innerHTML = docHtml;
@@ -999,7 +997,7 @@
     d.subEspacios.forEach((sub, i) => {
       const nombre = sub.nombre || (sub.tipo || d.tipoEscenario || 'Sub-espacio') + ' ' + (i+1);
       spHtml += `<h3 class="detail-section__title" style="margin-top:24px">Fotos • ${nombre}</h3>`;
-      spHtml += `<table class="doc-table"><thead><tr><th>Foto</th><th style="width:120px;text-align:center">Estado</th><th style="width:140px;white-space:nowrap">Fecha de cargue</th></tr></thead><tbody>`;
+      spHtml += `<table class="doc-table"><thead><tr><th>Foto</th><th style="width:110px;text-align:center">Estado</th><th style="width:150px;white-space:nowrap">Fecha de cargue</th></tr></thead><tbody>`;
       const photoSlots = [
         ['foto_frontal','Foto frontal'],
         ['foto_2','Foto lateral'],
@@ -1018,7 +1016,7 @@
         spHtml += `<tr data-sub-photo="${i}_${pid}" style="cursor:pointer">
           <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${plabel}</span></div></td>
           <td style="text-align:center">${badge}</td>
-          <td style="color:var(--text-secondary)">${dateStr}</td>
+          <td style="color:var(--text-secondary);white-space:nowrap">${dateStr}</td>
         </tr>`;
       });
       spHtml += '</tbody></table>';
@@ -1124,6 +1122,27 @@
     setTimeout(() => {
       btnSolicitar.classList.remove('naowee-btn--loading');
       dlgSol.style.display = 'none';
+      // Add to timeline
+      const tl = document.getElementById('timeline');
+      if(tl){
+        const now = new Date();
+        const h = now.getHours() % 12 || 12;
+        const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+        const mesesCortos = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.'];
+        const dateStr = `${mesesCortos[now.getMonth()]} ${String(now.getDate()).padStart(2,'0')}, ${now.getFullYear()} ${h}:${String(now.getMinutes()).padStart(2,'0')} ${ampm}`;
+        const newEvent = document.createElement('div');
+        newEvent.className = 'timeline-item';
+        newEvent.style.animation = 'fadeInUp .4s ease';
+        newEvent.innerHTML = `
+          <div class="timeline-dot timeline-dot--active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="timeline-content">
+            <div class="timeline-title">Solicitud de actualización enviada <span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small" style="margin-left:8px">Enviada</span></div>
+            <div class="timeline-desc">Motivo: ${txtMotivo.value.trim()}</div>
+            <div class="timeline-date">${dateStr}</div>
+          </div>
+        `;
+        tl.appendChild(newEvent);
+      }
       // Show toast
       toast.classList.remove('hidden');
       toast.style.animation = 'toastIn .5s cubic-bezier(.34,1.56,.64,1)';
