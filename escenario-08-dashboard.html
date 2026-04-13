@@ -3515,8 +3515,8 @@
 
   // Scroll al primer campo con error dentro de un modal body
   function scrollToFirstError(modalBody){
-    const first = modalBody.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error');
-    if(first) first.scrollIntoView({ behavior:'smooth', block:'center' });
+    const first = modalBody.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error, .field-error-wiggle');
+    if(first) setTimeout(() => first.scrollIntoView({ behavior:'smooth', block:'center' }), 120);
   }
 
   /* ─── Highlight errores modal 2 ─── */
@@ -5592,10 +5592,21 @@
         if(!sub || !sub.fotos || !sub.fotos.foto_frontal){
           const slot = step.querySelector(`[data-photo-slot="foto_frontal"][data-photo-idx="${si}"]`);
           if(slot){
+            // Expandir la card padre si está colapsada
+            const card = slot.closest('.reg3-disc-card');
+            if(card && card.classList.contains('collapsed')){
+              card.classList.remove('collapsed');
+              const header = card.querySelector('[role="button"]');
+              if(header) header.setAttribute('aria-expanded','true');
+            }
             slot.style.borderColor = 'var(--accent)';
             slot.style.background = 'var(--red-bg,#fff0ee)';
             slot.classList.add('field-error-wiggle');
             slot.addEventListener('animationend', () => slot.classList.remove('field-error-wiggle'), {once:true});
+            // Scroll directo al slot si es el primer error de fotos
+            if(!step.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error')){
+              setTimeout(() => slot.scrollIntoView({ behavior:'smooth', block:'center' }), 100);
+            }
           }
         }
       }
