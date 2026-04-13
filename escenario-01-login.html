@@ -68,11 +68,11 @@ body{
 }
 
 /* Slide backgrounds (gradient per sport theme) */
-.carousel-slide[data-slide="1"]{background:linear-gradient(to bottom,rgba(20,30,50,.3),rgba(10,15,30,.85)),url('https://images.unsplash.com/photo-1461896836934-bd45ba8a0bca?w=800&h=1000&fit=crop') center/cover}
-.carousel-slide[data-slide="2"]{background:linear-gradient(to bottom,rgba(15,40,25,.3),rgba(5,20,10,.85)),url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=1000&fit=crop') center/cover}
-.carousel-slide[data-slide="3"]{background:linear-gradient(to bottom,rgba(10,50,70,.3),rgba(5,25,40,.85)),url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=1000&fit=crop') center/cover}
-.carousel-slide[data-slide="4"]{background:linear-gradient(to bottom,rgba(60,40,10,.3),rgba(30,20,5,.85)),url('https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&h=1000&fit=crop') center/cover}
-.carousel-slide[data-slide="5"]{background:linear-gradient(to bottom,rgba(15,35,60,.3),rgba(5,15,30,.85)),url('https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&h=1000&fit=crop') center/cover}
+.carousel-slide[data-slide="1"]{background-image:linear-gradient(to bottom,rgba(20,30,50,.3),rgba(10,15,30,.85)),url('https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=1000&fit=crop');background-size:cover;background-position:center}
+.carousel-slide[data-slide="2"]{background-image:linear-gradient(to bottom,rgba(15,40,25,.3),rgba(5,20,10,.85)),url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=1000&fit=crop');background-size:cover;background-position:center}
+.carousel-slide[data-slide="3"]{background-image:linear-gradient(to bottom,rgba(10,50,70,.3),rgba(5,25,40,.85)),url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=1000&fit=crop');background-size:cover;background-position:center}
+.carousel-slide[data-slide="4"]{background-image:linear-gradient(to bottom,rgba(60,40,10,.3),rgba(30,20,5,.85)),url('https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&h=1000&fit=crop');background-size:cover;background-position:center}
+.carousel-slide[data-slide="5"]{background-image:linear-gradient(to bottom,rgba(15,35,60,.3),rgba(5,15,30,.85)),url('https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&h=1000&fit=crop');background-size:cover;background-position:center}
 
 .slide-top{position:relative;z-index:3;display:flex}
 .slide-badge{
@@ -99,17 +99,19 @@ body{
 /* Controls */
 .carousel-controls{
   position:absolute;left:28px;right:28px;bottom:28px;z-index:5;
+  display:flex;flex-direction:column;gap:12px;
+}
+.carousel-controls__row{
   display:flex;align-items:center;justify-content:space-between;
 }
 /* Progress bar */
 .carousel-progress{
-  width:100%;height:2px;background:rgba(255,255,255,.15);
-  border-radius:2px;overflow:hidden;margin-bottom:16px;
+  width:100%;height:3px;background:rgba(255,255,255,.15);
+  border-radius:3px;overflow:hidden;
 }
 .carousel-progress__bar{
   height:100%;width:0%;background:#FF7500;
-  border-radius:2px;
-  transition:width .1s linear;
+  border-radius:3px;
 }
 .carousel-indicators{display:flex;align-items:center;gap:6px;flex:1}
 .carousel-dot{
@@ -275,6 +277,10 @@ body{
 }
 
 /* Responsive */
+/* Wiggle animation for validation */
+@keyframes wiggle{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.field-error-wiggle{animation:wiggle .4s ease}
+
 @media(max-width:1024px){
   .auth-main{grid-template-columns:1fr}
   .auth-carousel-wrap{display:none}
@@ -380,12 +386,12 @@ body{
 
       </div>
 
-      <!-- Progress bar (auto-advance timer) -->
-      <div class="carousel-progress">
-        <div class="carousel-progress__bar" id="carouselProgress"></div>
-      </div>
-
       <div class="carousel-controls">
+        <!-- Progress bar -->
+        <div class="carousel-progress">
+          <div class="carousel-progress__bar" id="carouselProgress"></div>
+        </div>
+        <div class="carousel-controls__row">
         <div class="carousel-indicators" id="carouselDots">
           <button class="carousel-dot active" data-go="1" aria-label="Ir al slide 1"></button>
           <button class="carousel-dot" data-go="2" aria-label="Ir al slide 2"></button>
@@ -393,7 +399,7 @@ body{
           <button class="carousel-dot" data-go="4" aria-label="Ir al slide 4"></button>
           <button class="carousel-dot" data-go="5" aria-label="Ir al slide 5"></button>
         </div>
-        <span class="carousel-counter" id="carouselCounter">01 / 05</span>
+        <!-- counter removed, dots are sufficient -->
         <div class="carousel-nav">
           <button class="carousel-arrow" id="prevBtn" aria-label="Slide anterior">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -402,6 +408,7 @@ body{
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
+        </div><!-- /carousel-controls__row -->
       </div>
     </aside>
     </div>
@@ -459,7 +466,7 @@ body{
           </div>
 
           <!-- Submit -->
-          <button type="submit" class="naowee-btn naowee-btn--loud naowee-btn--large naowee-btn--full" id="submitBtn" disabled>
+          <button type="submit" class="naowee-btn naowee-btn--loud naowee-btn--large naowee-btn--full" id="submitBtn">
             Iniciar sesión
           </button>
 
@@ -609,31 +616,60 @@ body{
   const submit = document.getElementById('submitBtn');
   const emailField = document.getElementById('emailField');
   const passwordField = document.getElementById('passwordField');
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const HELPER_SVG = '<svg viewBox="0 0 12 12" fill="none"><line x1="3" y1="6" x2="9" y2="6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
 
-  function validate(){
-    const emailOk = emailRegex.test(email.value.trim());
-    const pwOk = password.value.length >= 6;
-    submit.disabled = !(emailOk && pwOk);
-
-    // Live error states
-    if(email.value && !emailOk) emailField.classList.add('naowee-textfield--error');
-    else emailField.classList.remove('naowee-textfield--error');
-
-    if(password.value && !pwOk) passwordField.classList.add('naowee-textfield--error');
-    else passwordField.classList.remove('naowee-textfield--error');
+  function showError(field, msg){
+    field.classList.add('naowee-textfield--error');
+    field.classList.add('field-error-wiggle');
+    field.addEventListener('animationend', () => field.classList.remove('field-error-wiggle'), {once:true});
+    if(!field.querySelector('.field-req-helper')){
+      const h = document.createElement('div');
+      h.className = 'naowee-helper naowee-helper--negative field-req-helper';
+      h.innerHTML = '<div class="naowee-helper__text"><span class="naowee-helper__badge">'+HELPER_SVG+'</span>'+msg+'</div>';
+      field.appendChild(h);
+    }
+  }
+  function clearError(field){
+    field.classList.remove('naowee-textfield--error');
+    const h = field.querySelector('.field-req-helper');
+    if(h) h.remove();
   }
 
-  email.addEventListener('input', validate);
-  password.addEventListener('input', validate);
+  // Live clear on input
+  email.addEventListener('input', () => clearError(emailField));
+  password.addEventListener('input', () => clearError(passwordField));
 
   form.addEventListener('submit', e=>{
     e.preventDefault();
-    // Abrir selector de modo demo
+    const emailVal = email.value.trim();
+    const pwVal = password.value;
+    let hasError = false;
+
+    if(!emailVal){
+      showError(emailField, 'Este campo es obligatorio');
+      hasError = true;
+    } else if(!emailRegex.test(emailVal)){
+      showError(emailField, 'El formato de correo no es válido');
+      hasError = true;
+    }
+    if(!pwVal){
+      showError(passwordField, 'Este campo es obligatorio');
+      hasError = true;
+    } else if(pwVal.length < 6){
+      showError(passwordField, 'La contraseña debe tener al menos 6 caracteres');
+      hasError = true;
+    }
+
+    if(hasError){
+      const first = form.querySelector('.naowee-textfield--error');
+      if(first) first.querySelector('input')?.focus();
+      return;
+    }
+
+    // All valid → open demo picker
     const overlay = document.getElementById('demoOverlay');
     overlay.classList.add('open');
-    // Focus primera opción para accesibilidad
     setTimeout(() => overlay.querySelector('.demo-option')?.focus(), 100);
   });
 })();
