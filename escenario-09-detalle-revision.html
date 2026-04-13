@@ -775,7 +775,8 @@
     } else {
       bodyEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:13px">Sin vista previa</div>';
     }
-    docBody.querySelectorAll('tr').forEach(r => r.classList.remove('doc-row--active'));
+    // Clear active from ALL rows (main table + sub tables)
+    document.querySelectorAll('#panelDocs .doc-row--active').forEach(r => r.classList.remove('doc-row--active'));
     const row = docBody.querySelector(`[data-doc-preview="${id}"]`);
     if(row) row.classList.add('doc-row--active');
   }
@@ -808,33 +809,61 @@
     }
   });
 
-  // Sub-space photos
+  // Sub-space photos (same table format as main docs)
+  const SUB_PHOTO_DEMOS = [
+    'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=600&h=400&fit=crop'
+  ];
   if(d.subEspacios && d.subEspacios.length > 0){
     const subPhotosEl = document.getElementById('subPhotos');
     let spHtml = '';
     d.subEspacios.forEach((sub, i) => {
       const nombre = sub.nombre || (sub.tipo || d.tipoEscenario || 'Sub-espacio') + ' ' + (i+1);
-      const hasPhotos = sub.fotos && Object.values(sub.fotos).some(v => v);
-      if(hasPhotos){
-        spHtml += '<div class="detail-section">';
-        spHtml += `<h3 class="detail-section__title">Fotos •${nombre}</h3>`;
-        spHtml += '<table class="doc-table"><thead><tr><th>Foto</th><th>Estado</th></tr></thead><tbody>';
-        const photoSlots = [
-          ['foto_frontal','Foto frontal'],
-          ['foto_panoramica','Foto panoramica'],
-          ['foto_3','Foto detalle']
-        ];
-        photoSlots.forEach(([id,label]) => {
-          const v = sub.fotos ? sub.fotos[id] : null;
-          const badge = v
-            ? '<span class="naowee-badge naowee-badge--quiet naowee-badge--positive naowee-badge--small">Cargado</span>'
-            : '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
-          spHtml += `<tr><td>${label}</td><td>${badge}</td></tr>`;
-        });
-        spHtml += '</tbody></table></div>';
-      }
+      spHtml += `<h3 class="detail-section__title" style="margin-top:24px">Fotos • ${nombre}</h3>`;
+      spHtml += `<table class="doc-table"><thead><tr><th>Foto</th><th style="width:100px;text-align:center">Estado</th><th style="width:140px;white-space:nowrap">Fecha de cargue</th></tr></thead><tbody>`;
+      const photoSlots = [
+        ['foto_frontal','Foto frontal'],
+        ['foto_2','Foto lateral'],
+        ['foto_3','Foto detalle'],
+        ['foto_4','Foto adicional'],
+        ['foto_5','Foto adicional 2']
+      ];
+      photoSlots.forEach(([pid,plabel]) => {
+        const v = sub.fotos ? sub.fotos[pid] : null;
+        const isLoaded = v || (pid === 'foto_frontal'); // demo: frontal siempre cargada
+        const badge = isLoaded
+          ? '<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small">En revisión</span>'
+          : '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
+        const dateStr = isLoaded ? new Date(savedAt).toLocaleDateString('es-CO',{month:'short',day:'2-digit',year:'numeric'}).replace('.','') : '';
+        const extIcon = '<div class="doc-ext-icon"><img src="shared/icons/file-folded-format-jpg.svg" alt="JPG"/></div>';
+        spHtml += `<tr data-sub-photo="${i}_${pid}" style="cursor:pointer">
+          <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${plabel}</span></div></td>
+          <td style="text-align:center">${badge}</td>
+          <td style="color:var(--text-secondary)">${dateStr}</td>
+        </tr>`;
+      });
+      spHtml += '</tbody></table>';
     });
     subPhotosEl.innerHTML = spHtml;
+
+    // Click on sub-photo rows → show preview
+    subPhotosEl.querySelectorAll('[data-sub-photo]').forEach(row => {
+      row.addEventListener('click', () => {
+        const [subIdx, photoId] = row.dataset.subPhoto.split('_');
+        const si = parseInt(subIdx);
+        const sub = d.subEspacios[si];
+        const nombre = sub?.nombre || 'Sub-espacio ' + (si+1);
+        const plabel = row.querySelector('span')?.textContent || 'Foto';
+        document.getElementById('docPreviewTitle').textContent = `${plabel} — ${nombre}`;
+        const demoImg = SUB_PHOTO_DEMOS[si % SUB_PHOTO_DEMOS.length];
+        document.getElementById('docPreviewBody').innerHTML = `<img src="${demoImg}" alt="${plabel}"/>`;
+        previewZoom = 1;
+        // Clear active from all rows (main + sub)
+        document.querySelectorAll('#panelDocs .doc-row--active').forEach(r => r.classList.remove('doc-row--active'));
+        row.classList.add('doc-row--active');
+      });
+    });
   }
 
   // ═══ TAB 3: Historial ═══
