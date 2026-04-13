@@ -1082,7 +1082,7 @@
     }
   ];
 
-  timelineEl.innerHTML = events.map(ev => `
+  timelineEl.innerHTML = events.reverse().map(ev => `
     <div class="timeline-item">
       <div class="timeline-dot timeline-dot--${ev.dot}">${ev.icon}</div>
       <div class="timeline-content">
