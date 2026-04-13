@@ -5772,3 +5772,67 @@
   border-style: dashed;
   background: var(--naowee-color-interactive-fill-quiet-idle);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   VARIANT: PHOTO SLOT (image uploader card)
+   Card-based uploader for photos with camera icon, dashed border,
+   filled state with green border, and dismiss on hover.
+   ═══════════════════════════════════════════════════════════════ */
+.naowee-file-uploader-photo {
+  border: 1.5px dashed var(--naowee-color-interactive-border-idle);
+  border-radius: var(--naowee-border-radius-actions-inputs-default, 12px);
+  min-height: 80px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--naowee-spacing-gap-xnano); padding: var(--naowee-spacing-padding-micro);
+  cursor: pointer; transition: border-color var(--naowee-transition-default), background var(--naowee-transition-default);
+  position: relative; overflow: hidden;
+}
+.naowee-file-uploader-photo:hover {
+  border-color: var(--naowee-color-interactive-border-hover);
+  background: var(--naowee-color-interactive-fill-quiet-idle);
+}
+.naowee-file-uploader-photo__icon {
+  width: 24px; height: 24px; color: var(--naowee-color-icon-secondary);
+}
+.naowee-file-uploader-photo__label {
+  font-family: var(--naowee-font-family); font-size: var(--naowee-font-size-12);
+  font-weight: var(--naowee-font-weight-semibold);
+  color: var(--naowee-color-text-secondary); text-align: center;
+}
+/* ── Filled (photo uploaded) ── */
+.naowee-file-uploader-photo--filled {
+  border-style: solid;
+  border-color: var(--naowee-color-feedback-border-positive-loud);
+  background: var(--naowee-color-feedback-fill-positive-quiet);
+  cursor: default;
+}
+.naowee-file-uploader-photo--filled .naowee-file-uploader-photo__icon {
+  color: var(--naowee-color-feedback-fill-positive-loud);
+}
+.naowee-file-uploader-photo--filled .naowee-file-uploader-photo__label {
+  color: var(--naowee-color-feedback-fill-positive-loud);
+}
+/* ── Dismiss (appears on hover of filled slot) ── */
+.naowee-file-uploader-photo__dismiss {
+  position: absolute; top: 6px; right: 6px;
+  width: 22px; height: 22px; border: none; border-radius: var(--naowee-border-radius-full);
+  background: var(--naowee-color-fill-primary);
+  border: 1.5px solid var(--naowee-color-feedback-border-positive-loud);
+  color: var(--naowee-color-feedback-fill-positive-loud);
+  cursor: pointer; display: none; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity var(--naowee-transition-default), background var(--naowee-transition-fast), color var(--naowee-transition-fast);
+  padding: 0;
+}
+.naowee-file-uploader-photo__dismiss svg { width: 12px; height: 12px; }
+.naowee-file-uploader-photo--filled .naowee-file-uploader-photo__dismiss { display: flex; }
+.naowee-file-uploader-photo--filled:hover .naowee-file-uploader-photo__dismiss { opacity: 1; }
+.naowee-file-uploader-photo__dismiss:hover {
+  background: var(--naowee-color-feedback-fill-negative-loud);
+  border-color: var(--naowee-color-feedback-fill-negative-loud);
+  color: var(--naowee-color-text-inverse);
+}
+/* ── Error state ── */
+.naowee-file-uploader-photo--error {
+  border-color: var(--naowee-color-feedback-border-negative-loud);
+  background: var(--naowee-color-feedback-fill-negative-quiet);
+}
