@@ -5679,7 +5679,7 @@
 .naowee-file-uploader__file-tag {
   display: inline-flex; align-items: center; gap: var(--naowee-spacing-gap-xnano);
   height: var(--naowee-size-height-small, 32px);
-  padding: var(--naowee-spacing-padding-pico) var(--naowee-spacing-padding-micro);
+  padding: var(--naowee-spacing-padding-pico) 8px;
   background: var(--naowee-color-fill-primary);
   border: var(--naowee-border-width-medium) solid var(--naowee-color-interactive-border-idle);
   border-radius: var(--naowee-border-radius-square-to-circle-small, 8px);
@@ -5711,10 +5711,15 @@
 
 /* ── File dismiss (×) ── */
 .naowee-file-uploader__file-dismiss {
-  display: none; width: 16px; height: 16px; flex-shrink: 0;
+  display: none; width: 20px; height: 20px; flex-shrink: 0;
   border: none; background: transparent; cursor: pointer;
   color: var(--naowee-color-feedback-fill-positive-loud);
   align-items: center; justify-content: center;
+  border-radius: 50%; transition: background .15s, color .15s;
+}
+.naowee-file-uploader__file-dismiss:hover {
+  background: var(--naowee-color-feedback-fill-positive-loud);
+  color: #fff;
 }
 
 /* ── Progress spinner ── */

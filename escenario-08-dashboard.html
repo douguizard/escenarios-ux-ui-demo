@@ -2133,6 +2133,35 @@
   </div>
 </div>
 
+<!-- ═══ DIALOG: FORMULARIO ENVIADO A VALIDACIÓN ═══ -->
+<div class="dialog-overlay" id="dlgSentReview" role="dialog" aria-labelledby="dlgSentReviewTitle" aria-modal="true">
+  <div class="dialog-card">
+    <div class="dialog-card__body">
+      <button type="button" class="reg-modal__dismiss" id="dlgSentReviewClose" aria-label="Cerrar" style="position:absolute;top:16px;right:16px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="dialog-card__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 class="dialog-card__title" id="dlgSentReviewTitle">Formulario enviado</h2>
+      <p class="dialog-card__sub">El registro fue enviado a revisión de forma exitosa.</p>
+      <ul class="dialog-list">
+        <li class="dialog-list__item">
+          <span class="dialog-list__check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span>Consulta el estado de tu registro desde la tabla de registros.</span>
+        </li>
+      </ul>
+    </div>
+    <div class="dialog-card__footer" style="justify-content:center;padding:0 24px 24px">
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="dlgSentReviewOk" style="min-width:200px">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ TOAST MESSAGE (solo visible en mode=single) ═══ -->
 <div class="toast-message hidden" id="toastMsg" role="status">
   <div class="toast-message__header">
@@ -2900,8 +2929,54 @@
   });
   document.getElementById('dlgWarnContinue').addEventListener('click', () => {
     closeDialog('dlgWarnClose');
-    // mantiene el modal de registro abierto
   });
+
+  // Modal "Formulario enviado" → "Entendido" → dashboard con estado "En revisión" + toast
+  function closeSentReview(){
+    document.getElementById('dlgSentReview').classList.remove('open');
+    // Recargar dashboard mostrando el registro con estado "En revisión"
+    // Cambiar el toast message para el éxito del envío
+    const toast = document.getElementById('toastMsg');
+    toast.querySelector('.toast-message__title').textContent = 'Enviaste el registro exitosamente';
+    toast.querySelector('.toast-message__body').textContent = 'El registro ha sido enviado y asignado para revisión. Consulte su estado en la tabla.';
+    toast.classList.remove('hidden');
+    function dismissToast(){
+      if(toast.classList.contains('hidden')) return;
+      toast.classList.add('toast-message--leaving');
+      setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('toast-message--leaving'); }, 300);
+    }
+    setTimeout(dismissToast, 6000);
+    // Re-renderizar la tabla con el draft actualizado (status='revision')
+    const tbody = document.getElementById('tbodyScenarios');
+    try {
+      const arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]');
+      const meses = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.'];
+      tbody.innerHTML = arr.map((d, idx) => {
+        const ts = d.savedAt ? new Date(d.savedAt) : new Date();
+        const h = ts.getHours() % 12 || 12;
+        const ampm = ts.getHours() >= 12 ? 'PM' : 'AM';
+        const dateStr = `${meses[ts.getMonth()]} ${String(ts.getDate()).padStart(2,'0')}, ${ts.getFullYear()} ${h}:${String(ts.getMinutes()).padStart(2,'0')} ${ampm}`;
+        const isReview = d.status === 'revision';
+        const stateLabel = isReview ? 'En revisión' : 'Borrador';
+        const stateVariant = isReview ? 'caution' : 'informative';
+        const actionIcon = isReview
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01M12 8v4"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+        return `<tr>
+          <td><div class="cell-name">${d.nombre || '—'}</div></td>
+          <td><div class="cell-id">${d.catastral || '—'}</div></td>
+          <td><div class="cell-car">${d.car ? 'Sí' : '—'}</div></td>
+          <td><span class="naowee-badge naowee-badge--quiet naowee-badge--${stateVariant}">${stateLabel}</span></td>
+          <td><div class="cell-modified"><span class="cell-modified__date">${dateStr}</span><span class="cell-modified__user">De ${d.responsable || 'Juan Hernandez Granados'}</span></div></td>
+          <td><button type="button" class="naowee-btn naowee-btn--mute naowee-btn--icon naowee-btn--small" aria-label="${isReview ? 'Ver' : 'Editar'}"${!isReview ? ' data-draft-idx="'+idx+'"' : ''}>${actionIcon}</button></td>
+        </tr>`;
+      }).join('');
+      document.getElementById('pgInput').value = arr.length > 0 ? '1' : '0';
+      document.getElementById('pgTotal').textContent = arr.length > 0 ? '1' : '0';
+    } catch(e){}
+  }
+  document.getElementById('dlgSentReviewOk').addEventListener('click', closeSentReview);
+  document.getElementById('dlgSentReviewClose').addEventListener('click', closeSentReview);
   // ESC cierra solo el dialog que está arriba
   document.addEventListener('keydown', e => {
     if(e.key !== 'Escape') return;
@@ -5688,6 +5763,109 @@
   function renderDocumentacion(){
     renderDocTable('reg3DocPhotosTable', DOC_PHOTOS, 'photos');
     renderDocTable('reg3DocAdminTable', DOC_ADMIN, 'admin');
+    initDocDatepicker();
+  }
+
+  /* ─── Datepicker de fecha de captura de fotos (paso 4) ─── */
+  let docCalInited = false;
+  function initDocDatepicker(){
+    if(docCalInited) return;
+    docCalInited = true;
+    const wrap = document.getElementById('reg3DocFechaFotosWrap');
+    const trigger = document.getElementById('reg3DocFechaFotosTrigger');
+    const valSpan = document.getElementById('reg3DocFechaFotosValue');
+    const calEl = document.getElementById('reg3DocCalCalendar');
+    if(!wrap || !trigger || !calEl) return;
+
+    const cal = { year: new Date().getFullYear(), month: new Date().getMonth(), view: 'days', selected: null };
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    function render(){
+      // Reutilizar la misma lógica del calendario del modal 2
+      const today = new Date(); today.setHours(0,0,0,0);
+      let html = '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">';
+      html += '<div style="cursor:pointer;padding:4px 8px;border-radius:8px;font-size:14px;font-weight:600" data-doc-cal="toggle">' + meses[cal.month] + ' de ' + cal.year + ' ▾</div>';
+      html += '<div style="display:flex;gap:8px">';
+      html += '<button type="button" style="width:32px;height:32px;border:none;background:var(--naowee-color-background-secondary,#f4f5f9);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center" data-doc-cal="prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></button>';
+      html += '<button type="button" style="width:32px;height:32px;border:none;background:var(--naowee-color-background-secondary,#f4f5f9);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center" data-doc-cal="next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg></button>';
+      html += '</div></div>';
+
+      if(cal.view === 'days'){
+        html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:0 12px 12px;gap:2px;font-size:13px">';
+        ['L','M','M','J','V','S','D'].forEach(d => html += '<div style="padding:8px 0;font-weight:600;color:var(--text-secondary);font-size:12px">'+d+'</div>');
+        const first = new Date(cal.year, cal.month, 1);
+        let dow = first.getDay(); if(dow === 0) dow = 7;
+        for(let i = 1; i < dow; i++) html += '<div></div>';
+        const daysInMonth = new Date(cal.year, cal.month + 1, 0).getDate();
+        for(let d = 1; d <= daysInMonth; d++){
+          const dt = new Date(cal.year, cal.month, d);
+          const isToday = dt.getTime() === today.getTime();
+          const isFuture = dt > today;
+          const isSelected = cal.selected && dt.getTime() === cal.selected.getTime();
+          let cls = 'cursor:pointer;padding:8px 0;border-radius:50%;transition:background .15s';
+          if(isFuture) cls += ';color:var(--text-secondary);opacity:.4;pointer-events:none';
+          else if(isSelected) cls += ';background:var(--accent);color:#fff;font-weight:700';
+          else if(isToday) cls += ';font-weight:700';
+          html += '<div style="'+cls+'" data-doc-cal="pick" data-day="'+d+'">'+d+'</div>';
+        }
+        html += '</div>';
+      }
+      calEl.innerHTML = html;
+    }
+
+    calEl.addEventListener('click', e => {
+      const el = e.target.closest('[data-doc-cal]');
+      if(!el) return;
+      const action = el.dataset.docCal;
+      if(action === 'toggle'){ cal.view = cal.view === 'days' ? 'months' : 'days'; render(); }
+      else if(action === 'prev'){ cal.month--; if(cal.month < 0){ cal.month = 11; cal.year--; } render(); }
+      else if(action === 'next'){ cal.month++; if(cal.month > 11){ cal.month = 0; cal.year++; } render(); }
+      else if(action === 'pick'){
+        const day = parseInt(el.dataset.day);
+        cal.selected = new Date(cal.year, cal.month, day);
+        const mm = String(cal.month+1).padStart(2,'0');
+        const dd = String(day).padStart(2,'0');
+        reg3State.documentacion.fechaFotos = `${cal.year}-${mm}-${dd}`;
+        valSpan.textContent = `${day} de ${meses[cal.month]} de ${cal.year}`;
+        valSpan.style.color = 'var(--naowee-color-text-primary,#282834)';
+        wrap.classList.remove('datepicker-wrap--open');
+        trigger.setAttribute('aria-expanded','false');
+        validate3();
+        render();
+      }
+    });
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = wrap.classList.contains('datepicker-wrap--open');
+      if(!isOpen){
+        render();
+        wrap.classList.add('datepicker-wrap--open');
+        trigger.setAttribute('aria-expanded','true');
+        // Posicionar fixed
+        const rect = trigger.getBoundingClientRect();
+        const calDiv = wrap.querySelector('.naowee-datepicker');
+        if(calDiv){
+          calDiv.style.left = rect.left + 'px';
+          calDiv.style.width = Math.max(rect.width, 320) + 'px';
+          const vh = window.innerHeight;
+          if(vh - rect.bottom > 380){
+            calDiv.style.top = (rect.bottom + 4) + 'px'; calDiv.style.bottom = 'auto';
+          } else {
+            calDiv.style.top = 'auto'; calDiv.style.bottom = (vh - rect.top + 4) + 'px';
+          }
+        }
+      } else {
+        wrap.classList.remove('datepicker-wrap--open');
+        trigger.setAttribute('aria-expanded','false');
+      }
+    });
+    document.addEventListener('click', e => {
+      if(!e.target.closest('#reg3DocFechaFotosWrap') && wrap.classList.contains('datepicker-wrap--open')){
+        wrap.classList.remove('datepicker-wrap--open');
+        trigger.setAttribute('aria-expanded','false');
+      }
+    });
   }
 
   /* ═════════════════════════════════════════════════
@@ -5713,7 +5891,7 @@
       switchReg3Step(reg3Step + 1);
       return;
     }
-    // Paso 4 → guarda y cierra
+    // Paso 4 → enviar a validación
     reg3SubmitBtn.classList.add('naowee-btn--loading');
     setTimeout(() => {
       try {
@@ -5730,7 +5908,6 @@
           direccion: regState.direccion || prev.direccion || '',
           corregimiento: regState.corregimiento || prev.corregimiento || '',
           zona: regState.zona || prev.zona || '',
-          // datos deportivos extendidos
           car: reg3State.car,
           tipoEscenario: reg3State.tipoEscenario,
           fichaComun: JSON.parse(JSON.stringify(reg3State.fichaComun)),
@@ -5741,6 +5918,7 @@
           disciplinas: [...reg3State.disciplinas],
           disciplinasData: JSON.parse(JSON.stringify(reg3State.disciplinasData)),
           documentacion: JSON.parse(JSON.stringify(reg3State.documentacion)),
+          status: 'revision', // cambia estado a "En revisión"
           savedAt: Date.now()
         });
         if(editingDraftIdx != null && arr[editingDraftIdx]){
@@ -5751,10 +5929,10 @@
         sessionStorage.setItem('regDrafts', JSON.stringify(arr));
       } catch(err){}
       editingDraftIdx = null;
+      reg3SubmitBtn.classList.remove('naowee-btn--loading');
       closeModal3();
-      const url = new URL(window.location.href);
-      url.searchParams.set('mode','single');
-      window.location.href = url.toString();
+      // Abrir modal de confirmación "Formulario enviado"
+      document.getElementById('dlgSentReview').classList.add('open');
     }, 700);
   });
 
