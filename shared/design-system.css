@@ -787,14 +787,17 @@
 .naowee-btn--link {
   background: none;
   border: none;
-  color: var(--naowee-color-text-link-idle);
+  color: var(--naowee-color-text-link-idle, var(--naowee-color-text-accent));
   height: auto;
-  padding: var(--naowee-spacing-tiny) var(--naowee-spacing-small);
-  border-radius: var(--naowee-border-radius-default);
+  padding: var(--naowee-spacing-padding-xmicro) var(--naowee-spacing-padding-micro);
+  border-radius: var(--naowee-border-radius-actions-inputs-compact, 8px);
 }
 .naowee-btn--link:hover {
-  background: var(--naowee-color-interactive-fill-mute-hover);
-  color: var(--naowee-color-text-link-hover);
+  background: var(--naowee-color-interactive-fill-quiet-idle, #FFEDC7);
+  color: var(--naowee-color-text-link-hover, var(--naowee-color-text-accent));
+}
+.naowee-btn--link:active {
+  background: var(--naowee-color-interactive-fill-quiet-hover, #FFDAA3);
 }
 
 /* ── Animations ── */
@@ -5665,14 +5668,25 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* ── Upload action link ── */
+/* ── Upload action link (follows btn--quiet pattern) ── */
 .naowee-file-uploader__action {
-  flex-shrink: 0; border: none; background: transparent;
+  flex-shrink: 0; border: none;
+  background: transparent;
   font-family: var(--naowee-font-family); font-size: var(--naowee-font-size-14);
   font-weight: var(--naowee-font-weight-semibold);
-  color: var(--naowee-color-text-link-idle, var(--naowee-color-text-accent));
-  cursor: pointer; text-decoration: underline;
+  color: var(--naowee-color-text-accent);
+  cursor: pointer; text-decoration: none;
   white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: var(--naowee-border-radius-actions-inputs-compact, 8px);
+  transition: background var(--naowee-transition-fast), color var(--naowee-transition-fast);
+}
+.naowee-file-uploader__action:hover {
+  background: var(--naowee-color-interactive-fill-quiet-hover, #FFDAA3);
+  text-decoration: none;
+}
+.naowee-file-uploader__action:active {
+  background: var(--naowee-color-interactive-fill-quiet-active, #FFBF75);
 }
 
 /* ── File tag (inside input) ── */
@@ -5713,13 +5727,17 @@
 .naowee-file-uploader__file-dismiss {
   display: none; width: 20px; height: 20px; flex-shrink: 0;
   border: none; background: transparent; cursor: pointer;
-  color: var(--naowee-color-feedback-fill-positive-loud);
+  color: var(--naowee-color-text-accent);
   align-items: center; justify-content: center;
-  border-radius: 50%; transition: background .15s, color .15s;
+  border-radius: var(--naowee-border-radius-actions-inputs-compact, 6px);
+  transition: background var(--naowee-transition-fast), color var(--naowee-transition-fast);
 }
 .naowee-file-uploader__file-dismiss:hover {
-  background: var(--naowee-color-feedback-fill-positive-loud);
-  color: #fff;
+  background: var(--naowee-color-interactive-fill-quiet-idle, #FFEDC7);
+  color: var(--naowee-color-text-accent);
+}
+.naowee-file-uploader__file-dismiss:active {
+  background: var(--naowee-color-interactive-fill-quiet-hover, #FFDAA3);
 }
 
 /* ── Progress spinner ── */
