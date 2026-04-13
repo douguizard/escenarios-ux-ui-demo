@@ -60,11 +60,7 @@ body{
   color:#fff;
 }
 .carousel-slide.active{opacity:1;z-index:2}
-.carousel-slide::before{
-  content:attr(data-emoji);position:absolute;top:44%;left:50%;
-  transform:translate(-50%,-50%);font-size:280px;opacity:.10;line-height:1;
-  filter:blur(2px);pointer-events:none;
-}
+.carousel-slide::before{display:none}
 .carousel-slide::after{
   content:'';position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(20,25,45,.15) 0%,rgba(20,25,45,.5) 45%,rgba(20,25,45,.94) 100%);
@@ -104,6 +100,16 @@ body{
 .carousel-controls{
   position:absolute;left:28px;right:28px;bottom:28px;z-index:5;
   display:flex;align-items:center;justify-content:space-between;
+}
+/* Progress bar */
+.carousel-progress{
+  width:100%;height:2px;background:rgba(255,255,255,.15);
+  border-radius:2px;overflow:hidden;margin-bottom:16px;
+}
+.carousel-progress__bar{
+  height:100%;width:0%;background:#FF7500;
+  border-radius:2px;
+  transition:width .1s linear;
 }
 .carousel-indicators{display:flex;align-items:center;gap:6px;flex:1}
 .carousel-dot{
@@ -374,6 +380,11 @@ body{
 
       </div>
 
+      <!-- Progress bar (auto-advance timer) -->
+      <div class="carousel-progress">
+        <div class="carousel-progress__bar" id="carouselProgress"></div>
+      </div>
+
       <div class="carousel-controls">
         <div class="carousel-indicators" id="carouselDots">
           <button class="carousel-dot active" data-go="1" aria-label="Ir al slide 1"></button>
@@ -529,11 +540,13 @@ body{
   const slides = document.querySelectorAll('.carousel-slide');
   const dots = document.querySelectorAll('.carousel-dot');
   const counter = document.getElementById('carouselCounter');
+  const progressBar = document.getElementById('carouselProgress');
   const prev = document.getElementById('prevBtn');
   const next = document.getElementById('nextBtn');
   let current = 0;
   const total = slides.length;
-  let autoplayId;
+  const DURATION = 6000; // ms per slide
+  let autoplayId, progressId, progressStart;
 
   function go(i){
     current = (i + total) % total;
@@ -541,9 +554,27 @@ body{
     dots.forEach((d,idx)=>d.classList.toggle('active', idx===current));
     counter.textContent = String(current+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
   }
+
+  function startProgress(){
+    cancelAnimationFrame(progressId);
+    progressStart = performance.now();
+    progressBar.style.width = '0%';
+    function tick(now){
+      const elapsed = now - progressStart;
+      const pct = Math.min(100, (elapsed / DURATION) * 100);
+      progressBar.style.width = pct + '%';
+      if(pct >= 100){
+        go(current + 1);
+        startProgress();
+        return;
+      }
+      progressId = requestAnimationFrame(tick);
+    }
+    progressId = requestAnimationFrame(tick);
+  }
+
   function resetAutoplay(){
-    clearInterval(autoplayId);
-    autoplayId = setInterval(()=>go(current+1), 6000);
+    startProgress();
   }
 
   prev.addEventListener('click', ()=>{go(current-1); resetAutoplay();});
