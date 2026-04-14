@@ -1623,9 +1623,9 @@
           <div id="reg3FichaEspecificaFields"></div>
         </div>
 
-        <!-- Dotación y servicios -->
-        <h3 class="reg-section__title">DOTACIÓN Y SERVICIOS</h3>
-        <div class="reg3-dotacion" id="reg3DotacionContainer">
+        <!-- Dotación global del escenario (iluminación, tribuna, parqueadero, etc.) -->
+        <h3 class="reg-section__title">DOTACIÓN Y SERVICIOS GENERALES</h3>
+        <div class="reg3-dotacion" id="reg3DotacionGlobalContainer">
           <!-- renderizado por JS -->
         </div>
 
@@ -3846,9 +3846,8 @@
       ],
       disciplinas: ['Fútbol sala','Microfútbol','Baloncesto','Voleibol','Balonmano','Tenis','Bádminton','Hockey sobre patines'],
       fichaPorDisciplina: [
-        { id:'modalidad', label:'Modalidad', type:'text', placeholder:'Ej: 5x5 / 3x3 / libre' },
         { id:'lineasReglamentarias', label:'Líneas reglamentarias pintadas', type:'toggle' },
-        { id:'equipamiento', label:'Equipamiento reglamentario (canastas/arcos/redes)', type:'toggle' }
+        { id:'equipamiento', label:'Equipamiento reglamentario disponible', type:'toggle' }
       ]
     },
     'Piscina': {
@@ -3870,11 +3869,7 @@
           hint:'Certificado del concepto sanitario emitido por la autoridad de salud (PDF o imagen)' }
       ],
       disciplinas: ['Natación','Waterpolo','Nado sincronizado','Clavados','Apnea','Buceo','Natación artística','Natación aguas abiertas'],
-      fichaPorDisciplina: [
-        { id:'modalidad', label:'Modalidad', type:'text', placeholder:'Ej: Libre / Mariposa / Espalda / Pecho' },
-        { id:'categoria', label:'Categoría', type:'dropdown',
-          options:['Infantil','Juvenil','Mayores','Máster','Todas'] }
-      ]
+      fichaPorDisciplina: []
     },
     'Coliseo': {
       hint: 'Estructura techada multipropósito con tribuna y cancha central. Los deportes rotan sobre la misma cancha.',
@@ -3888,7 +3883,6 @@
       ],
       disciplinas: ['Baloncesto','Voleibol','Fútbol sala','Balonmano','Bádminton','Gimnasia','Boxeo','Tenis de mesa','Karate','Taekwondo','Esgrima','Lucha'],
       fichaPorDisciplina: [
-        { id:'modalidad', label:'Modalidad', type:'text' },
         { id:'plataformaEspecifica', label:'Ring / plataforma específica', type:'toggle' },
         { id:'iluminacionEspecial', label:'Iluminación especial para el deporte', type:'toggle' }
       ]
@@ -3907,7 +3901,6 @@
       ],
       disciplinas: ['Fútbol','Rugby','Fútbol americano','Béisbol','Softbol','Atletismo'],
       fichaPorDisciplina: [
-        { id:'modalidad', label:'Modalidad', type:'text' },
         { id:'porteriasReglamentarias', label:'Porterías/bases reglamentarias', type:'toggle' },
         { id:'marcadorElectronico', label:'Marcador electrónico', type:'toggle' }
       ]
@@ -3925,7 +3918,6 @@
       ],
       disciplinas: ['Carreras 100m','Carreras 200m','Carreras 400m','Carreras 800m','Carreras 1500m','Carreras 5000m','Carreras 10000m','Maratón','Salto largo','Salto alto','Triple salto','Salto con pértiga','Lanzamiento de bala','Lanzamiento de disco','Lanzamiento de martillo','Lanzamiento de jabalina','Decatlón','Heptatlón','Marcha atlética'],
       fichaPorDisciplina: [
-        { id:'modalidad', label:'Modalidad / categoría', type:'text' },
         { id:'zonaAsignada', label:'Zona específica asignada', type:'text', placeholder:'Ej: pista 1-4 / zona de salto largo' }
       ]
     },
@@ -3943,8 +3935,7 @@
       ],
       disciplinas: ['Gimnasia artística','Gimnasia rítmica','Levantamiento de pesas','Aeróbicos','Yoga','Pilates','Zumba','Artes marciales','Boxeo','Tenis de mesa','Bádminton'],
       fichaPorDisciplina: [
-        { id:'modalidad', label:'Modalidad', type:'text' },
-        { id:'equipamiento', label:'Equipamiento específico', type:'text', placeholder:'Ej: Aparatos, colchonetas' }
+        { id:'equipamiento', label:'Equipamiento específico', type:'text', placeholder:'Ej: Aparatos, colchonetas, barras' }
       ]
     },
     'Velódromo': {
@@ -3959,11 +3950,7 @@
         { id:'areaInterior', label:'Tiene área interior utilizable', type:'toggle' }
       ],
       disciplinas: ['Ciclismo velocidad','Persecución individual','Persecución por equipos','Madison','Keirin','Kilómetro contrarreloj','Scratch','Ómnium','BMX'],
-      fichaPorDisciplina: [
-        { id:'modalidad', label:'Modalidad', type:'text' },
-        { id:'categoria', label:'Categoría', type:'dropdown',
-          options:['Elite','Sub-23','Juvenil','Máster'] }
-      ]
+      fichaPorDisciplina: []
     },
     'Escenario náutico': {
       hint: 'Cuerpo de agua natural o artificial para deportes de agua abierta.',
@@ -3980,8 +3967,6 @@
       ],
       disciplinas: ['Vela ligera','Vela de crucero','Windsurf','Kitesurf','Remo','Canotaje C1','Canotaje C2','Canotaje K1','Canotaje K2','Canotaje K4','Piragüismo','Esquí acuático','Wakeboard','SUP (Stand Up Paddle)','Natación aguas abiertas'],
       fichaPorDisciplina: [
-        { id:'categoria', label:'Categoría', type:'dropdown',
-          options:['Elite','Sub-23','Juvenil','Máster','Recreativo'] },
         { id:'embarcacion', label:'Tipo de embarcación permitida', type:'text' }
       ]
     }
@@ -3994,11 +3979,7 @@
     multiEspacio: true,
     fichaEspecifica: [], // sin ficha propia — cada sub-espacio define su tipo y ficha
     disciplinas: ['Baloncesto','Fútbol','Fútbol sala','Microfútbol','Voleibol','Tenis','Atletismo','Natación','Patinaje','Bádminton','Tenis de mesa','Béisbol','Softbol','Rugby'],
-    fichaPorDisciplina: [
-      { id:'modalidad', label:'Modalidad', type:'text' },
-      { id:'categoria', label:'Categoría', type:'dropdown',
-        options:['Infantil','Juvenil','Mayores','Máster','Todas'] }
-    ]
+    fichaPorDisciplina: []
   };
   SCENARIO_CONFIG['Villa Olímpica'] = SCENARIO_CONFIG_COMPLEJO;
   SCENARIO_CONFIG['Complejo deportivo'] = SCENARIO_CONFIG_COMPLEJO;
@@ -4012,11 +3993,7 @@
       { id:'indoor', label:'Indoor', type:'toggle' }
     ],
     disciplinas: ['Patinaje artístico','Patinaje de velocidad','Hockey sobre patines','Patinaje agresivo'],
-    fichaPorDisciplina: [
-      { id:'modalidad', label:'Modalidad', type:'text' },
-      { id:'categoria', label:'Categoría', type:'dropdown',
-        options:['Infantil','Juvenil','Mayores','Todas'] }
-    ]
+    fichaPorDisciplina: []
   };
   SCENARIO_CONFIG['Otro'] = SCENARIO_CONFIG_COMPLEJO;
 
@@ -4083,7 +4060,7 @@
     document.getElementById('regModal3IdChip').textContent = regState.catastral || '—';
     // Renderizar ficha común y dotación la primera vez
     renderFichaComun();
-    renderDotacion();
+    renderDotacionGlobal();
     // Si ya había un tipo seleccionado (modo edición), renderizar ficha específica
     if(reg3State.tipoEscenario){
       renderFichaEspecifica(reg3State.tipoEscenario);
@@ -4693,6 +4670,93 @@
         validate3();
       });
     });
+    // ── DOTACIÓN por sub-espacio (solo vestieres, baños) ──
+    if(!reg3State.subEspacios[idx].dotacion) reg3State.subEspacios[idx].dotacion = {};
+    const dotData = reg3State.subEspacios[idx].dotacion;
+    const dotDiv = document.createElement('div');
+    dotDiv.style.cssText = 'display:flex;flex-direction:column;gap:0;margin-top:8px';
+    dotDiv.innerHTML = `<div class="reg3-section-divider">VESTIERES Y BAÑOS</div>` +
+      DOTACION_SUB.map(f => {
+        const val = !!dotData[f.id];
+        return `
+          <div class="reg3-dotacion__item">
+            <span class="reg3-dotacion__label">${f.label}</span>
+            <div class="naowee-switch${val ? ' naowee-switch--on' : ''}" data-dot-toggle="${f.id}" data-dot-idx="${idx}" role="switch" aria-checked="${val}" tabindex="0">
+              <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+            </div>
+          </div>
+          ${f.sub ? `<div class="reg3-dotacion__subfield" data-dot-subfield="${f.id}-${idx}" ${val ? '' : 'hidden'}>${renderDotSubfield(f.sub, idx)}</div>` : ''}
+        `;
+      }).join('');
+    bodyEl.appendChild(dotDiv);
+
+    // Dotación listeners scoped por idx
+    dotDiv.querySelectorAll(`[data-dot-toggle][data-dot-idx="${idx}"]`).forEach(tog => {
+      tog.addEventListener('click', () => {
+        const fid = tog.dataset.dotToggle;
+        const newVal = !tog.classList.contains('naowee-switch--on');
+        tog.classList.toggle('naowee-switch--on', newVal);
+        tog.setAttribute('aria-checked', String(newVal));
+        dotData[fid] = newVal;
+        const sub = dotDiv.querySelector(`[data-dot-subfield="${fid}-${idx}"]`);
+        if(sub) sub.hidden = !newVal;
+        validate3();
+      });
+    });
+    dotDiv.querySelectorAll('[data-dot-input]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const f = inp.dataset.dotInput;
+        const mode = inp.dataset.numeric;
+        let v = inp.value;
+        if(mode === 'int') v = v.replace(/\D/g,'');
+        else if(mode === 'thousands'){
+          const uf = unformatThousands(v);
+          v = formatThousands(uf);
+          dotData[f] = uf;
+        }
+        if(v !== inp.value) inp.value = v;
+        if(mode !== 'thousands') dotData[f] = v;
+        validate3();
+      });
+    });
+    dotDiv.querySelectorAll('[data-dot-stepper]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const f = btn.dataset.dotStepper;
+        const op = btn.dataset.step;
+        let cur = parseInt(dotData[f]) || 0;
+        if(op === 'plus') cur++; else cur = Math.max(0, cur - 1);
+        dotData[f] = cur;
+        const valEl = dotDiv.querySelector(`[data-dot-stepper-val="${f}"]`);
+        if(valEl) valEl.textContent = cur;
+        validate3();
+      });
+    });
+    // Dropdown iluminación
+    const ilumDd = dotDiv.querySelector('[data-dot-dd="tipoIluminacion"]');
+    if(ilumDd){
+      const tr = ilumDd.querySelector('.naowee-dropdown__trigger');
+      const mn = ilumDd.querySelector('.naowee-dropdown__menu');
+      const vs = ilumDd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+      DOTACION_FIELDS[0].sub.options.forEach(opt => {
+        const el = document.createElement('div');
+        el.className = 'naowee-dropdown__option';
+        el.textContent = opt;
+        if(opt === dotData.tipoIluminacion) el.classList.add('naowee-dropdown__option--selected');
+        el.addEventListener('click', () => {
+          vs.textContent = opt; vs.className = 'naowee-dropdown__value';
+          ilumDd.classList.remove('naowee-dropdown--open'); tr.setAttribute('aria-expanded','false');
+          dotData.tipoIluminacion = opt; validate3();
+        });
+        mn.appendChild(el);
+      });
+      tr.addEventListener('click', e => {
+        e.stopPropagation();
+        document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== ilumDd) o.classList.remove('naowee-dropdown--open'); });
+        ilumDd.classList.toggle('naowee-dropdown--open');
+        tr.setAttribute('aria-expanded', ilumDd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+      });
+    }
+
     // ── REGISTRO FOTOGRÁFICO del sub-espacio (1 obligatoria + 4 opcionales) ──
     const PHOTO_SLOTS = [
       { id:'foto_frontal', label:'Foto frontal', required:true },
@@ -4901,11 +4965,15 @@
   }
 
   /* ─── Render dotación y servicios ─── */
-  const DOTACION_FIELDS = [
-    { id:'iluminacion', label:'Iluminación artificial', sub:{id:'tipoIluminacion', type:'dropdown', label:'Tipo de iluminación', options:['LED','Halógena','Fluorescente','Mixta','Otra'], required:true} },
+  // Dotación por sub-espacio (vestieres, baños — específicos de cada cancha)
+  const DOTACION_SUB = [
     { id:'vestieres', label:'Vestieres', sub:{id:'numVestieres', type:'stepper', label:'Número de vestieres', required:true} },
     { id:'banos', label:'Baños disponibles', sub:{id:'numBanos', type:'stepper', label:'Número de baños', required:true} },
-    { id:'banosAccesibles', label:'Baños accesibles (PMR)' },
+    { id:'banosAccesibles', label:'Baños accesibles (PMR)' }
+  ];
+  // Dotación global del escenario (parqueadero, cafetería, etc.)
+  const DOTACION_GLOBAL = [
+    { id:'iluminacion', label:'Iluminación artificial', sub:{id:'tipoIluminacion', type:'dropdown', label:'Tipo de iluminación', options:['LED','Halógena','Fluorescente','Mixta','Otra'], required:true} },
     { id:'tribuna', label:'Tribuna / gradería', sub:{id:'capacidadTribuna', type:'thousands', label:'Capacidad de la tribuna', required:true, placeholder:'Ej: 5.000'} },
     { id:'bodega', label:'Bodega / cuarto de implementos' },
     { id:'parqueadero', label:'Parqueadero', sub:{id:'capacidadParqueadero', type:'stepper', label:'Capacidad de vehículos', required:true} },
@@ -4913,11 +4981,13 @@
     { id:'cafeteria', label:'Cafetería' },
     { id:'enfermeria', label:'Enfermería / primeros auxilios' }
   ];
+  // Todos juntos (para validación retrocompat)
+  const DOTACION_FIELDS = [...DOTACION_SUB, ...DOTACION_GLOBAL];
 
-  function renderDotacion(){
-    const container = document.getElementById('reg3DotacionContainer');
+  function renderDotacionGlobal(){
+    const container = document.getElementById('reg3DotacionGlobalContainer');
     if(!container) return;
-    container.innerHTML = DOTACION_FIELDS.map(f => {
+    container.innerHTML = DOTACION_GLOBAL.map(f => {
       const val = !!reg3State.dotacion[f.id];
       return `
         <div class="reg3-dotacion__item">
@@ -5021,8 +5091,9 @@
     }, 50);
   }
 
-  function renderDotSubfield(sub){
-    const val = reg3State.dotacion[sub.id] != null ? reg3State.dotacion[sub.id] : '';
+  function renderDotSubfield(sub, subIdx){
+    const dotSrc = (subIdx != null && reg3State.subEspacios[subIdx]) ? reg3State.subEspacios[subIdx].dotacion || {} : reg3State.dotacion;
+    const val = dotSrc[sub.id] != null ? dotSrc[sub.id] : '';
     const reqMark = sub.required ? ' <span style="color:var(--accent)">*</span>' : '';
 
     if(sub.type === 'stepper'){
@@ -5517,15 +5588,25 @@
           }
         }
       }
-      // Dotación: cuando el toggle está ON, el subfield requerido debe tener valor
+      // Dotación global
       let dotOk = true;
-      for(const field of DOTACION_FIELDS){
+      for(const field of DOTACION_GLOBAL){
         if(field.sub && s.dotacion[field.id] && field.sub.required){
           const v = s.dotacion[field.sub.id];
           if(field.sub.type === 'stepper'){
             if(!v || parseInt(v) < 1) { dotOk = false; break; }
-          } else if(v == null || v === '') {
-            dotOk = false; break;
+          } else if(v == null || v === '') { dotOk = false; break; }
+        }
+      }
+      // Dotación por sub-espacio (vestieres, baños)
+      for(let si = 0; si < (s.subCount || 1) && dotOk; si++){
+        const subDot = (s.subEspacios[si] || {}).dotacion || {};
+        for(const field of DOTACION_SUB){
+          if(field.sub && subDot[field.id] && field.sub.required){
+            const v = subDot[field.sub.id];
+            if(field.sub.type === 'stepper'){
+              if(!v || parseInt(v) < 1) { dotOk = false; break; }
+            } else if(v == null || v === '') { dotOk = false; break; }
           }
         }
       }
