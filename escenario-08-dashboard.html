@@ -2249,21 +2249,26 @@
   }
   // ── Fuente única: EscStore (localStorage). El semilleo de los 4 mock
   //    coherentes con el flujo lo hace el módulo al cargar el script.
-  const allRecords = (window.EscStore ? window.EscStore.getAll() : []);
+  //    Usamos getAllSorted() para que los más recientes aparezcan primero y
+  //    preservamos originalIdx para que el routing a esc-09 / openEditDraft
+  //    siga funcionando sobre el índice global del store.
+  const sorted = (window.EscStore && window.EscStore.getAllSorted)
+    ? window.EscStore.getAllSorted()
+    : (window.EscStore ? window.EscStore.getAll().map((record, originalIdx) => ({record, originalIdx})) : []);
 
-  // El query param ?mode= ahora SOLO controla cuántos mostramos para la demo,
-  // los datos siempre vienen del store (cero divergencia con el revisor).
+  // El query param ?mode= controla cuántos mostramos para la demo.
+  // Los datos siempre vienen del store (cero divergencia con el revisor).
   let visible;
   if(mode === 'empty'){
     visible = [];
   } else if(mode === 'single'){
-    visible = allRecords.slice(0, 1);
+    visible = sorted.slice(0, 1);
   } else { // 'multiple' o cualquier otro valor
-    visible = allRecords;
+    visible = sorted;
   }
 
   // Adaptar al formato que la tabla espera. action y attr dependen del status real.
-  const draftItems = visible.map((d, i) => {
+  const draftItems = visible.map(({ record: d, originalIdx }) => {
     const meta = (window.EscStore && window.EscStore.ESTADO_BADGE[d.status])
       || { label: 'Borrador', variant: 'neutral' };
     const isEditable = (d.status === 'borrador' || d.status === 'rechazado');
@@ -2275,7 +2280,7 @@
       modifiedDate: formatDraftDate(d.sentAt || d.reviewedAt || d.savedAt),
       modifiedBy: 'De ' + (d.responsable || (window.EscStore ? window.EscStore.GESTOR_NAME : 'Juan Hernandez Granados')),
       action: isEditable ? 'edit' : 'view',
-      storeIdx: i,
+      storeIdx: originalIdx,
       status: d.status
     };
   });
@@ -2703,30 +2708,43 @@
     validate();
   }
 
-  function openModal(){
-    // Reset state for fresh registration
-    editingDraftIdx = null;
-    regState.nombre = '';
-    regState.departamento = '';
-    regState.municipio = '';
-    regState.catastral = '';
-    regState.catastralState = 'empty';
-    regState.lat = null;
-    regState.lon = null;
-    regState.direccion = '';
-    regState.corregimiento = '';
-    regState.zona = '';
-    // Clear form inputs
-    const regNombre = document.getElementById('regNombre');
-    if(regNombre) regNombre.value = '';
-    const regDireccion = document.getElementById('regDireccion');
-    if(regDireccion) regDireccion.value = '';
+  // Abre el modal 1. Si opts.reset === true (default) limpia regState para un
+  // registro nuevo. Si opts.reset === false (caso de "Volver" desde modal 2 o
+  // de openEditDraft) preserva regState y pinta los inputs con los datos actuales.
+  function openModal(opts){
+    const reset = !opts || opts.reset !== false;
+    if(reset){
+      editingDraftIdx = null;
+      regState.nombre = '';
+      regState.departamento = '';
+      regState.municipio = '';
+      regState.catastral = '';
+      regState.catastralState = 'empty';
+      regState.lat = null;
+      regState.lon = null;
+      regState.direccion = '';
+      regState.corregimiento = '';
+      regState.zona = '';
+      // Clear form inputs
+      const regNombre = document.getElementById('regNombre');
+      if(regNombre) regNombre.value = '';
+      const regDireccion = document.getElementById('regDireccion');
+      if(regDireccion) regDireccion.value = '';
+      // Reset flag de edición porque arrancamos de cero
+      _userEdited1 = false;
+    }
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
     setTimeout(() => {
       initMap();
       if(mapInstance) mapInstance.invalidateSize();
-      regNombre?.focus();
+      if(reset){
+        const regNombre = document.getElementById('regNombre');
+        regNombre?.focus();
+      } else {
+        // Re-hidratar DOM desde regState (incluye valores que están sólo en memoria)
+        paintModal1Fields();
+      }
     }, 250);
   }
   function closeModal(){
@@ -2737,11 +2755,49 @@
   // Tracks which modal triggered the warn-close dialog
   let _warnCloseOrigin = 'reg1';
 
-  // Intento de cerrar: si hay datos (válidos o no), abre dialog para que el
-  // usuario decida descartar o guardar borrador. Esto permite borradores
-  // parciales (ej. solo nombre + departamento) sin perder el progreso.
+  // Flags que distinguen "datos cargados desde un draft" vs "cambios reales del usuario".
+  // Se setean a true SOLO en listeners de input/change cuando el usuario tipea.
+  // Se resetean a false en openModal({reset:true}), openEditDraft() y tras appendDraft().
+  // attemptClose/2/3 los consultan para decidir si abrir el dialog de precaución.
+  let _userEdited1 = false;
+  let _userEdited2 = false;
+  let _userEdited3 = false;
+  // Flag que bloquea la detección de ediciones cuando estamos hidratando inputs desde
+  // un draft precargado (paintModal1Fields, paintModal2Fields, etc.). Sin esto, pintar
+  // programáticamente dispararía 'input' y marcaría los modales como editados.
+  let _isHydrating = false;
+
+  // Listeners delegados: cualquier input/change/click-menuitem dentro de los overlays de
+  // modal 1/2/3 marca el flag correspondiente, excepto durante hidratación.
+  document.addEventListener('DOMContentLoaded', () => {/* no-op: DOM ya listo cuando carga este script */});
+  const _overlay1 = document.getElementById('regModalOverlay');
+  const _overlay2 = document.getElementById('regModal2Overlay');
+  const _overlay3 = document.getElementById('regModal3Overlay');
+  function _attachEditListener(el, n){
+    if(!el) return;
+    const onEdit = () => { if(!_isHydrating) _userEdited_set(n); };
+    el.addEventListener('input', onEdit, true);
+    el.addEventListener('change', onEdit, true);
+    // Dropdowns custom: un click sobre un item cambia el valor
+    el.addEventListener('click', e => {
+      if(_isHydrating) return;
+      if(e.target.closest('.naowee-menu__item, .naowee-dropdown__option, .naowee-datepicker-field__input')) _userEdited_set(n);
+    }, true);
+  }
+  function _userEdited_set(n){
+    if(n === 1) _userEdited1 = true;
+    else if(n === 2) _userEdited2 = true;
+    else if(n === 3) _userEdited3 = true;
+  }
+  _attachEditListener(_overlay1, 1);
+  _attachEditListener(_overlay2, 2);
+  _attachEditListener(_overlay3, 3);
+
+  // Intento de cerrar modal 1. Si el usuario editó algo (o está editando un draft
+  // existente), abre dialog para decidir descartar o guardar. Si no editó nada,
+  // cierra silenciosamente.
   function attemptClose(){
-    if(isDirty()){
+    if(_userEdited1 || editingDraftIdx != null){
       _warnCloseOrigin = 'reg1';
       openDialog('dlgWarnClose');
     } else {
@@ -3007,6 +3063,11 @@
           ));
         }
       }
+      // Tras guardar exitosamente, el state en memoria ya está persistido:
+      // cualquier cierre subsiguiente NO debe re-abrir el dialog de precaución.
+      _userEdited1 = false;
+      _userEdited2 = false;
+      _userEdited3 = false;
     } catch(err){ /* ignore */ }
   }
 
@@ -3119,7 +3180,10 @@
     modal2.classList.remove('open');
   }
   function attemptClose2(){
-    if(isDirty2()){
+    // Abre el dialog si: (a) el usuario editó modal 2, o (b) venimos con datos
+    // frescos del paso 1 que aún no se han guardado, o (c) estamos editando un
+    // draft existente. Si ninguna de esas aplica, cierra sin preguntar.
+    if(_userEdited2 || _userEdited1 || editingDraftIdx != null){
       _warnCloseOrigin = 'reg2';
       openDialog('dlgWarnClose');
     } else {
@@ -3686,88 +3750,72 @@
   }
 
   /* ─── Botón Volver ─── */
+  // Flujo unificado (nuevo y edit): cierra modal 2 y reabre modal 1 editable
+  // sin resetear regState (openModal({reset:false}) se encarga de re-pintar
+  // los inputs desde el state en memoria via paintModal1Fields).
   document.getElementById('reg2BtnBack').addEventListener('click', () => {
     closeModal2();
-    if(modal2Origin === 'edit'){
-      // Venimos editando un draft → regresar al modal 0 (view only)
-      // Re-pintar los campos del modal 0 con el regState actual
-      const setRo = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = (v == null || v === '') ? '—' : v; };
-      setRo('ro0Nombre', regState.nombre);
-      setRo('ro0Departamento', regState.departamento);
-      setRo('ro0Municipio', regState.municipio);
-      setRo('ro0Catastral', regState.catastral);
-      setRo('ro0Lat', regState.lat != null ? regState.lat : '—');
-      setRo('ro0Lon', regState.lon != null ? regState.lon : '—');
-      setRo('ro0Direccion', regState.direccion);
-      setRo('ro0Corregimiento', regState.corregimiento);
-      setRo('ro0Zona', regState.zona);
-      document.getElementById('regModal0IdChip').textContent = regState.catastral || '—';
-      modal0.classList.add('open');
-      setTimeout(() => {
-        initMap0();
-        if(regState.lat != null && regState.lon != null){
-          setMap0Coords(regState.lat, regState.lon);
-        } else if(map0Instance){
-          map0Instance.invalidateSize();
-        }
-      }, 250);
-    } else {
-      // Flujo nuevo → reabrir modal 1 editable con los datos del paso 1 re-pintados
-      paintModal1Fields();
-      openModal();
-    }
+    openModal({ reset: false });
   });
 
   /* ─── Repintar campos del modal 1 desde regState ─── */
   function paintModal1Fields(){
-    const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = (v == null) ? '' : v; };
-    setVal('regNombre', regState.nombre);
-    setVal('regCatastral', regState.catastral);
-    setVal('regDireccion', regState.direccion);
-    setVal('regCorregimiento', regState.corregimiento);
-    setVal('regLat', regState.lat != null ? regState.lat : '');
-    setVal('regLon', regState.lon != null ? regState.lon : '');
+    // Blindar contra listeners delegados (input/change) que marcarían _userEdited1
+    // como true durante la hidratación programática del DOM.
+    const wasHydrating = _isHydrating;
+    _isHydrating = true;
+    try {
+      const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = (v == null) ? '' : v; };
+      setVal('regNombre', regState.nombre);
+      setVal('regCatastral', regState.catastral);
+      setVal('regDireccion', regState.direccion);
+      setVal('regCorregimiento', regState.corregimiento);
+      setVal('regLat', regState.lat != null ? regState.lat : '');
+      setVal('regLon', regState.lon != null ? regState.lon : '');
 
-    // Forzar recalculo del estado del catastral (duplicado, corto, válido)
-    if(typeof updateCatastralState === 'function') updateCatastralState();
-
-    // Pintar dropdowns del modal 1
-    function paintDD(ddId, value, placeholder){
-      const dd = document.getElementById(ddId);
-      if(!dd) return;
-      const span = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
-      if(!span) return;
-      if(value){
-        span.textContent = value;
-        span.className = 'naowee-dropdown__value';
-        const opt = Array.from(dd.querySelectorAll('.naowee-dropdown__option')).find(o => o.textContent === value);
-        if(opt){
-          dd.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
-          opt.classList.add('naowee-dropdown__option--selected');
+      // Pintar dropdowns del modal 1
+      function paintDD(ddId, value, placeholder){
+        const dd = document.getElementById(ddId);
+        if(!dd) return;
+        const span = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+        if(!span) return;
+        if(value){
+          span.textContent = value;
+          span.className = 'naowee-dropdown__value';
+          const opt = Array.from(dd.querySelectorAll('.naowee-dropdown__option')).find(o => o.textContent === value);
+          if(opt){
+            dd.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+            opt.classList.add('naowee-dropdown__option--selected');
+          }
+        } else {
+          span.textContent = placeholder;
+          span.className = 'naowee-dropdown__placeholder';
         }
-      } else {
-        span.textContent = placeholder;
-        span.className = 'naowee-dropdown__placeholder';
       }
-    }
-    paintDD('regDepartamentoDD', regState.departamento, 'Selecciona departamento');
-    // Re-poblar municipio según el departamento seleccionado
-    if(regState.departamento){
-      initDropdown('regMunicipioDD', COLOMBIA[regState.departamento] || [], (mpio) => {
-        regState.municipio = mpio;
-        validate();
-      }, false);
-      paintDD('regMunicipioDD', regState.municipio, 'Selecciona municipio');
-    }
-    paintDD('regZonaDD', regState.zona, 'Selecciona');
+      paintDD('regDepartamentoDD', regState.departamento, 'Selecciona departamento');
+      // Re-poblar municipio según el departamento seleccionado
+      if(regState.departamento){
+        initDropdown('regMunicipioDD', COLOMBIA[regState.departamento] || [], (mpio) => {
+          regState.municipio = mpio;
+          validate();
+        }, false);
+        paintDD('regMunicipioDD', regState.municipio, 'Selecciona municipio');
+      }
+      paintDD('regZonaDD', regState.zona, 'Selecciona');
 
-    // Actualizar el mapa con las coordenadas guardadas
-    if(mapInstance && regState.lat != null && regState.lon != null){
-      markerInstance.setLatLng([regState.lat, regState.lon]);
-      mapInstance.setView([regState.lat, regState.lon], 16);
-    }
+      // Actualizar el mapa con las coordenadas guardadas
+      if(mapInstance && regState.lat != null && regState.lon != null){
+        markerInstance.setLatLng([regState.lat, regState.lon]);
+        mapInstance.setView([regState.lat, regState.lon], 16);
+      }
 
-    validate();
+      // Recalcular estado visual del catastral (duplicado, corto, válido) y validar
+      // al final, cuando el DOM ya tiene los valores correctos.
+      if(typeof updateCatastralState === 'function') updateCatastralState();
+      validate();
+    } finally {
+      _isHydrating = wasHydrating;
+    }
   }
 
   // Guardar state completo al appendear (para que editar pueda precargar todo)
@@ -4159,8 +4207,9 @@
   }
 
   function attemptClose3(){
-    // Si hay tipo de escenario seleccionado, hay progreso que proteger
-    if(reg3State && reg3State.tipo){
+    // Misma lógica que attemptClose2: protege si hay cualquier progreso del
+    // usuario (paso 1, paso 2 o paso 3) o si venimos editando un draft.
+    if(_userEdited3 || _userEdited2 || _userEdited1 || editingDraftIdx != null){
       _warnCloseOrigin = 'reg3';
       openDialog('dlgWarnClose');
     } else {
@@ -6819,20 +6868,27 @@
     setTimeout(validate2, 50);
   });
 
-  /* ─── API pública: abrir modal 0 readonly + modal 2 preparado con datos del draft ─── */
+  /* ─── API pública: abrir modal 1 EDITABLE precargado con los datos del draft.
+         Ya no pasamos por modal 0 readonly: el usuario puede corregir typos del
+         paso 1 si lo necesita. El flujo de edición es idéntico al de creación
+         nueva, pero con regState / reg2State precargados. ─── */
   window.openEditDraft = function(idx){
     const Store = window.EscStore;
     const d = Store ? Store.get(idx) : null;
     if(!d) return;
+
+    // Protegemos contra listeners de 'input'/'change' disparados por la hidratación
+    _isHydrating = true;
     editingDraftIdx = idx;
 
     // Precargar state del modal 1
     regState.nombre = d.nombre || '';
     regState.catastral = d.catastral || '';
+    regState.catastralState = d.catastral ? 'valid' : 'empty';
     regState.departamento = d.departamento || '';
     regState.municipio = d.municipio || '';
-    regState.lat = (d.lat != null) ? d.lat : (regState.lat || null);
-    regState.lon = (d.lon != null) ? d.lon : (regState.lon || null);
+    regState.lat = (d.lat != null) ? d.lat : null;
+    regState.lon = (d.lon != null) ? d.lon : null;
     regState.direccion = d.direccion || '';
     regState.corregimiento = d.corregimiento || '';
     regState.zona = d.zona || '';
@@ -6852,7 +6908,7 @@
     reg2State.usos = Array.isArray(d.usos) ? [...d.usos] : [];
     reg2State.usuarios = d.usuarios || '';
 
-    // Pintar inputs del modal 2
+    // Pintar inputs del modal 2 (se usarán si el usuario avanza al paso 2)
     const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
     setVal('reg2Entidad', d.entidad);
     setVal('reg2Administradora', d.administradora);
@@ -6860,7 +6916,7 @@
     setVal('reg2Telefono', d.telefono);
     setVal('reg2CorreoResp', d.correoResp);
 
-    // Pintar datepicker de vencimiento
+    // Datepicker de vencimiento
     if(d.vencimiento){
       const parts = d.vencimiento.split('-');
       if(parts.length === 3){
@@ -6873,7 +6929,7 @@
       reg2VencValue.style.color = 'var(--naowee-color-text-secondary,#646587)';
     }
 
-    // Pintar dropdowns modal 2
+    // Pintar dropdowns del modal 2
     function paintDropdown(ddId, value, placeholder){
       const dd = document.getElementById(ddId);
       if(!dd) return;
@@ -6898,42 +6954,26 @@
     paintDropdown('reg2CostoDD', d.costo, 'Selecciona una opción');
     paintDropdown('reg2UsuariosDD', d.usuarios, 'Selecciona una opción');
 
-    // Fecha vencimiento condicional
     reg2FldVenc.hidden = !TENENCIAS_CON_VENCIMIENTO.has(reg2State.tenencia);
-
-    // Switch acceso público
     setAcceso(reg2State.accesoPublico);
-
-    // Multi-select usos
     renderMultiChips();
 
-    // ID único en ambos headers (0 y 2)
+    // ID único en el chip del modal 2 (por si el usuario avanza)
     const displayId = d.catastral || '—';
-    document.getElementById('regModal0IdChip').textContent = displayId;
-    document.getElementById('regModal2IdChip').textContent = displayId;
+    const idChip = document.getElementById('regModal2IdChip');
+    if(idChip) idChip.textContent = displayId;
 
-    // Pintar los campos readonly del modal 0
-    const setRo = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v || '—'; };
-    setRo('ro0Nombre', d.nombre);
-    setRo('ro0Departamento', d.departamento);
-    setRo('ro0Municipio', d.municipio);
-    setRo('ro0Catastral', d.catastral);
-    setRo('ro0Lat', d.lat != null ? d.lat : '—');
-    setRo('ro0Lon', d.lon != null ? d.lon : '—');
-    setRo('ro0Direccion', d.direccion);
-    setRo('ro0Corregimiento', d.corregimiento);
-    setRo('ro0Zona', d.zona);
+    // Flags: no marcar como editado (es hidratación)
+    _userEdited1 = false;
+    _userEdited2 = false;
+    _userEdited3 = false;
+    modal2Origin = 'edit';
 
-    // Abrir modal 0 e inicializar el mapa con las coordenadas del draft
-    modal0.classList.add('open');
-    setTimeout(() => {
-      initMap0();
-      if(d.lat != null && d.lon != null){
-        setMap0Coords(d.lat, d.lon);
-      } else {
-        if(map0Instance) map0Instance.invalidateSize();
-      }
-    }, 250);
+    // Abrir modal 1 EDITABLE (sin resetear regState)
+    openModal({ reset: false });
+
+    // Liberar el flag después de que se hidrate y pinte todo
+    setTimeout(() => { _isHydrating = false; }, 400);
   };
 })();
 

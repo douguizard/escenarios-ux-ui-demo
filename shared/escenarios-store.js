@@ -98,6 +98,17 @@
 
   // ─── API CRUD ──────────────────────────────────────────────────
   function getAll(){ return read().map(normalizeRecord); }
+  // Variante ordenada (más reciente primero) que preserva el índice global del store.
+  // Devuelve [{record, originalIdx}, ...] para que el consumidor pueda rutear por idx.
+  function getAllSorted(){
+    return read()
+      .map((d, i) => ({ record: normalizeRecord(d), originalIdx: i }))
+      .sort((a, b) => {
+        const ta = a.record.sentAt || a.record.reviewedAt || a.record.savedAt || 0;
+        const tb = b.record.sentAt || b.record.reviewedAt || b.record.savedAt || 0;
+        return tb - ta;
+      });
+  }
   function setAll(arr){ write(arr); }
   function get(idx){ const arr = read(); return arr[idx] ? normalizeRecord(arr[idx]) : null; }
   function update(idx, patch){
@@ -382,7 +393,7 @@
     ESTADO_BADGE, DOC_BADGE,
     docLabel,
     // CRUD
-    getAll, setAll, get, update, add, remove,
+    getAll, getAllSorted, setAll, get, update, add, remove,
     // Flujo
     sendToReview, approve, reject, approveDoc, rejectDoc,
     // Historial
