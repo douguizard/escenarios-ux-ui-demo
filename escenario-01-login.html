@@ -88,18 +88,19 @@ body{
   border:1px solid rgba(255,255,255,.12);
 }
 .slide-title{
-  font-size:42px;font-weight:700;line-height:1.05;letter-spacing:-1px;
-  margin-bottom:14px;color:#fff;
+  font-size:38px;font-weight:600;line-height:1.1;letter-spacing:-0.5px;
+  margin-bottom:18px;color:#fff;
 }
-.slide-title em{font-style:normal;color:#FF7500;display:inline;font-weight:700}
+.slide-title em{font-style:normal;color:#FF7500;display:inline;font-weight:600}
 .slide-desc{
-  font-size:14px;font-weight:400;line-height:1.5;color:rgba(255,255,255,.82);
+  font-size:14px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.75);
+  margin-bottom:8px;
 }
 
 /* Controls */
 .carousel-controls{
   position:absolute;left:28px;right:28px;bottom:28px;z-index:5;
-  display:flex;flex-direction:column;gap:12px;
+  display:flex;flex-direction:column;gap:18px;
 }
 .carousel-controls__row{
   display:flex;align-items:center;justify-content:space-between;
@@ -590,6 +591,11 @@ body{
     go(parseInt(e.currentTarget.dataset.go)-1);
     resetAutoplay();
   }));
+
+  // Resume autoplay when tab becomes visible again
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden) resetAutoplay();
+  });
 
   resetAutoplay();
 })();

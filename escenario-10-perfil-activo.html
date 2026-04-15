@@ -299,6 +299,23 @@
 .timeline-dot--done{background:var(--green);color:#fff}
 .timeline-dot--active{background:var(--accent);color:#fff;animation:pulse 2s infinite ease-in-out}
 .timeline-dot--pending{background:#d0d4e6;color:#fff}
+.timeline-dot.green{background:var(--green)}
+.timeline-dot.blue{background:var(--blue-info,#1f78d1)}
+.timeline-dot.orange{background:var(--naranja)}
+.timeline-dot.gray{background:#a0a3bd}
+/* Historial filter count badge (DS segmented toggle) */
+.hist-filters{margin-bottom:20px;height:auto;padding:6px;max-width:100%}
+.hist-filters .naowee-segment__item{height:32px}
+.hist-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:16px;padding:0 5px;margin-left:6px;
+  font-size:10px;font-weight:600;line-height:1;
+  border-radius:var(--radius-full);
+  background:var(--border);color:var(--text-secondary);
+}
+.naowee-segment__item--active .hist-count{
+  background:var(--orange-bg);color:var(--accent);
+}
 .timeline-dot svg{width:10px;height:10px}
 .timeline-content{display:flex;flex-direction:column;gap:2px}
 .timeline-title{font-size:14px;font-weight:600;color:var(--text-primary)}
@@ -408,7 +425,7 @@
             <div class="gallery__item"><img src="https://images.unsplash.com/photo-1459865264687-595d652de67e?w=400&h=250&fit=crop" alt="Foto 5"/></div>
             <div class="gallery__item"><img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=400&h=250&fit=crop" alt="Foto 6"/></div>
             <div class="gallery__item"><img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=400&h=250&fit=crop" alt="Foto 7"/></div>
-            <div class="gallery__item"><img src="https://images.unsplash.com/photo-1562552052-c77b0d03fc40?w=400&h=250&fit=crop" alt="Foto 8"/></div>
+            <div class="gallery__item"><img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&h=250&fit=crop" alt="Foto 8"/></div>
           </div>
           <button class="gallery__nav gallery__nav--prev" id="galPrev" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -561,6 +578,7 @@
                   <th>Documento</th>
                   <th style="width:110px;text-align:center">Estado</th>
                   <th style="width:150px;white-space:nowrap">Fecha de cargue</th>
+                  <th style="width:120px;text-align:center">Acción</th>
                 </tr>
               </thead>
               <tbody id="docTableBody"></tbody>
@@ -595,12 +613,15 @@
 
       <!-- ═══ TAB 3: Historial ═══ -->
       <div class="tab-panel" id="panelHistorial">
-        <div class="detail-section">
-          <h3 class="detail-section__title">Historial del registro</h3>
-          <div class="timeline" id="timeline">
-            <!-- JS -->
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <h3 style="font-size:16px;font-weight:600;margin:0">Historial de Eventos</h3>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Trazabilidad completa del registro</div>
           </div>
+          <div style="font-size:12px;color:var(--text-secondary)" id="historialCount">-- eventos</div>
         </div>
+        <div class="naowee-segment naowee-segment--small hist-filters" id="historialFilters" role="tablist"></div>
+        <div class="timeline" id="timeline"></div>
       </div>
 
       </div><!-- /detail-card -->
@@ -614,7 +635,7 @@
 <div class="dialog-overlay" id="dlgSolicitud" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:20px;width:90%;max-width:520px;padding:0;animation:scaleIn .3s cubic-bezier(.4,0,.2,1);position:relative">
     <!-- Close -->
-    <button type="button" id="dlgSolicitudClose" class="naowee-btn naowee-btn--mute naowee-btn--icon naowee-btn--small" style="position:absolute;top:16px;right:16px" aria-label="Cerrar">
+    <button type="button" id="dlgSolicitudClose" class="naowee-btn naowee-btn--quiet naowee-btn--icon" style="position:absolute;top:16px;right:16px" aria-label="Cerrar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
     <div style="padding:32px 32px 24px;text-align:center">
@@ -640,7 +661,7 @@
         <p class="naowee-message__text">La solicitud será revisada por el equipo encargado antes de aprobar los cambios. <strong>Una vez validada, la información se actualizará en la plataforma.</strong></p>
       </div>
       <!-- Textfield -->
-      <div class="naowee-textfield" style="text-align:left">
+      <div class="naowee-textfield naowee-textfield--textarea" style="text-align:left">
         <label class="naowee-textfield__label naowee-textfield__label--required" for="solicitudMotivo">Motivo de actualización</label>
         <div class="naowee-textfield__input-wrap" style="height:auto">
           <textarea id="solicitudMotivo" class="naowee-textfield__input" placeholder="Escribe el motivo de la solicitud. Ej.: remodelación, cambio de documentos o ajustes de datos." rows="4" style="resize:vertical;height:auto"></textarea>
@@ -895,26 +916,64 @@
   let docHtml = '';
   let firstLoadedId = null;
 
-  // Para la demo: si no hay documentacion real, simular que todos están cargados
+  // Perfil activo: la mayoría de docs aprobados, algunos opcionales no cargados
   const hasRealDocs = d.documentacion && Object.values(d.documentacion).some(v => v);
+  const DOCS_NO_CARGADOS = new Set(['conceptoInfraestructura']); // opcionales sin cargar
   DOC_FIELDS.forEach(([id, label, format]) => {
     const val = d.documentacion ? d.documentacion[id] : null;
-    const isLoaded = val || !hasRealDocs; // en demo sin datos, simular todos cargados
+    const isLoaded = val || !hasRealDocs;
     if(!firstLoadedId) firstLoadedId = id;
     const isPhoto = id.startsWith('foto');
     const ext = isPhoto ? 'jpg' : 'pdf';
     const extIcon = `<div class="doc-ext-icon"><img src="shared/icons/file-folded-format-${ext}.svg" alt="${ext.toUpperCase()}"/></div>`;
-    const statusBadge = isLoaded
-      ? '<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small">En revisión</span>'
-      : '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
-    const dateStr = isLoaded ? new Date(savedAt).toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','') : '';
+    let statusBadge;
+    if (DOCS_NO_CARGADOS.has(id)) {
+      statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
+    } else if (isLoaded) {
+      statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--positive naowee-badge--small">Aprobado</span>';
+    } else {
+      statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
+    }
+    const isNoCargado = DOCS_NO_CARGADOS.has(id) || (!isLoaded);
+    const dateStr = !isNoCargado ? new Date(savedAt).toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','') : '';
+    const uploadCta = isNoCargado
+      ? `<label class="naowee-btn naowee-btn--mute naowee-btn--small" style="font-size:11px;color:var(--accent);gap:4px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir<input type="file" accept="${isPhoto?'image/*':'.pdf'}" style="display:none" data-upload-for="${id}"/></label>`
+      : '';
     docHtml += `<tr data-doc-preview="${id}">
       <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${label}</span></div></td>
       <td style="text-align:center">${statusBadge}</td>
       <td style="color:var(--text-secondary);white-space:nowrap">${dateStr}</td>
+      <td style="text-align:center">${uploadCta}</td>
     </tr>`;
   });
   docBody.innerHTML = docHtml;
+
+  // File upload handlers
+  docBody.querySelectorAll('input[data-upload-for]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const docId = input.dataset.uploadFor;
+      const row = input.closest('tr');
+      const badge = row.querySelector('.naowee-badge');
+      if (badge) { badge.className = 'naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small'; badge.textContent = 'En revisión'; }
+      const dateTd = row.querySelectorAll('td')[2];
+      if (dateTd) dateTd.textContent = new Date().toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','');
+      const uploadLabel = input.closest('label');
+      if (uploadLabel) uploadLabel.remove();
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          if (!window._uploadedFiles) window._uploadedFiles = {};
+          window._uploadedFiles[docId] = ev.target.result;
+          showDocPreview(docId);
+        };
+        reader.readAsDataURL(file);
+      } else { showDocPreview(docId); }
+      docBody.querySelectorAll('.doc-row--active').forEach(r => r.classList.remove('doc-row--active'));
+      row.classList.add('doc-row--active');
+    });
+  });
 
   // Demo photos (Unsplash sport venues)
   const DEMO_PHOTOS = {
@@ -932,10 +991,12 @@
     const label = DOC_FIELDS.find(f => f[0] === id);
     titleEl.textContent = label ? label[1] : 'Vista previa';
     const isPhoto = id.startsWith('foto');
+    const uploadedImg = window._uploadedFiles && window._uploadedFiles[id];
     const demoImg = DEMO_PHOTOS[id];
     previewZoom = 1; // reset zoom on switch
-    if(isPhoto && demoImg){
-      // Siempre mostrar foto demo para las fotos
+    if(uploadedImg){
+      bodyEl.innerHTML = `<img src="${uploadedImg}" alt="${label ? label[1] : 'Preview'}"/>`;
+    } else if(isPhoto && demoImg){
       bodyEl.innerHTML = `<img src="${demoImg}" alt="${label ? label[1] : 'Preview'}"/>`;
     } else if(!isPhoto){
       // PDF: mostrar ícono de extensión
@@ -997,7 +1058,7 @@
     d.subEspacios.forEach((sub, i) => {
       const nombre = sub.nombre || (sub.tipo || d.tipoEscenario || 'Sub-espacio') + ' ' + (i+1);
       spHtml += `<h3 class="detail-section__title" style="margin-top:24px">Fotos • ${nombre}</h3>`;
-      spHtml += `<table class="doc-table"><thead><tr><th>Foto</th><th style="width:110px;text-align:center">Estado</th><th style="width:150px;white-space:nowrap">Fecha de cargue</th></tr></thead><tbody>`;
+      spHtml += `<table class="doc-table"><thead><tr><th>Foto</th><th style="width:110px;text-align:center">Estado</th><th style="width:150px;white-space:nowrap">Fecha de cargue</th><th style="width:120px;text-align:center">Acción</th></tr></thead><tbody>`;
       const photoSlots = [
         ['foto_frontal','Foto frontal'],
         ['foto_2','Foto lateral'],
@@ -1013,10 +1074,14 @@
           : '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
         const dateStr = isLoaded ? new Date(savedAt).toLocaleDateString('es-CO',{month:'short',day:'2-digit',year:'numeric'}).replace('.','') : '';
         const extIcon = '<div class="doc-ext-icon"><img src="shared/icons/file-folded-format-jpg.svg" alt="JPG"/></div>';
+        const subUploadCta = !isLoaded
+          ? `<label class="naowee-btn naowee-btn--mute naowee-btn--small" style="font-size:11px;color:var(--accent);gap:4px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir<input type="file" accept="image/*" style="display:none" data-sub-upload="${i}_${pid}"/></label>`
+          : '';
         spHtml += `<tr data-sub-photo="${i}_${pid}" style="cursor:pointer">
           <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${plabel}</span></div></td>
           <td style="text-align:center">${badge}</td>
           <td style="color:var(--text-secondary);white-space:nowrap">${dateStr}</td>
+          <td style="text-align:center">${subUploadCta}</td>
         </tr>`;
       });
       spHtml += '</tbody></table>';
@@ -1040,58 +1105,133 @@
         row.classList.add('doc-row--active');
       });
     });
+
+    // File upload handlers for sub-space photos
+    subPhotosEl.querySelectorAll('input[data-sub-upload]').forEach(input => {
+      input.addEventListener('click', (e) => { e.stopPropagation(); });
+      input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const row = input.closest('tr');
+        const badge = row.querySelector('.naowee-badge');
+        if (badge) { badge.className = 'naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small'; badge.textContent = 'En revisión'; }
+        const dateTd = row.querySelectorAll('td')[2];
+        if (dateTd) dateTd.textContent = new Date().toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','');
+        const uploadLabel = input.closest('label');
+        if (uploadLabel) uploadLabel.remove();
+        // Show preview if image
+        const key = input.dataset.subUpload;
+        const [subIdx] = key.split('_');
+        const si = parseInt(subIdx);
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            if (!window._uploadedFiles) window._uploadedFiles = {};
+            window._uploadedFiles['sub_' + key] = ev.target.result;
+            const sub = d.subEspacios[si];
+            const nombre = sub?.nombre || 'Sub-espacio ' + (si+1);
+            const plabel = row.querySelector('span')?.textContent || 'Foto';
+            document.getElementById('docPreviewTitle').textContent = `${plabel} — ${nombre}`;
+            document.getElementById('docPreviewBody').innerHTML = `<img src="${ev.target.result}" alt="${plabel}"/>`;
+          };
+          reader.readAsDataURL(file);
+        }
+        document.querySelectorAll('#panelDocs .doc-row--active').forEach(r => r.classList.remove('doc-row--active'));
+        row.classList.add('doc-row--active');
+      });
+    });
   }
 
   // ═══ TAB 3: Historial ═══
   const timelineEl = document.getElementById('timeline');
-  // Estimate creation date as savedAt - some offset (mock: 2 days before)
   const createdAt = d.createdAt || (savedAt - 2 * 24 * 60 * 60 * 1000);
+  const approvedAt = d.approvedAt || (savedAt + 7 * 86400000);
 
   const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  const clockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
-  const approvedAt = d.approvedAt || (savedAt + 7 * 86400000);
-  const events = [
+  const historialEvents = [
     {
-      dot: 'done',
-      icon: checkSvg,
-      title: 'Registro creado',
-      desc: 'Se inició el registro del escenario deportivo.',
-      date: fmtDateTime(createdAt)
+      color: 'green', icon: checkSvg, cat: 'estado',
+      title: 'Escenario activo',
+      desc: 'El escenario deportivo fue aprobado y está activo en el sistema.',
+      date: fmtDateTime(approvedAt)
     },
     {
-      dot: 'done',
-      icon: checkSvg,
-      title: 'Enviado a revisión',
-      desc: 'El registro fue completado y enviado para revisión de documentos.',
-      date: fmtDateTime(savedAt)
-    },
-    {
-      dot: 'done',
-      icon: checkSvg,
+      color: 'green', icon: checkSvg, cat: 'documentos',
       title: 'Documentos aprobados',
       desc: 'La documentación fue revisada y aprobada por el equipo de validación.',
       date: fmtDateTime(approvedAt)
     },
     {
-      dot: 'done',
-      icon: checkSvg,
-      title: 'Escenario activo',
-      desc: 'El escenario deportivo fue aprobado y está activo en el sistema.',
-      date: fmtDateTime(approvedAt)
+      color: 'blue', icon: checkSvg, cat: 'estado',
+      title: 'Registro enviado',
+      desc: 'El registro fue completado y enviado para revisión de documentos.',
+      date: fmtDateTime(savedAt)
+    },
+    {
+      color: 'green', icon: checkSvg, cat: 'documentos',
+      title: 'Documentación cargada',
+      desc: 'Se adjuntaron los documentos requeridos al registro.',
+      date: fmtDateTime(savedAt - 3600000)
+    },
+    {
+      color: 'blue', icon: checkSvg, cat: 'asignaciones',
+      title: 'Revisor asignado',
+      desc: 'Se asignó un revisor para la validación del escenario.',
+      date: fmtDateTime(createdAt + 86400000)
+    },
+    {
+      color: 'gray', icon: checkSvg, cat: 'asignaciones',
+      title: 'Registro creado',
+      desc: 'Se inició el registro del escenario deportivo.',
+      date: fmtDateTime(createdAt)
     }
   ];
 
-  timelineEl.innerHTML = events.reverse().map(ev => `
-    <div class="timeline-item">
-      <div class="timeline-dot timeline-dot--${ev.dot}">${ev.icon}</div>
-      <div class="timeline-content">
-        <div class="timeline-title">${ev.title}</div>
-        <div class="timeline-desc">${ev.desc}</div>
-        <div class="timeline-date">${ev.date}</div>
+  // Count and filters
+  document.getElementById('historialCount').textContent = historialEvents.length + ' eventos';
+
+  const catCounts = {};
+  historialEvents.forEach(ev => { catCounts[ev.cat] = (catCounts[ev.cat] || 0) + 1; });
+  const catLabels = { estado: 'Estado', documentos: 'Documentos', asignaciones: 'Asignaciones' };
+  const filtersEl = document.getElementById('historialFilters');
+  const allPill = document.createElement('button');
+  allPill.type = 'button';
+  allPill.className = 'naowee-segment__item naowee-segment__item--active';
+  allPill.innerHTML = `Todos <span class="hist-count">${historialEvents.length}</span>`;
+  allPill.dataset.cat = 'all';
+  filtersEl.appendChild(allPill);
+  Object.keys(catCounts).forEach(cat => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'naowee-segment__item';
+    pill.innerHTML = `${catLabels[cat] || cat} <span class="hist-count">${catCounts[cat]}</span>`;
+    pill.dataset.cat = cat;
+    filtersEl.appendChild(pill);
+  });
+
+  function renderTimeline(filter) {
+    const filtered = filter === 'all' ? historialEvents : historialEvents.filter(ev => ev.cat === filter);
+    timelineEl.innerHTML = filtered.map(ev => `
+      <div class="timeline-item" data-cat="${ev.cat}">
+        <div class="timeline-dot ${ev.color}">${ev.icon}</div>
+        <div class="timeline-content">
+          <div class="timeline-title">${ev.title}</div>
+          <div class="timeline-desc">${ev.desc}</div>
+          <div class="timeline-date">${ev.date}</div>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  }
+  renderTimeline('all');
+
+  filtersEl.addEventListener('click', e => {
+    const pill = e.target.closest('.naowee-segment__item');
+    if (!pill) return;
+    filtersEl.querySelectorAll('.naowee-segment__item').forEach(p => p.classList.remove('naowee-segment__item--active'));
+    pill.classList.add('naowee-segment__item--active');
+    renderTimeline(pill.dataset.cat);
+  });
 
   // ═══ Modal Solicitud de actualización ═══
   const dlgSol = document.getElementById('dlgSolicitud');
@@ -1160,6 +1300,13 @@
     toast.style.opacity = '0'; toast.style.transform = 'translateY(12px)';
     toast.style.transition = 'opacity .3s, transform .3s';
     setTimeout(() => { toast.classList.add('hidden'); toast.style.cssText = ''; }, 300);
+  });
+
+  // ═══ Logout ═══
+  function fadeAndGo(url){document.body.style.transition='opacity .25s ease';document.body.style.opacity='0';setTimeout(()=>{window.location.href=url},260)}
+  document.getElementById('btnLogout')?.addEventListener('click', () => {
+    try { sessionStorage.clear(); } catch(e){}
+    fadeAndGo('escenario-01-login.html');
   });
 
 })();

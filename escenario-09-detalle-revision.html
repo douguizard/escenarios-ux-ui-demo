@@ -155,7 +155,7 @@
 .doc-table thead th:last-child{border-radius:0 10px 10px 0}
 .doc-table tbody td{
   color:var(--text-primary);
-  padding:14px;vertical-align:middle;
+  padding:16px 14px;vertical-align:middle;
   border-bottom:1px solid var(--border);
 }
 .doc-table tbody tr:last-child td{border-bottom:none}
@@ -203,38 +203,45 @@
 }
 
 /* ═══ TIMELINE ═══ */
-.timeline{position:relative;padding-left:36px}
-.timeline-item{
-  position:relative;
-  padding-bottom:28px;
-}
-.timeline-item:last-child{padding-bottom:0}
-.timeline-item::before{
-  content:'';position:absolute;
-  left:-28px;top:24px;
-  width:2px;height:calc(100% - 12px);
-  background:var(--border-dark);
-}
+.timeline{position:relative;padding-left:44px}
+.timeline::before{content:'';position:absolute;left:15px;top:8px;bottom:8px;width:1.5px;background:var(--border)}
+.timeline-item{position:relative;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-radius:var(--radius-md);transition:background .15s;animation:fadeIn .3s cubic-bezier(.4,0,.2,1) both}
+.timeline-item:hover{background:var(--bg,#f5f6fa)}
+.timeline-item::before{display:none}
 .timeline-item:last-child::before{display:none}
 .timeline-dot{
-  position:absolute;left:-36px;top:2px;
-  width:18px;height:18px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
+  position:absolute;left:-44px;top:12px;
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.timeline-dot--done{background:var(--green);color:#fff}
-.timeline-dot--active{background:var(--accent);color:#fff;animation:pulse 2s infinite ease-in-out}
-.timeline-dot--pending{background:#d0d4e6;color:#fff}
-.timeline-dot svg{width:10px;height:10px}
-.timeline-content{display:flex;flex-direction:column;gap:2px}
-.timeline-title{font-size:14px;font-weight:600;color:var(--text-primary)}
-.timeline-desc{font-size:13px;font-weight:400;color:var(--text-secondary)}
-.timeline-date{font-size:12px;font-weight:400;color:#9c9ebf;margin-top:2px}
+.timeline-dot.green{background:var(--green)}
+.timeline-dot.blue{background:var(--blue-info,#1f78d1)}
+.timeline-dot.orange{background:var(--naranja)}
+.timeline-dot.gray{background:#a0a3bd}
+.timeline-dot svg{width:14px;height:14px;color:#fff;stroke:#fff}
+.timeline-content{flex:1;min-width:0}
+.timeline-title{font-size:13px;font-weight:600;color:var(--text-primary)}
+.timeline-desc{font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.4}
+.timeline-date{font-size:10px;color:var(--text-secondary);flex-shrink:0;display:flex;align-items:center;gap:4px;white-space:nowrap;margin-top:2px}
+/* Historial filter count badge (DS segmented toggle) */
+.hist-filters{margin-bottom:20px;height:auto;padding:6px;max-width:100%}
+.hist-filters .naowee-segment__item{height:32px}
+.hist-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:16px;padding:0 5px;margin-left:6px;
+  font-size:10px;font-weight:600;line-height:1;
+  border-radius:var(--radius-full);
+  background:var(--border);color:var(--text-secondary);
+}
+.naowee-segment__item--active .hist-count{
+  background:var(--orange-bg);color:var(--accent);
+}
 
 @keyframes fadeInUp{
   from{opacity:0;transform:translateY(16px)}
   to{opacity:1;transform:translateY(0)}
 }
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes pulse{
   0%,100%{box-shadow:0 0 0 0 rgba(215,64,9,.35)}
   50%{box-shadow:0 0 0 8px rgba(215,64,9,0)}
@@ -284,18 +291,20 @@
 
     <!-- ═══ TOP HEADER ═══ -->
     <header class="top-header">
-      <div class="user-chip" style="position:relative" id="userChipWrap">
-        <div class="ava">
-          <div class="ava-ring">JH</div>
-          <div class="ava-dot"></div>
+      <div class="profile-switcher" style="position:relative" id="profileSwitcher">
+        <div class="user-chip" id="userChip">
+          <div class="ava">
+            <div class="ava-ring">JH</div>
+            <div class="ava-dot"></div>
+          </div>
+          <div class="user-info">
+            <span class="user-name">Juan Hernand...</span>
+            <span class="user-role">Gestor de escen...</span>
+          </div>
+          <button class="user-chip__chevron" type="button" aria-label="Cambiar rol">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
         </div>
-        <div class="user-info">
-          <span class="user-name">Juan Hernand...</span>
-          <span class="user-role">Gestor de escen...</span>
-        </div>
-        <button class="user-chip__chevron" type="button" aria-label="Cambiar rol" onclick="this.closest('#userChipWrap').querySelector('.role-dropdown').classList.toggle('open')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
         <div class="role-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:240px;z-index:100;overflow:hidden">
           <div style="padding:12px 16px;background:var(--naowee-color-interactive-fill-quiet-idle,#FFEDC7);cursor:default;display:flex;align-items:center;gap:10px">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -306,7 +315,7 @@
             <div><div style="font-size:13px;font-weight:600;color:var(--text-primary)">Revisor</div><div style="font-size:11px;color:var(--text-secondary)">Aprobación de documentación</div></div>
           </div>
         </div>
-      </div>
+        </div>
     </header>
 
     <!-- ═══ PAGE ═══ -->
@@ -324,12 +333,12 @@
         <p class="detail-header__id" id="detailId" style="margin-bottom:16px">ID: --</p>
 
         <!-- Status banner -->
-        <div class="naowee-message naowee-message--caution">
+        <div class="naowee-message naowee-message--caution" id="statusBanner">
           <div class="naowee-message__header">
-            <div class="naowee-message__icon">
+            <div class="naowee-message__icon" id="statusBannerIcon">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="4" x2="8" y2="8"/><line x1="8" y1="11" x2="8" y2="11.01"/></svg>
             </div>
-            <div class="naowee-message__title">Registro en revisión</div>
+            <div class="naowee-message__title" id="statusBannerTitle">Registro en revisión</div>
           </div>
           <p class="naowee-message__text" id="bannerDate">Enviado el --</p>
         </div>
@@ -467,6 +476,7 @@
                   <th>Documento</th>
                   <th style="width:100px;text-align:center">Estado</th>
                   <th style="width:140px;white-space:nowrap">Fecha de cargue</th>
+                  <th style="width:120px;text-align:center">Acción</th>
                 </tr>
               </thead>
               <tbody id="docTableBody"></tbody>
@@ -495,17 +505,43 @@
                 </div>
               </div>
             </div>
+            <!-- Reviewer rejection note (visible only when rechazado) -->
+            <div class="naowee-message naowee-message--negative" id="docReviewerNote" style="display:none;margin-top:16px">
+              <div class="naowee-message__header">
+                <div class="naowee-message__icon">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="8" x2="12" y2="8"/>
+                  </svg>
+                </div>
+                <div class="naowee-message__title">Motivo del rechazo</div>
+              </div>
+              <p class="naowee-message__text" id="docReviewerNoteText"></p>
+              <div class="naowee-message__text" style="font-size:12px;color:var(--naowee-color-text-secondary,var(--text-secondary))">
+                <span>Revisado por: </span><strong style="color:var(--naowee-color-text-primary,var(--text-primary))">María Alejandra Gómez</strong>
+                <span style="margin-left:8px" id="docReviewerNoteDate"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ═══ TAB 3: Historial ═══ -->
       <div class="tab-panel" id="panelHistorial">
-        <div class="detail-section">
-          <h3 class="detail-section__title">Historial del registro</h3>
-          <div class="timeline" id="timeline">
-            <!-- JS -->
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <h3 style="font-size:16px;font-weight:600;margin:0">Historial de Eventos</h3>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Trazabilidad completa del registro</div>
           </div>
+          <div style="font-size:12px;color:var(--text-secondary)" id="historialCount">-- eventos</div>
+        </div>
+
+        <!-- Filter segment (DS naowee-segment) -->
+        <div class="naowee-segment naowee-segment--small hist-filters" id="historialFilters" role="tablist">
+          <!-- JS will populate -->
+        </div>
+
+        <div class="timeline" id="timeline">
+          <!-- JS will populate -->
         </div>
       </div>
 
@@ -520,6 +556,14 @@
 <script>
 (function(){
   'use strict';
+
+  // ═══ Profile switcher ═══
+  const ps09 = document.getElementById('profileSwitcher');
+  document.getElementById('userChip')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ps09.classList.toggle('open');
+  });
+  document.addEventListener('click', () => ps09?.classList.remove('open'));
 
   // ═══ Parse query param ═══
   const params = new URLSearchParams(window.location.search);
@@ -590,6 +634,20 @@
   // ═══ Banner ═══
   const savedAt = d.savedAt || Date.now();
   document.getElementById('bannerDate').textContent = 'Enviado el ' + fmtDate(savedAt);
+
+  // ═══ Estado-driven banner ═══
+  const estadoParam = params.get('estado');
+  if (estadoParam === 'borrador') {
+    document.getElementById('statusBanner').className = 'naowee-message naowee-message--informative';
+    document.getElementById('statusBannerIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    document.getElementById('statusBannerTitle').textContent = 'Borrador';
+    document.getElementById('bannerDate').textContent = 'Último guardado el ' + fmtDate(savedAt);
+  } else if (estadoParam === 'rechazado') {
+    document.getElementById('statusBanner').className = 'naowee-message naowee-message--negative';
+    document.getElementById('statusBannerIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    document.getElementById('statusBannerTitle').textContent = 'Registro rechazado';
+    document.getElementById('bannerDate').textContent = 'Rechazado el ' + fmtDate(savedAt);
+  }
 
   // (Back link + tab switcher already registered above early-return)
 
@@ -734,26 +792,84 @@
   let docHtml = '';
   let firstLoadedId = null;
 
-  // Para la demo: si no hay documentacion real, simular que todos están cargados
+  // Doc statuses depending on overall estado
   const hasRealDocs = d.documentacion && Object.values(d.documentacion).some(v => v);
+  // When rechazado: some docs rejected, some not loaded, none in revision
+  const RECHAZADO_DOCS = new Set(['fotoFrontalGeneral','fotoPanoramica','planoEscenario','docPropiedad']);
+  const RECHAZADO_NO_CARGADOS = new Set(['fotoInstalaciones','planoLocalizacion','conceptoBomberos','conceptoSalud','conceptoInfraestructura']);
   DOC_FIELDS.forEach(([id, label, format]) => {
     const val = d.documentacion ? d.documentacion[id] : null;
-    const isLoaded = val || !hasRealDocs; // en demo sin datos, simular todos cargados
+    const isLoaded = val || !hasRealDocs;
     if(!firstLoadedId) firstLoadedId = id;
     const isPhoto = id.startsWith('foto');
     const ext = isPhoto ? 'jpg' : 'pdf';
     const extIcon = `<div class="doc-ext-icon"><img src="shared/icons/file-folded-format-${ext}.svg" alt="${ext.toUpperCase()}"/></div>`;
-    const statusBadge = isLoaded
-      ? '<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small">En revisión</span>'
-      : '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
-    const dateStr = isLoaded ? new Date(savedAt).toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','') : '';
+    let statusBadge;
+    if (estadoParam === 'rechazado') {
+      if (RECHAZADO_DOCS.has(id)) {
+        statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--negative naowee-badge--small">Rechazado</span>';
+      } else if (RECHAZADO_NO_CARGADOS.has(id)) {
+        statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
+      } else {
+        statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--positive naowee-badge--small">Aprobado</span>';
+      }
+    } else {
+      statusBadge = isLoaded
+        ? '<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small">En revisión</span>'
+        : '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
+    }
+    const needsDate = estadoParam === 'rechazado' ? RECHAZADO_DOCS.has(id) : isLoaded;
+    const dateStr = needsDate ? new Date(savedAt).toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','') : '';
+    const showUpload = estadoParam === 'rechazado' ? (RECHAZADO_NO_CARGADOS.has(id) || RECHAZADO_DOCS.has(id)) : !isLoaded;
+    const uploadCta = showUpload
+      ? `<label class="naowee-btn naowee-btn--mute naowee-btn--small" style="font-size:11px;color:var(--accent);gap:4px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir<input type="file" accept="${isPhoto?'image/*':'.pdf'}" style="display:none" data-upload-for="${id}"/></label>`
+      : '';
     docHtml += `<tr data-doc-preview="${id}">
       <td><div style="display:flex;align-items:center;gap:10px">${extIcon}<span>${label}</span></div></td>
       <td style="text-align:center">${statusBadge}</td>
       <td style="color:var(--text-secondary);white-space:nowrap">${dateStr}</td>
+      <td style="text-align:center">${uploadCta}</td>
     </tr>`;
   });
   docBody.innerHTML = docHtml;
+
+  // File upload handlers — native file picker
+  docBody.querySelectorAll('input[data-upload-for]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const docId = input.dataset.uploadFor;
+      const row = input.closest('tr');
+      // Update badge to "En revisión"
+      const badge = row.querySelector('.naowee-badge');
+      if (badge) {
+        badge.className = 'naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small';
+        badge.textContent = 'En revisión';
+      }
+      // Update date
+      const dateTd = row.querySelectorAll('td')[2];
+      if (dateTd) dateTd.textContent = new Date().toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','');
+      // Remove upload button
+      const uploadLabel = input.closest('label');
+      if (uploadLabel) uploadLabel.remove();
+      // Show preview if image
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          // Store uploaded URL for preview
+          if (!window._uploadedFiles) window._uploadedFiles = {};
+          window._uploadedFiles[docId] = ev.target.result;
+          showDocPreview(docId);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        showDocPreview(docId);
+      }
+      // Select the row
+      docBody.querySelectorAll('.doc-row--active').forEach(r => r.classList.remove('doc-row--active'));
+      row.classList.add('doc-row--active');
+    });
+  });
 
   // Demo photos (Unsplash sport venues)
   const DEMO_PHOTOS = {
@@ -771,10 +887,12 @@
     const label = DOC_FIELDS.find(f => f[0] === id);
     titleEl.textContent = label ? label[1] : 'Vista previa';
     const isPhoto = id.startsWith('foto');
+    const uploadedImg = window._uploadedFiles && window._uploadedFiles[id];
     const demoImg = DEMO_PHOTOS[id];
     previewZoom = 1; // reset zoom on switch
-    if(isPhoto && demoImg){
-      // Siempre mostrar foto demo para las fotos
+    if(uploadedImg){
+      bodyEl.innerHTML = `<img src="${uploadedImg}" alt="${label ? label[1] : 'Preview'}"/>`;
+    } else if(isPhoto && demoImg){
       bodyEl.innerHTML = `<img src="${demoImg}" alt="${label ? label[1] : 'Preview'}"/>`;
     } else if(!isPhoto){
       // PDF: mostrar ícono de extensión
@@ -790,6 +908,24 @@
     document.querySelectorAll('#panelDocs .doc-row--active').forEach(r => r.classList.remove('doc-row--active'));
     const row = docBody.querySelector(`[data-doc-preview="${id}"]`);
     if(row) row.classList.add('doc-row--active');
+
+    // Show/hide reviewer rejection note
+    const noteEl = document.getElementById('docReviewerNote');
+    if(noteEl){
+      if(estadoParam === 'rechazado' && RECHAZADO_DOCS.has(id)){
+        const REJECTION_NOTES = {
+          fotoFrontalGeneral: 'La imagen no corresponde al escenario registrado. Se requiere una fotografía frontal clara donde se identifique la fachada principal de la instalación.',
+          fotoPanoramica: 'La fotografía panorámica está borrosa y no permite identificar las dimensiones reales del escenario. Por favor, subir una imagen con mejor resolución.',
+          planoEscenario: 'El plano presentado no incluye las medidas reglamentarias ni la distribución de las áreas de juego. Debe cumplir con la normativa vigente.',
+          docPropiedad: 'El certificado de tradición y libertad tiene más de 90 días de expedición. Se requiere un documento actualizado.'
+        };
+        noteEl.querySelector('#docReviewerNoteText').textContent = REJECTION_NOTES[id] || 'Documento rechazado por el revisor.';
+        noteEl.querySelector('#docReviewerNoteDate').textContent = new Date(savedAt + 86400000).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}).replace('.','');
+        noteEl.style.display = '';
+      } else {
+        noteEl.style.display = 'none';
+      }
+    }
   }
 
   // Click rows → preview
@@ -879,46 +1015,81 @@
 
   // ═══ TAB 3: Historial ═══
   const timelineEl = document.getElementById('timeline');
-  // Estimate creation date as savedAt - some offset (mock: 2 days before)
   const createdAt = d.createdAt || (savedAt - 2 * 24 * 60 * 60 * 1000);
+  const docUploadAt = d.docUploadAt || (savedAt - 1 * 24 * 60 * 60 * 1000);
 
-  const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  const clockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  const clockIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const sendIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+  const userIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  const infoIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  const clockDateIcon = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1"/><path d="M6 3.5v2.5l1.5 1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>';
 
-  const events = [
-    {
-      dot: 'done',
-      icon: checkSvg,
-      title: 'Registro creado',
-      desc: 'Se inicio el registro del escenario deportivo.',
-      date: fmtDateTime(createdAt)
-    },
-    {
-      dot: 'done',
-      icon: checkSvg,
-      title: 'Enviado a revision',
-      desc: 'El registro fue completado y enviado para revision de documentos.',
-      date: fmtDateTime(savedAt)
-    },
-    {
-      dot: 'active',
-      icon: clockSvg,
-      title: 'En proceso de revision de documentos',
-      desc: 'Un revisor esta verificando la informacion y documentacion adjunta.',
-      date: 'Estado actual'
-    }
-  ];
+  // Build events based on status
+  const tlEvents = [];
 
-  timelineEl.innerHTML = events.reverse().map(ev => `
-    <div class="timeline-item">
-      <div class="timeline-dot timeline-dot--${ev.dot}">${ev.icon}</div>
+  if (estadoParam === 'rechazado') {
+    tlEvents.push(
+      { color:'orange', icon:clockIcon, title:'Registro rechazado', desc:'Se requiere corrección de documentos para continuar.', date:fmtDateTime(savedAt + 86400000), category:'estado' },
+      { color:'blue', icon:sendIcon, title:'Registro enviado', desc:'Por Juan Hernández', date:fmtDateTime(savedAt), category:'estado' },
+      { color:'green', icon:checkIcon, title:'Documentación cargada', desc:(d.disciplinas?.length||6)+' documentos adjuntados · Por Juan Hernández', date:fmtDateTime(docUploadAt), category:'documentos' },
+      { color:'blue', icon:userIcon, title:'Revisor asignado', desc:'Ana María López', date:fmtDateTime(docUploadAt - 3600000), category:'asignaciones' },
+      { color:'gray', icon:infoIcon, title:'Registro creado', desc:'Se creó el registro del escenario deportivo.', date:fmtDateTime(createdAt), category:'asignaciones' }
+    );
+  } else {
+    tlEvents.push(
+      { color:'orange', icon:clockIcon, title:'En revisión', desc:'El registro está siendo revisado por el equipo de documentación.', date:fmtDateTime(savedAt + 3600000), category:'estado' },
+      { color:'blue', icon:sendIcon, title:'Registro enviado', desc:'Por Juan Hernández', date:fmtDateTime(savedAt), category:'estado' },
+      { color:'green', icon:checkIcon, title:'Documentación cargada', desc:(d.disciplinas?.length||6)+' documentos adjuntados · Por Juan Hernández', date:fmtDateTime(docUploadAt), category:'documentos' },
+      { color:'blue', icon:userIcon, title:'Revisor asignado', desc:'Ana María López', date:fmtDateTime(docUploadAt - 3600000), category:'asignaciones' },
+      { color:'gray', icon:infoIcon, title:'Registro creado', desc:'Se creó el registro del escenario deportivo.', date:fmtDateTime(createdAt), category:'asignaciones' }
+    );
+  }
+
+  // Count categories
+  const catCounts = {};
+  tlEvents.forEach(ev => { catCounts[ev.category] = (catCounts[ev.category]||0) + 1; });
+  document.getElementById('historialCount').textContent = tlEvents.length + ' eventos';
+
+  // Render filter segment (DS naowee-segment)
+  const filtersEl = document.getElementById('historialFilters');
+  let pillsHtml = `<button class="naowee-segment__item naowee-segment__item--active" data-filter="todos" type="button">Todos <span class="hist-count">${tlEvents.length}</span></button>`;
+  const catLabels = {estado:'Estado', documentos:'Documentos', asignaciones:'Asignaciones'};
+  Object.entries(catCounts).forEach(([cat, count]) => {
+    pillsHtml += `<button class="naowee-segment__item" data-filter="${cat}" type="button">${catLabels[cat]||cat} <span class="hist-count">${count}</span></button>`;
+  });
+  filtersEl.innerHTML = pillsHtml;
+
+  // Render timeline
+  timelineEl.innerHTML = tlEvents.map((ev, i) => `
+    <div class="timeline-item" data-category="${ev.category}" style="animation-delay:${(i*0.04).toFixed(2)}s">
+      <div class="timeline-dot ${ev.color}">${ev.icon}</div>
       <div class="timeline-content">
         <div class="timeline-title">${ev.title}</div>
         <div class="timeline-desc">${ev.desc}</div>
-        <div class="timeline-date">${ev.date}</div>
       </div>
+      <div class="timeline-date">${clockDateIcon} ${ev.date}</div>
     </div>
   `).join('');
+
+  // Filter segment logic
+  filtersEl.querySelectorAll('.naowee-segment__item').forEach(pill => {
+    pill.addEventListener('click', () => {
+      filtersEl.querySelectorAll('.naowee-segment__item').forEach(p => p.classList.remove('naowee-segment__item--active'));
+      pill.classList.add('naowee-segment__item--active');
+      const filter = pill.dataset.filter;
+      timelineEl.querySelectorAll('.timeline-item').forEach(item => {
+        item.style.display = (filter === 'todos' || item.dataset.category === filter) ? '' : 'none';
+      });
+    });
+  });
+
+  // ═══ Logout ═══
+  function fadeAndGo(url){document.body.style.transition='opacity .25s ease';document.body.style.opacity='0';setTimeout(()=>{window.location.href=url},260)}
+  document.getElementById('btnLogout')?.addEventListener('click', () => {
+    try { sessionStorage.clear(); } catch(e){}
+    fadeAndGo('escenario-01-login.html');
+  });
 
 })();
 </script>

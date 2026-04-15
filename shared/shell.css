@@ -58,7 +58,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);font
 .user-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:var(--radius-full);padding:6px 12px 6px 6px;cursor:pointer}
 .ava{position:relative}
 .ava-ring{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
-.ava-dot{position:absolute;bottom:0;right:0;width:8px;height:8px;background:var(--green);border:2px solid #fff;border-radius:50%}
+.ava-dot{position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;background:var(--green);border:2px solid #fff;border-radius:50%}
+.user-chip__chevron svg{transition:transform .2s}
+.profile-switcher.open .user-chip__chevron svg{transform:rotate(180deg)}
 .user-info{display:flex;flex-direction:column;gap:1px}
 .user-name{font-size:13px;font-weight:700;color:var(--text-primary)}
 .user-role{font-size:11px;color:var(--text-secondary)}

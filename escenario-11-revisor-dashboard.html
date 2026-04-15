@@ -172,7 +172,7 @@
 .rev-table tbody tr{
   border-bottom:1px solid var(--border-dark);
   transition:background .15s;
-  animation:fadeInUp .35s cubic-bezier(.4,0,.2,1) both;
+  animation:fadeIn .35s cubic-bezier(.4,0,.2,1) both;
 }
 .rev-table tbody tr:nth-child(1){animation-delay:.05s}
 .rev-table tbody tr:nth-child(2){animation-delay:.1s}
@@ -183,7 +183,6 @@
 .rev-table tbody td{
   height:72px;padding:12px;vertical-align:middle;
   font-size:14px;color:var(--text-primary);
-  position:relative;
 }
 .rev-table tbody td:first-child{padding-left:16px}
 .rev-table tbody td:last-child{padding-right:16px;text-align:center;width:60px}
@@ -193,6 +192,10 @@
   width:18px;height:18px;accent-color:var(--accent);cursor:pointer;
 }
 .cell-date{font-size:13px;color:var(--text-secondary)}
+
+/* Bulk actions bar */
+.bulk-actions{display:none;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.bulk-actions.visible{display:flex;align-items:center}
 
 /* Context menu */
 .ctx-menu-wrap{position:relative;display:inline-flex;z-index:50}
@@ -217,35 +220,36 @@
 .ctx-menu__item svg{width:16px;height:16px;flex-shrink:0;color:var(--text-secondary)}
 
 /* ═══ TOAST ═══ */
-.toast-message{
+/* Toast: positioned naowee-message */
+.toast-wrap{
   position:fixed;bottom:20px;right:20px;z-index:200;
   width:388px;max-width:calc(100vw - 40px);
-  background:#defade;border:1px solid #b7dfb9;border-radius:20px;padding:16px;
-  display:flex;flex-direction:column;gap:8px;
   animation:toastIn .5s cubic-bezier(.34,1.56,.64,1);
   transition:opacity .3s ease, transform .3s ease;
 }
-.toast-message.hidden{display:none}
-.toast-message--leaving{opacity:0;transform:translateY(12px) scale(.97);pointer-events:none}
-.toast-message__header{display:flex;gap:8px;align-items:flex-start}
-.toast-message__badge{
-  flex-shrink:0;width:20px;height:20px;border-radius:9999px;
-  background:#1f8923;color:#fff;
-  display:flex;align-items:center;justify-content:center;margin-top:2px;
-}
-.toast-message__badge svg{width:12px;height:12px}
-.toast-message__title{flex:1;font-size:16px;font-weight:700;line-height:20px;color:var(--text-primary);margin:0}
-.toast-message__close{
-  flex-shrink:0;width:24px;height:24px;border:none;background:transparent;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  color:var(--text-primary);border-radius:8px;transition:background .15s;
-}
-.toast-message__close:hover{background:rgba(0,0,0,.06)}
-.toast-message__close svg{width:18px;height:18px}
-.toast-message__body{font-size:14px;line-height:18px;color:var(--text-primary);margin:0}
+.toast-wrap--leaving{opacity:0;transform:translateY(12px) scale(.97);pointer-events:none}
 
-@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ═══ DIALOG OVERLAY ═══ */
+.dialog-overlay{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,43,91,.45);backdrop-filter:blur(2px);
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+.dialog-overlay.open{display:flex}
+.dialog{
+  width:440px;max-width:100%;background:#fff;border-radius:16px;
+  box-shadow:0 24px 48px rgba(0,0,0,.25);
+  display:flex;flex-direction:column;
+  animation:dialogIn .3s cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes dialogIn{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.dialog__footer{
+  padding:16px 24px 24px;display:flex;gap:12px;justify-content:flex-end;
+}
 </style>
 </head>
 <body>
@@ -399,6 +403,19 @@
           </div>
         </div>
 
+        <!-- Bulk actions -->
+        <div class="bulk-actions" id="bulkActions">
+          <span style="font-size:13px;font-weight:600;color:var(--text-primary)" id="bulkCount">0 seleccionados</span>
+          <button class="naowee-btn naowee-btn--mute naowee-btn--small" id="btnBulkApproveAll" type="button" style="color:#1f8923">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:#1f8923"><polyline points="20 6 9 17 4 12"/></svg>
+            Aprobar seleccionados
+          </button>
+          <button class="naowee-btn naowee-btn--mute naowee-btn--small" id="btnBulkRejectAll" type="button" style="color:var(--naowee-color-feedback-fill-negative-loud,#e53935)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:#e53935"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Rechazar seleccionados
+          </button>
+        </div>
+
         <!-- Tabla -->
         <table class="rev-table">
           <thead>
@@ -525,6 +542,52 @@
 
 </div>
 
+<!-- ═══ DIALOG: Confirmar aprobación ═══ -->
+<div class="dialog-overlay" id="dialogAprobar">
+  <div class="dialog" style="text-align:center">
+    <div style="padding:36px 32px 0;display:flex;flex-direction:column;align-items:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--green,#1f8923);display:flex;align-items:center;justify-content:center;margin-bottom:24px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3 style="font-size:22px;font-weight:700;color:var(--text-primary);margin:0 0 16px">Aprobar registro</h3>
+      <p style="font-size:14px;color:var(--text-primary);line-height:22px;margin:0 0 16px">Estás a punto de aprobar este registro.</p>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:20px;margin:0">Una vez aprobado, el estado cambiará a "Activo" y el escenario quedará habilitado en el sistema. ¿Deseas continuar?</p>
+    </div>
+    <div class="dialog__footer" style="justify-content:space-between;padding:28px 32px">
+      <button class="naowee-btn naowee-btn--link" type="button" id="dialogAprobarCancel" style="color:var(--accent)">Cancelar</button>
+      <button class="naowee-btn naowee-btn--loud" type="button" id="dialogAprobarConfirm" style="background:var(--green,#1f8923);border-color:var(--green,#1f8923);min-width:160px">
+        Confirmar aprobación
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: Rechazar registro ═══ -->
+<div class="dialog-overlay" id="dialogRechazar">
+  <div class="dialog" style="text-align:center">
+    <div style="padding:36px 32px 0;display:flex;flex-direction:column;align-items:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--red-bg,#fff0ee);display:flex;align-items:center;justify-content:center;margin-bottom:24px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent,#d74009)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <h3 style="font-size:22px;font-weight:700;color:var(--text-primary);margin:0 0 12px">Rechazar registro</h3>
+      <p style="font-size:15px;font-weight:600;color:var(--text-primary);margin:0 0 12px">¿Deseas continuar?</p>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:20px;margin:0 0 20px">Estás a punto de rechazar este registro. Ingrese el motivo por el cual se rechaza.</p>
+      <div class="naowee-textfield naowee-textfield--textarea" style="width:100%;text-align:left">
+        <label class="naowee-textfield__label naowee-textfield__label--required">Nota</label>
+        <div class="naowee-textfield__input-wrap">
+          <textarea class="naowee-textfield__input" rows="3" id="rechazoMotivo" placeholder="Escriba el motivo del rechazo..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__footer" style="justify-content:space-between;padding:28px 32px">
+      <button class="naowee-btn naowee-btn--link" type="button" id="dialogRechazarCancel" style="color:var(--accent)">Cancelar</button>
+      <button class="naowee-btn naowee-btn--loud" type="button" id="dialogRechazarConfirm" style="background:var(--accent,#d74009);border-color:var(--accent,#d74009);min-width:160px">
+        Rechazar registro
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   'use strict';
@@ -536,6 +599,34 @@
     e.stopPropagation();
     ps.classList.toggle('open');
   });
+
+  // ═══ Apply persisted estado changes from revisor detail ═══
+  (function applyRevEstados(){
+    try {
+      const map = JSON.parse(sessionStorage.getItem('revEstados') || '{}');
+      const BADGE_MAP = {
+        'activo':    { cls: 'naowee-badge--positive', label: 'Activo' },
+        'rechazado': { cls: 'naowee-badge--negative', label: 'Rechazado' },
+        'por-revisar': { cls: 'naowee-badge--caution', label: 'Por revisar' }
+      };
+      const rows = document.querySelectorAll('#tbodyRev tr');
+      Object.keys(map).forEach(idx => {
+        const row = rows[parseInt(idx)];
+        if (!row) return;
+        const info = BADGE_MAP[map[idx]];
+        if (!info) return;
+        const badge = row.querySelector('.naowee-badge');
+        if (badge) {
+          badge.className = 'naowee-badge naowee-badge--quiet naowee-badge--small ' + info.cls;
+          badge.textContent = info.label;
+        }
+        // Update context menu: if activo, remove Aceptar/Rechazar options
+        if (map[idx] === 'activo') {
+          row.querySelectorAll('.ctx-menu__item[data-action="aceptar"], .ctx-menu__item[data-action="rechazar"]').forEach(el => el.remove());
+        }
+      });
+    } catch(e){}
+  })();
 
   // ═══ Estado dropdown ═══
   const ddWrap = document.getElementById('ddEstadosWrap');
@@ -586,42 +677,289 @@
   document.querySelectorAll('.ctx-trigger').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Close all others
-      document.querySelectorAll('.ctx-menu-wrap.open').forEach(w => w.classList.remove('open'));
-      btn.closest('.ctx-menu-wrap').classList.toggle('open');
-    });
-  });
-
-  // ═══ Context menu actions ═══
-  document.querySelectorAll('.ctx-menu__item').forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const action = item.dataset.action;
-      const idx = item.dataset.idx;
-      // Close menu
-      item.closest('.ctx-menu-wrap').classList.remove('open');
-
-      if(action === 'ver' && idx != null){
-        window.location.href = 'escenario-12-revisor-detalle.html?idx=' + idx;
+      // Close all others & reset elevated rows
+      document.querySelectorAll('.ctx-menu-wrap.open').forEach(w => {
+        w.classList.remove('open');
+        const prevRow = w.closest('tr');
+        if (prevRow) { prevRow.style.position = ''; prevRow.style.zIndex = ''; }
+      });
+      const wrap = btn.closest('.ctx-menu-wrap');
+      wrap.classList.toggle('open');
+      // Elevate parent row so menu renders above sibling rows
+      const row = wrap.closest('tr');
+      if (row && wrap.classList.contains('open')) {
+        row.style.position = 'relative';
+        row.style.zIndex = '100';
       }
     });
   });
 
-  // ═══ Checkbox toggle (naowee-checkbox) ═══
-  document.querySelectorAll('.naowee-checkbox').forEach(cb => {
-    cb.addEventListener('click', () => {
+  // ═══ Context menu actions ═══
+  let pendingActionIdx = null; // track which row is being acted upon
+  let pendingBulkIndices = null; // track bulk selection being acted upon
+
+  const dialogAprobar = document.getElementById('dialogAprobar');
+  const dialogRechazar = document.getElementById('dialogRechazar');
+
+  document.querySelectorAll('.ctx-menu__item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = item.dataset.action;
+      // Close menu
+      const wrap = item.closest('.ctx-menu-wrap');
+      wrap.classList.remove('open');
+      const parentRow = item.closest('tr');
+      if (parentRow) { parentRow.style.position = ''; parentRow.style.zIndex = ''; }
+
+      // Derive row index from position in tbody
+      const rows = Array.from(document.querySelectorAll('#tbodyRev tr'));
+      const rowIdx = parentRow ? rows.indexOf(parentRow) : -1;
+      const idx = item.dataset.idx != null ? item.dataset.idx : (rowIdx >= 0 ? String(rowIdx) : null);
+
+      if(action === 'ver' && idx != null){
+        const row = rows[parseInt(idx)];
+        const badge = row?.querySelector('.naowee-badge');
+        const estadoMap = {'Por revisar':'por-revisar','Activo':'activo','Rechazado':'rechazado'};
+        const estado = estadoMap[badge?.textContent?.trim()] || 'por-revisar';
+        window.location.href = 'escenario-12-revisor-detalle.html?idx=' + idx + '&estado=' + estado;
+      } else if(action === 'aceptar'){
+        pendingActionIdx = idx;
+        dialogAprobar.classList.add('open');
+      } else if(action === 'rechazar'){
+        pendingActionIdx = idx;
+        const ta = document.getElementById('rechazoMotivo');
+        if(ta) ta.value = '';
+        dialogRechazar.classList.add('open');
+      }
+    });
+  });
+
+  // ═══ Dialog helpers ═══
+  const BADGE_MAP = {
+    'activo':    { cls: 'naowee-badge--positive', label: 'Activo' },
+    'rechazado': { cls: 'naowee-badge--negative', label: 'Rechazado' },
+    'por-revisar': { cls: 'naowee-badge--caution', label: 'Por revisar' }
+  };
+
+  function persistEstado(idx, estado){
+    try {
+      const map = JSON.parse(sessionStorage.getItem('revEstados') || '{}');
+      map[idx] = estado;
+      sessionStorage.setItem('revEstados', JSON.stringify(map));
+    } catch(e){}
+  }
+
+  function updateRowBadge(idx, estado){
+    const rows = document.querySelectorAll('#tbodyRev tr');
+    const row = rows[parseInt(idx)];
+    if(!row) return;
+    const info = BADGE_MAP[estado];
+    if(!info) return;
+    const badge = row.querySelector('.naowee-badge');
+    if(badge){
+      badge.className = 'naowee-badge naowee-badge--quiet naowee-badge--small ' + info.cls;
+      badge.textContent = info.label;
+    }
+    // Remove Aceptar/Rechazar from context menu since row is no longer "Por revisar"
+    row.querySelectorAll('.ctx-menu__item[data-action="aceptar"], .ctx-menu__item[data-action="rechazar"]').forEach(el => el.remove());
+  }
+
+  function showToast(title, body, type){
+    document.querySelectorAll('.toast-wrap').forEach(t => t.remove());
+    const variant = type === 'error' ? 'negative' : 'positive';
+    const isSuccess = variant === 'positive';
+    const wrap = document.createElement('div');
+    wrap.className = 'toast-wrap';
+    wrap.innerHTML = `
+      <div class="naowee-message naowee-message--${variant}">
+        <div class="naowee-message__header">
+          <div class="naowee-message__icon">
+            ${isSuccess
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+              : '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="12" y2="8"/></svg>'
+            }
+          </div>
+          <div style="flex:1;min-width:0">
+            <p class="naowee-message__title">${title}</p>
+            <p class="naowee-message__text" style="margin-top:2px">${body}</p>
+          </div>
+          <button class="naowee-message__dismiss" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.querySelector('.naowee-message__dismiss').addEventListener('click', () => {
+      wrap.classList.add('toast-wrap--leaving');
+      setTimeout(() => wrap.remove(), 300);
+    });
+    setTimeout(() => {
+      if(wrap.parentNode){
+        wrap.classList.add('toast-wrap--leaving');
+        setTimeout(() => wrap.remove(), 300);
+      }
+    }, 4000);
+  }
+
+  // ═══ Aprobar dialog ═══
+  document.getElementById('dialogAprobarCancel').addEventListener('click', () => {
+    dialogAprobar.classList.remove('open');
+    pendingActionIdx = null;
+    pendingBulkIndices = null;
+  });
+  document.getElementById('dialogAprobarConfirm').addEventListener('click', () => {
+    dialogAprobar.classList.remove('open');
+    if(pendingBulkIndices && pendingBulkIndices.length){
+      const n = pendingBulkIndices.length;
+      pendingBulkIndices.forEach(idx => {
+        updateRowBadge(idx, 'activo');
+        persistEstado(idx, 'activo');
+      });
+      clearBulkSelection();
+      showToast(n + ' registro' + (n > 1 ? 's' : '') + ' aprobado' + (n > 1 ? 's' : ''), 'Los escenarios han sido aprobados exitosamente.', 'success');
+      pendingBulkIndices = null;
+    } else if(pendingActionIdx != null){
+      updateRowBadge(pendingActionIdx, 'activo');
+      persistEstado(pendingActionIdx, 'activo');
+      showToast('Registro aprobado', 'El escenario ha sido aprobado exitosamente.', 'success');
+      pendingActionIdx = null;
+    }
+  });
+  dialogAprobar.addEventListener('click', (e) => {
+    if(e.target === dialogAprobar){ dialogAprobar.classList.remove('open'); pendingActionIdx = null; pendingBulkIndices = null; }
+  });
+
+  // ═══ Rechazar dialog ═══
+  document.getElementById('dialogRechazarCancel').addEventListener('click', () => {
+    dialogRechazar.classList.remove('open');
+    pendingActionIdx = null;
+    pendingBulkIndices = null;
+  });
+  document.getElementById('dialogRechazarConfirm').addEventListener('click', () => {
+    dialogRechazar.classList.remove('open');
+    if(pendingBulkIndices && pendingBulkIndices.length){
+      const n = pendingBulkIndices.length;
+      pendingBulkIndices.forEach(idx => {
+        updateRowBadge(idx, 'rechazado');
+        persistEstado(idx, 'rechazado');
+      });
+      clearBulkSelection();
+      showToast(n + ' registro' + (n > 1 ? 's' : '') + ' rechazado' + (n > 1 ? 's' : ''), 'Los escenarios han sido rechazados.', 'error');
+      pendingBulkIndices = null;
+    } else if(pendingActionIdx != null){
+      updateRowBadge(pendingActionIdx, 'rechazado');
+      persistEstado(pendingActionIdx, 'rechazado');
+      showToast('Registro rechazado', 'El escenario ha sido rechazado.', 'error');
+      pendingActionIdx = null;
+    }
+  });
+  dialogRechazar.addEventListener('click', (e) => {
+    if(e.target === dialogRechazar){ dialogRechazar.classList.remove('open'); pendingActionIdx = null; pendingBulkIndices = null; }
+  });
+
+  // ═══ Checkbox + Bulk actions ═══
+  const checkAll = document.getElementById('checkAll');
+  const bulkActions = document.getElementById('bulkActions');
+  const bulkCountEl = document.getElementById('bulkCount');
+  const rowCheckboxes = document.querySelectorAll('#tbodyRev .naowee-checkbox');
+
+  function updateBulkState(){
+    const checked = document.querySelectorAll('#tbodyRev .naowee-checkbox--checked');
+    const total = checked.length;
+    bulkCountEl.textContent = total + ' seleccionado' + (total !== 1 ? 's' : '');
+    bulkActions.classList.toggle('visible', total > 0);
+    // Update checkAll state
+    if(total === rowCheckboxes.length && total > 0){
+      checkAll.classList.add('naowee-checkbox--checked');
+      checkAll.setAttribute('aria-checked','true');
+    } else {
+      checkAll.classList.remove('naowee-checkbox--checked');
+      checkAll.setAttribute('aria-checked','false');
+    }
+  }
+
+  // Individual row checkboxes
+  rowCheckboxes.forEach(cb => {
+    cb.addEventListener('click', (e) => {
       const isChecked = cb.classList.toggle('naowee-checkbox--checked');
       cb.setAttribute('aria-checked', String(isChecked));
+      updateBulkState();
     });
+  });
+
+  // Check all
+  checkAll.addEventListener('click', (e) => {
+    const shouldCheck = checkAll.getAttribute('aria-checked') !== 'true';
+    rowCheckboxes.forEach(cb => {
+      cb.classList.toggle('naowee-checkbox--checked', shouldCheck);
+      cb.setAttribute('aria-checked', String(shouldCheck));
+    });
+    checkAll.classList.toggle('naowee-checkbox--checked', shouldCheck);
+    checkAll.setAttribute('aria-checked', String(shouldCheck));
+    updateBulkState();
+  });
+
+  function collectSelectedIndices(){
+    const checked = document.querySelectorAll('#tbodyRev .naowee-checkbox--checked');
+    const rows = Array.from(document.querySelectorAll('#tbodyRev tr'));
+    const out = [];
+    checked.forEach(cb => {
+      const row = cb.closest('tr');
+      const idx = rows.indexOf(row);
+      if(idx >= 0) out.push(String(idx));
+    });
+    return out;
+  }
+
+  function clearBulkSelection(){
+    document.querySelectorAll('#tbodyRev .naowee-checkbox--checked').forEach(cb => {
+      cb.classList.remove('naowee-checkbox--checked');
+      cb.setAttribute('aria-checked','false');
+    });
+    updateBulkState();
+  }
+
+  // Bulk approve all selected
+  document.getElementById('btnBulkApproveAll').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const indices = collectSelectedIndices();
+    if(!indices.length) return;
+    pendingBulkIndices = indices;
+    pendingActionIdx = null;
+    dialogAprobar.classList.add('open');
+  });
+
+  // Bulk reject all selected
+  document.getElementById('btnBulkRejectAll').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const indices = collectSelectedIndices();
+    if(!indices.length) return;
+    pendingBulkIndices = indices;
+    pendingActionIdx = null;
+    const ta = document.getElementById('rechazoMotivo');
+    if(ta) ta.value = '';
+    dialogRechazar.classList.add('open');
   });
 
   // ═══ Close dropdowns on outside click ═══
   document.addEventListener('click', () => {
     ps.classList.remove('open');
+    document.querySelectorAll('.role-dropdown.open').forEach(el => el.classList.remove('open'));
     ddWrap.classList.remove('open');
     ddBtn.classList.remove('open');
     ddBtn.setAttribute('aria-expanded','false');
-    document.querySelectorAll('.ctx-menu-wrap.open').forEach(w => w.classList.remove('open'));
+    document.querySelectorAll('.ctx-menu-wrap.open').forEach(w => {
+      w.classList.remove('open');
+      const r = w.closest('tr');
+      if (r) { r.style.position = ''; r.style.zIndex = ''; }
+    });
+  });
+
+  // ═══ Logout ═══
+  function fadeAndGo(url){document.body.style.transition='opacity .25s ease';document.body.style.opacity='0';setTimeout(()=>{window.location.href=url},260)}
+  document.getElementById('btnLogout')?.addEventListener('click', () => {
+    try { sessionStorage.clear(); } catch(e){}
+    fadeAndGo('escenario-01-login.html');
   });
 
 })();

@@ -511,6 +511,7 @@
 .datepicker-wrap{position:relative;width:100%}
 .datepicker-wrap .naowee-datepicker-field__input{cursor:pointer}
 .datepicker-wrap .naowee-datepicker-field__value{text-align:left}
+.naowee-datepicker-field--error .naowee-datepicker-field__input{border-color:var(--naowee-color-feedback-border-negative,#e53935) !important;box-shadow:0 0 0 3px rgba(229,57,53,.12)}
 .datepicker-wrap .naowee-datepicker{
   position:fixed;
   background:var(--naowee-color-fill-primary,#fff);
@@ -778,6 +779,7 @@
   display:flex;flex-direction:column;gap:24px;
   transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
 }
+#reg3DiscSection{display:flex;flex-direction:column;gap:16px}
 #reg3DynamicSection{display:flex;flex-direction:column;gap:16px}
 .reg3-step[hidden]{display:none}
 .reg3-step--slide-out-left{transform:translateX(-40px);opacity:0;pointer-events:none}
@@ -829,6 +831,7 @@
   transition:border-color .2s, box-shadow .2s;
 }
 .reg3-disc-card:first-child{margin-top:0}
+.naowee-message + .reg3-disc-card{margin-top:12px}
 .reg3-disc-card:not(.collapsed){
   border-color:var(--border-dark);
   box-shadow:0 1px 4px rgba(0,0,0,.04);
@@ -870,6 +873,9 @@
 .reg3-disc-card__body-inner{
   overflow:hidden;
   min-height:0;
+}
+.reg3-disc-card:not(.collapsed) .reg3-disc-card__body-inner{
+  overflow:visible;
 }
 .reg3-disc-card__body{
   display:flex;flex-direction:column;gap:16px;
@@ -916,7 +922,7 @@
 .reg3 .naowee-file-uploader__file-tag--uploaded .naowee-file-uploader__file-dismiss{display:flex}
 
 /* Vista "Próximamente" del paso 3 (documentación stub) */
-/* Tabla de documentos (paso 4) */
+/* Tabla de documentos (paso 3) */
 .reg3-doc-table{
   width:100%;border-collapse:separate;border-spacing:0;
   font-family:var(--naowee-font-family,'Inter',sans-serif);
@@ -1507,7 +1513,7 @@
 
     <!-- Footer sticky -->
     <div class="reg-modal__footer">
-      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="regSubmitBtn" disabled>
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="regSubmitBtn">
         Validar y continuar
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
@@ -1523,7 +1529,7 @@
     <!-- Header -->
     <div class="reg-modal__header">
       <div class="reg-modal__titles">
-        <span class="reg-modal__step" id="regModal3StepChip">2 de 4</span>
+        <span class="reg-modal__step" id="regModal3StepChip">2 de 3</span>
         <h2 class="reg-modal__title" id="regModal3Title">Datos deportivos</h2>
         <p class="reg-modal__subtitle">Completa la información requerida para registrar la sede o el escenario deportivo.</p>
         <span class="reg-modal__id-chip">ID único: <strong id="regModal3IdChip">—</strong></span>
@@ -1533,7 +1539,7 @@
       </button>
     </div>
 
-    <!-- Stepper unificado (4 pasos) -->
+    <!-- Stepper unificado (3 pasos) -->
     <div class="reg3-tabs" id="reg3Tabs">
       <div class="reg3-tabs__item reg3-tabs__item--done" data-reg3-tab="1">
         <div class="reg3-tabs__circle">
@@ -1549,11 +1555,6 @@
       <div class="reg3-tabs__connector" data-reg3-conn="2-3"></div>
       <div class="reg3-tabs__item" data-reg3-tab="3">
         <div class="reg3-tabs__circle">3</div>
-        <div class="reg3-tabs__label">Disciplinas</div>
-      </div>
-      <div class="reg3-tabs__connector" data-reg3-conn="3-4"></div>
-      <div class="reg3-tabs__item" data-reg3-tab="4">
-        <div class="reg3-tabs__circle">4</div>
         <div class="reg3-tabs__label">Documentación</div>
       </div>
     </div>
@@ -1617,6 +1618,26 @@
           </div>
         </div>
 
+        <!-- Toggles de compartir (solo cuando hay múltiples sub-espacios monolíticos) -->
+        <div id="reg3SharingToggles" hidden>
+          <div class="reg3-inline-toggle" style="margin-top:4px">
+            <span class="reg3-inline-toggle__label">¿Los escenarios comparten las mismas disciplinas?<span class="req">*</span></span>
+            <div class="naowee-switch naowee-switch--on" id="reg3ShareDiscToggle" role="switch" aria-checked="true" aria-label="Compartir disciplinas" tabindex="0">
+              <div class="naowee-switch__track">
+                <div class="naowee-switch__handle"></div>
+              </div>
+            </div>
+          </div>
+          <div class="reg3-inline-toggle">
+            <span class="reg3-inline-toggle__label">¿Los escenarios comparten los mismos detalles?<span class="req">*</span></span>
+            <div class="naowee-switch naowee-switch--on" id="reg3ShareDetailsToggle" role="switch" aria-checked="true" aria-label="Compartir detalles" tabindex="0">
+              <div class="naowee-switch__track">
+                <div class="naowee-switch__handle"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Fichas específicas por sub-espacio (N cards colapsables) -->
         <div id="reg3FichaEspecificaContainer" hidden>
           <h3 class="reg-section__title" id="reg3FichaEspecificaTitle">FICHA TÉCNICA</h3>
@@ -1629,51 +1650,11 @@
           <!-- renderizado por JS -->
         </div>
 
-      </div>
+        <!-- ── Disciplinas deportivas (integrado al paso 2) ── -->
+        <div id="reg3DiscSection" hidden>
+          <h3 class="reg-section__title">DISCIPLINAS DEPORTIVAS</h3>
 
-      <!-- ══════════════════════════════════════════════════
-           STEP 2 — Disciplinas deportivas
-           ══════════════════════════════════════════════════ -->
-      <div class="reg3-step" data-reg3-step="3" hidden>
-
-        <div class="naowee-message naowee-message--informative" id="reg3DiscHint" hidden>
-          <div class="naowee-message__header">
-            <div class="naowee-message__icon">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="8" y1="4" x2="8" y2="8"/>
-                <line x1="8" y1="11" x2="8" y2="11.01"/>
-              </svg>
-            </div>
-            <div class="naowee-message__title">Información del escenario</div>
-          </div>
-          <p class="naowee-message__text" id="reg3DiscHintText">
-            Selecciona las disciplinas que se practican en este escenario.
-          </p>
-        </div>
-
-        <!-- Multi-select de disciplinas (filtradas por tipo de escenario) -->
-        <div class="reg-multi" id="reg3DiscMulti">
-          <label class="reg-multi__label">Disciplinas deportivas que alberga <span class="req" style="color:var(--accent)">*</span></label>
-          <button type="button" class="reg-multi__trigger" id="reg3DiscTrigger" aria-haspopup="listbox" aria-expanded="false">
-            <span class="reg-multi__chips" id="reg3DiscChips">
-              <span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>
-            </span>
-            <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="reg-multi__menu" role="listbox">
-            <div class="reg-multi__options" id="reg3DiscOptions"></div>
-            <div class="reg-multi__menu-footer">
-              <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small" id="reg3DiscConfirm">
-                Agregar
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sección expandida (aparece cuando hay disciplinas) -->
-        <div id="reg3DynamicSection" hidden>
-          <!-- Hint multi-espacio: aparece sólo si el tipo de escenario tiene multiEspacio=true -->
-          <div class="naowee-message naowee-message--informative" id="reg3MultiHint" hidden>
+          <div class="naowee-message naowee-message--informative" id="reg3DiscHint" hidden>
             <div class="naowee-message__header">
               <div class="naowee-message__icon">
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1681,22 +1662,60 @@
                   <line x1="8" y1="11" x2="8" y2="11.01"/>
                 </svg>
               </div>
-              <div class="naowee-message__title">Escenario con varios espacios físicos</div>
+              <div class="naowee-message__title">Información del escenario</div>
             </div>
-            <p class="naowee-message__text">
-              Este tipo de escenario contiene varias canchas o sub-espacios. Completa las dimensiones y características físicas específicas de cada deporte.
+            <p class="naowee-message__text" id="reg3DiscHintText">
+              Selecciona las disciplinas que se practican en este escenario.
             </p>
           </div>
-          <!-- Secciones por disciplina (renderizadas por JS) -->
-          <div id="reg3DisciplinesList"></div>
+
+          <!-- Multi-select de disciplinas (filtradas por tipo de escenario) -->
+          <div class="reg-multi" id="reg3DiscMulti">
+            <label class="reg-multi__label">Disciplinas deportivas que alberga <span class="req" style="color:var(--accent)">*</span></label>
+            <button type="button" class="reg-multi__trigger" id="reg3DiscTrigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="reg-multi__chips" id="reg3DiscChips">
+                <span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>
+              </span>
+              <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="reg-multi__menu" role="listbox">
+              <div class="reg-multi__options" id="reg3DiscOptions"></div>
+              <div class="reg-multi__menu-footer">
+                <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small" id="reg3DiscConfirm">
+                  Agregar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección expandida (aparece cuando hay disciplinas) -->
+          <div id="reg3DynamicSection" hidden>
+            <!-- Hint multi-espacio: aparece sólo si el tipo de escenario tiene multiEspacio=true -->
+            <div class="naowee-message naowee-message--informative" id="reg3MultiHint" hidden>
+              <div class="naowee-message__header">
+                <div class="naowee-message__icon">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="4" x2="8" y2="8"/>
+                    <line x1="8" y1="11" x2="8" y2="11.01"/>
+                  </svg>
+                </div>
+                <div class="naowee-message__title">Escenario con varios espacios físicos</div>
+              </div>
+              <p class="naowee-message__text">
+                Este tipo de escenario contiene varias canchas o sub-espacios. Completa las dimensiones y características físicas específicas de cada deporte.
+              </p>
+            </div>
+            <!-- Secciones por disciplina (renderizadas por JS) -->
+            <div id="reg3DisciplinesList"></div>
+          </div>
         </div>
 
       </div>
 
       <!-- ══════════════════════════════════════════════════
-           STEP 3 — Documentación (stub)
+           STEP 3 — Documentación
            ══════════════════════════════════════════════════ -->
-      <div class="reg3-step" data-reg3-step="4" hidden>
+      <div class="reg3-step" data-reg3-step="3" hidden>
 
         <!-- ══ SECCIÓN A: FOTOGRAFÍAS GENERALES ══ -->
         <h3 class="reg-section__title">FOTOGRAFÍAS GENERALES DEL ESCENARIO</h3>
@@ -1865,7 +1884,7 @@
     <!-- Header -->
     <div class="reg-modal__header">
       <div class="reg-modal__titles">
-        <span class="reg-modal__step">1 de 4</span>
+        <span class="reg-modal__step">1 de 3</span>
         <h2 class="reg-modal__title" id="regModal2Title">Datos de propiedad y administración</h2>
         <p class="reg-modal__subtitle">Completa la información requerida para registrar la sede o el escenario deportivo.</p>
         <span class="reg-modal__id-chip">ID único: <strong id="regModal2IdChip">10000101010</strong></span>
@@ -1875,7 +1894,7 @@
       </button>
     </div>
 
-    <!-- Stepper unificado (4 pasos) -->
+    <!-- Stepper unificado (3 pasos) -->
     <div class="reg3-tabs" id="reg2Tabs">
       <div class="reg3-tabs__item reg3-tabs__item--active">
         <div class="reg3-tabs__circle">1</div>
@@ -1889,11 +1908,6 @@
       <div class="reg3-tabs__connector"></div>
       <div class="reg3-tabs__item">
         <div class="reg3-tabs__circle">3</div>
-        <div class="reg3-tabs__label">Disciplinas</div>
-      </div>
-      <div class="reg3-tabs__connector"></div>
-      <div class="reg3-tabs__item">
-        <div class="reg3-tabs__circle">4</div>
         <div class="reg3-tabs__label">Documentación</div>
       </div>
     </div>
@@ -2134,23 +2148,23 @@
           <line x1="12" y1="17" x2="12" y2="17.01"/>
         </svg>
       </div>
-      <h2 class="dialog-card__title" id="dlgWarnCloseTitle">Información importante</h2>
-      <p class="dialog-card__sub">Antes de cancelar tenga en cuenta:</p>
+      <h2 class="dialog-card__title" id="dlgWarnCloseTitle">¿Deseas guardar tu progreso?</h2>
+      <p class="dialog-card__sub">Si sales sin guardar, los datos ingresados se perderán.</p>
       <ul class="dialog-list">
         <li class="dialog-list__item">
           <span class="dialog-list__check">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </span>
-          <span>Si cancela en este punto sin hacer la validación el registro no se realizará y sus datos serán borrados.</span>
+          <span>Puedes guardar como borrador y continuar el registro en otro momento.</span>
         </li>
       </ul>
     </div>
     <div class="dialog-card__footer dialog-card__footer--spread">
       <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--large" id="dlgWarnDiscard">
-        Cerrar
+        Descartar
       </button>
-      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="dlgWarnContinue">
-        Continuar registro
+      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="dlgWarnSaveDraft">
+        Guardar borrador
       </button>
     </div>
   </div>
@@ -2227,7 +2241,7 @@
     if(raw){
       const arr = JSON.parse(raw);
       if(Array.isArray(arr)){
-        draftItems = arr.map(d => ({
+        draftItems = arr.map((d, i) => ({
           name: d.nombre,
           id: d.catastral || '—',
           car: '—',
@@ -2235,7 +2249,8 @@
           modifiedDate: formatDraftDate(d.savedAt),
           modifiedBy: 'De ' + (d.responsable || 'Juan Hernandez Granados'),
           action: 'edit',
-          isDraft: true
+          isDraft: true,
+          draftIdx: i
         }));
       }
     }
@@ -2302,7 +2317,9 @@
     const icon = item.action === 'edit' ? ICON_EDIT : ICON_VIEW;
     const actionLabel = item.action === 'edit' ? 'Editar' : 'Ver detalle';
     let actionAttr = '';
-    if(item.action === 'edit') actionAttr = ` data-draft-idx="${idx}"`;
+    if(item.isDraft) actionAttr = ` data-draft-idx="${item.draftIdx}"`;
+    else if(item.state.variant === 'informative' || item.state.variant === 'neutral') actionAttr = ` data-demo-draft="${idx}"`;
+    else if(item.state.variant === 'negative') actionAttr = ` data-rechazado-idx="${idx}"`;
     else if(item.state.variant === 'caution') actionAttr = ` data-review-idx="${idx}"`;
     else if(item.state.variant === 'positive') actionAttr = ` data-activo-idx="${idx}"`;
     return `
@@ -2352,9 +2369,8 @@
   const tbody = document.getElementById('tbodyScenarios');
   const pgInput = document.getElementById('pgInput');
   const pgTotal = document.getElementById('pgTotal');
-  // Si hay drafts acumulados, se usan en lugar del mock del modo;
-  // si no, se usa el dataset del modo seleccionado.
-  const rows = draftItems.length > 0 ? draftItems : (DATA[mode] || []);
+  // Datos demo del modo + borradores del sessionStorage (acumulados)
+  const rows = [...draftItems, ...(DATA[mode] || [])];
 
   if(rows.length === 0){
     tbody.innerHTML = renderEmptyState();
@@ -2375,9 +2391,17 @@
     });
   }
 
-  // Mostrar toast solo en mode=single (venimos de guardar un borrador)
-  if(mode === 'single'){
+  // Toast de feedback (borrador guardado o registro enviado)
+  const showSent = sessionStorage.getItem('showSentToast');
+  if(showSent) sessionStorage.removeItem('showSentToast');
+  const showDraft = sessionStorage.getItem('showDraftToast');
+  if(showDraft) sessionStorage.removeItem('showDraftToast');
+  if(showSent || showDraft){
     const toast = document.getElementById('toastMsg');
+    if(showSent){
+      toast.querySelector('.toast-message__title').textContent = 'Enviaste el registro exitosamente';
+      toast.querySelector('.toast-message__body').textContent = 'El registro ha sido enviado y asignado para revisión. Consulte su estado en la tabla.';
+    }
     toast.classList.remove('hidden');
     function dismissToast(){
       if(toast.classList.contains('hidden')) return;
@@ -2627,9 +2651,26 @@
     if(multi && multi.classList.contains('open') && typeof floatMultiMenu === 'function'){
       floatMultiMenu();
     }
+    // Cerrar multi-selects abiertos al hacer scroll
+    document.querySelectorAll('.reg-modal .reg-multi.open').forEach(m => {
+      m.classList.remove('open');
+      const trig = m.querySelector('.reg-multi__trigger');
+      if(trig) trig.setAttribute('aria-expanded','false');
+    });
   }
   document.querySelectorAll('.reg-modal__body').forEach(body => {
     body.addEventListener('scroll', repositionOpenDropdowns, {passive: true});
+    body.addEventListener('wheel', (evt) => {
+      // No cerrar si el scroll es dentro del menú del multi-select
+      if(evt.target.closest('.reg-multi__menu')) return;
+      document.querySelectorAll('.reg-modal .reg-multi.open').forEach(m => {
+        m.classList.remove('open');
+        const menu = m.querySelector('.reg-multi__menu');
+        if(menu) menu.classList.remove('reg-multi__menu--floating');
+        const trig = m.querySelector('.reg-multi__trigger');
+        if(trig) trig.setAttribute('aria-expanded','false');
+      });
+    }, {passive: true});
   });
   window.addEventListener('resize', repositionOpenDropdowns);
 
@@ -2684,12 +2725,29 @@
   }
 
   function openModal(){
+    // Reset state for fresh registration
+    editingDraftIdx = null;
+    regState.nombre = '';
+    regState.departamento = '';
+    regState.municipio = '';
+    regState.catastral = '';
+    regState.catastralState = 'empty';
+    regState.lat = null;
+    regState.lon = null;
+    regState.direccion = '';
+    regState.corregimiento = '';
+    regState.zona = '';
+    // Clear form inputs
+    const regNombre = document.getElementById('regNombre');
+    if(regNombre) regNombre.value = '';
+    const regDireccion = document.getElementById('regDireccion');
+    if(regDireccion) regDireccion.value = '';
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
     setTimeout(() => {
       initMap();
       if(mapInstance) mapInstance.invalidateSize();
-      document.getElementById('regNombre')?.focus();
+      regNombre?.focus();
     }, 250);
   }
   function closeModal(){
@@ -2697,10 +2755,21 @@
     document.body.style.overflow = '';
   }
 
+  // Tracks which modal triggered the warn-close dialog
+  let _warnCloseOrigin = 'reg1';
+
   // Intento de cerrar: si hay datos, abre dialog de advertencia
   function attemptClose(){
     if(isDirty()){
-      openDialog('dlgWarnClose');
+      validate();
+      if(reg1Valid){
+        // Datos válidos: ofrecer guardar borrador
+        _warnCloseOrigin = 'reg1';
+        openDialog('dlgWarnClose');
+      } else {
+        // Datos incompletos: cerrar sin guardar
+        closeModal();
+      }
     } else {
       closeModal();
     }
@@ -2876,9 +2945,10 @@
   });
 
   /* ─── VALIDATION (solo paso 1: pre-validación + georref) ─── */
+  let reg1Valid = false;
   function validate(){
     const r = regState;
-    const ok = (
+    reg1Valid = (
       r.nombre.length >= 5 &&
       r.departamento && r.municipio &&
       r.catastralState === 'valid' &&
@@ -2886,12 +2956,36 @@
       r.direccion.length >= 5 &&
       r.zona
     );
-    submitBtn.disabled = !ok;
+    // Ya no deshabilitamos el botón — el handler decide si avanza o muestra errores
+  }
+
+  /* ─── Highlight errores modal 1 ─── */
+  function highlightReg1Errors(){
+    const r = regState;
+    // Limpiar errores previos
+    document.querySelectorAll('#regModalOverlay .naowee-textfield--error, #regModalOverlay .naowee-dropdown--error').forEach(el => clearFieldError(el));
+    const checks = [
+      { id:'regFldNombre', empty: r.nombre.length < 5 },
+      { id:'regDepartamentoDD', empty: !r.departamento },
+      { id:'regMunicipioDD', empty: !r.municipio },
+      { id:'regFldCatastral', empty: r.catastralState !== 'valid' },
+      { id:'regFldDireccion', empty: r.direccion.length < 5 },
+      { id:'regZonaDD', empty: !r.zona }
+    ];
+    checks.forEach(c => {
+      if(c.empty) showFieldError(document.getElementById(c.id));
+    });
+    autoCleanErrors(document.getElementById('regModalOverlay'));
+    scrollToFirstError(document.querySelector('#regModalOverlay .reg-modal__body'));
   }
 
   /* ─── SUBMIT: abre dialog de validación exitosa ─── */
   submitBtn.addEventListener('click', () => {
-    if(submitBtn.disabled) return;
+    validate();
+    if(!reg1Valid){
+      highlightReg1Errors();
+      return;
+    }
     submitBtn.classList.add('naowee-btn--loading');
     setTimeout(() => {
       submitBtn.classList.remove('naowee-btn--loading');
@@ -2906,7 +3000,8 @@
       const raw = sessionStorage.getItem('regDrafts');
       if(raw) arr = JSON.parse(raw) || [];
       if(!Array.isArray(arr)) arr = [];
-      arr.push(Object.assign({
+      // Base: datos paso 1
+      const data = {
         nombre: regState.nombre,
         catastral: regState.catastral,
         departamento: regState.departamento,
@@ -2918,7 +3013,18 @@
         zona: regState.zona,
         responsable: (extra && extra.responsable) || '',
         savedAt: Date.now()
-      }, extra || {}));
+      };
+      // Si estamos en paso 2+, incluir reg2State
+      if(_warnCloseOrigin === 'reg2' || _warnCloseOrigin === 'reg3'){
+        Object.assign(data, fullReg2Snapshot());
+      }
+      // Si estamos editando un draft existente, actualizar en vez de push
+      if(editingDraftIdx != null){
+        const prev = arr[editingDraftIdx] || {};
+        arr[editingDraftIdx] = Object.assign({}, prev, data, extra || {});
+      } else {
+        arr.push(Object.assign(data, extra || {}));
+      }
       sessionStorage.setItem('regDrafts', JSON.stringify(arr));
     } catch(err){ /* ignore */ }
   }
@@ -2926,14 +3032,14 @@
   function goToSingleMode(){
     closeDialog('dlgValidation');
     closeModal();
-    const url = new URL(window.location.href);
-    url.searchParams.set('mode','single');
-    window.location.href = url.toString();
+    // Recargar la misma URL para que el mode switcher recombine demo + drafts
+    window.location.reload();
   }
 
   // Guardar borrador: guarda solo los datos del paso 1 y vuelve al dashboard
   document.getElementById('dlgValSaveDraft').addEventListener('click', () => {
     appendDraft();
+    sessionStorage.setItem('showDraftToast', '1');
     goToSingleMode();
   });
 
@@ -2951,61 +3057,54 @@
   /* ─── DIALOG: Advertencia al cerrar ─── */
   document.getElementById('dlgWarnDiscard').addEventListener('click', () => {
     closeDialog('dlgWarnClose');
-    closeModal();
+    if(_warnCloseOrigin === 'reg3'){
+      closeModal3();
+    } else if(_warnCloseOrigin === 'reg2'){
+      document.getElementById('regModal2Overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    } else {
+      closeModal();
+    }
   });
-  document.getElementById('dlgWarnContinue').addEventListener('click', () => {
+  document.getElementById('dlgWarnSaveDraft').addEventListener('click', () => {
     closeDialog('dlgWarnClose');
+    appendDraft();
+    sessionStorage.setItem('showDraftToast', '1');
+    if(_warnCloseOrigin === 'reg3'){
+      closeModal3();
+    } else if(_warnCloseOrigin === 'reg2'){
+      document.getElementById('regModal2Overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    } else {
+      closeModal();
+    }
+    goToSingleMode();
   });
 
-  // Modal "Formulario enviado" → "Entendido" → dashboard con estado "En revisión" + toast
+  // Modal "Formulario enviado" → "Entendido" → recargar página para mostrar tabla actualizada + toast
   function closeSentReview(){
     document.getElementById('dlgSentReview').classList.remove('open');
-    // Recargar dashboard mostrando el registro con estado "En revisión"
-    // Cambiar el toast message para el éxito del envío
-    const toast = document.getElementById('toastMsg');
-    toast.querySelector('.toast-message__title').textContent = 'Enviaste el registro exitosamente';
-    toast.querySelector('.toast-message__body').textContent = 'El registro ha sido enviado y asignado para revisión. Consulte su estado en la tabla.';
-    toast.classList.remove('hidden');
-    function dismissToast(){
-      if(toast.classList.contains('hidden')) return;
-      toast.classList.add('toast-message--leaving');
-      setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('toast-message--leaving'); }, 300);
-    }
-    setTimeout(dismissToast, 6000);
-    // Re-renderizar la tabla con el draft actualizado (status='revision')
-    const tbody = document.getElementById('tbodyScenarios');
-    try {
-      const arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]');
-      const meses = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.'];
-      tbody.innerHTML = arr.map((d, idx) => {
-        const ts = d.savedAt ? new Date(d.savedAt) : new Date();
-        const h = ts.getHours() % 12 || 12;
-        const ampm = ts.getHours() >= 12 ? 'PM' : 'AM';
-        const dateStr = `${meses[ts.getMonth()]} ${String(ts.getDate()).padStart(2,'0')}, ${ts.getFullYear()} ${h}:${String(ts.getMinutes()).padStart(2,'0')} ${ampm}`;
-        const isReview = d.status === 'revision';
-        const stateLabel = isReview ? 'En revisión' : 'Borrador';
-        const stateVariant = isReview ? 'caution' : 'informative';
-        const actionIcon = isReview
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-        return `<tr>
-          <td><div class="cell-name">${d.nombre || '—'}</div></td>
-          <td><div class="cell-id">${d.catastral || '—'}</div></td>
-          <td><div class="cell-car">${d.car ? 'Sí' : '—'}</div></td>
-          <td><span class="naowee-badge naowee-badge--quiet naowee-badge--${stateVariant}">${stateLabel}</span></td>
-          <td><div class="cell-modified"><span class="cell-modified__date">${dateStr}</span><span class="cell-modified__user">De ${d.responsable || 'Juan Hernandez Granados'}</span></div></td>
-          <td><button type="button" class="naowee-btn naowee-btn--mute naowee-btn--icon naowee-btn--small" aria-label="${isReview ? 'Ver' : 'Editar'}"${isReview ? ' data-review-idx="'+idx+'"' : ' data-draft-idx="'+idx+'"'}>${actionIcon}</button></td>
-        </tr>`;
-      }).join('');
-      document.getElementById('pgInput').value = arr.length > 0 ? '1' : '0';
-      document.getElementById('pgTotal').textContent = arr.length > 0 ? '1' : '0';
-    } catch(e){}
+    // Marcar flag para mostrar toast de envío al recargar
+    sessionStorage.setItem('showSentToast', '1');
+    // Recargar la misma URL para que el mode switcher recombine demo + drafts
+    window.location.reload();
   }
   document.getElementById('dlgSentReviewOk').addEventListener('click', closeSentReview);
   document.getElementById('dlgSentReviewClose').addEventListener('click', closeSentReview);
 
-  // Click en ojo → navega a la página de detalle según estado
+  // Click en acción → navega a la página según estado
   document.addEventListener('click', e => {
+    const demoDraftBtn = e.target.closest('[data-demo-draft]');
+    if(demoDraftBtn){
+      const idx = parseInt(demoDraftBtn.dataset.demoDraft);
+      if(window.openEditDraft) window.openEditDraft(idx);
+      return;
+    }
+    const rechazadoBtn = e.target.closest('[data-rechazado-idx]');
+    if(rechazadoBtn){
+      window.location.href = `escenario-09-detalle-revision.html?idx=${rechazadoBtn.dataset.rechazadoIdx}&estado=rechazado`;
+      return;
+    }
     const reviewBtn = e.target.closest('[data-review-idx]');
     if(reviewBtn){
       window.location.href = `escenario-09-detalle-revision.html?idx=${reviewBtn.dataset.reviewIdx}`;
@@ -3040,6 +3139,7 @@
   }
   function attemptClose2(){
     if(isDirty2()){
+      _warnCloseOrigin = 'reg2';
       openDialog('dlgWarnClose');
     } else {
       closeModal2();
@@ -3427,6 +3527,7 @@
       reg2VencValue.textContent = reg2FormatDisplay(picked);
       reg2VencValue.style.color = 'var(--naowee-color-text-primary,#282834)';
       closeReg2Datepicker();
+      clearFieldError(document.getElementById('reg2FldVencimiento'));
       validate2();
     }
   });
@@ -3501,6 +3602,8 @@
       wrap.classList.add('naowee-dropdown--error');
     else if(wrap.classList.contains('naowee-input-stepper'))
       wrap.classList.add('naowee-input-stepper--error');
+    else if(wrap.classList.contains('naowee-datepicker-field'))
+      wrap.classList.add('naowee-datepicker-field--error');
     else if(wrap.classList.contains('reg-multi'))
       wrap.classList.add('naowee-textfield--error'); // fallback visual
 
@@ -3519,7 +3622,7 @@
 
   function clearFieldError(wrap){
     if(!wrap) return;
-    wrap.classList.remove('naowee-textfield--error','naowee-dropdown--error','naowee-input-stepper--error');
+    wrap.classList.remove('naowee-textfield--error','naowee-dropdown--error','naowee-input-stepper--error','naowee-datepicker-field--error');
     const h = wrap.querySelector('.field-req-helper');
     if(h) h.remove();
   }
@@ -3556,7 +3659,7 @@
 
   // Scroll al primer campo con error dentro de un modal body
   function scrollToFirstError(modalBody){
-    const first = modalBody.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error, .field-error-wiggle');
+    const first = modalBody.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error, .naowee-datepicker-field--error, .field-error-wiggle');
     if(first) setTimeout(() => first.scrollIntoView({ behavior:'smooth', block:'center' }), 120);
   }
 
@@ -3564,12 +3667,13 @@
   function highlightReg2Errors(){
     const r = reg2State;
     // Limpiar errores previos
-    document.querySelectorAll('#regModal2Overlay .naowee-textfield--error, #regModal2Overlay .naowee-dropdown--error').forEach(el => clearFieldError(el));
+    document.querySelectorAll('#regModal2Overlay .naowee-textfield--error, #regModal2Overlay .naowee-dropdown--error, #regModal2Overlay .naowee-datepicker-field--error').forEach(el => clearFieldError(el));
     // Campos required: id del wrapper → condición de vacío
     const checks = [
       { id:'reg2FldEntidad', empty: !r.entidad },
       { id:'reg2PropietarioDD', empty: !r.propietario },
       { id:'reg2TenenciaDD', empty: !r.tenencia },
+      { id:'reg2FldVencimiento', empty: TENENCIAS_CON_VENCIMIENTO.has(r.tenencia) && !r.vencimiento },
       { id:'reg2FldResponsable', empty: !r.responsable },
       { id:'reg2FldTelefono', empty: r.telefono.length !== 10 },
       { id:'reg2CostoDD', empty: !r.costo },
@@ -3872,14 +3976,13 @@
       fichaPorDisciplina: []
     },
     'Coliseo': {
-      hint: 'Estructura techada multipropósito con tribuna y cancha central. Los deportes rotan sobre la misma cancha.',
+      hint: 'Estructura techada multipropósito con tribuna y canchas. Cada cancha puede albergar distintas disciplinas.',
       fichaEspecifica: [
-        { id:'largoCancha', label:'Largo cancha central (m)', type:'decimal', required:true },
-        { id:'anchoCancha', label:'Ancho cancha central (m)', type:'decimal', required:true },
+        { id:'largoCancha', label:'Largo de la cancha (m)', type:'decimal', required:true },
+        { id:'anchoCancha', label:'Ancho de la cancha (m)', type:'decimal', required:true },
         { id:'superficie', label:'Tipo de superficie', type:'dropdown', required:true,
           options:['Parquet','Sintético','Madera','Goma'] },
-        { id:'alturaTecho', label:'Altura del techo (m)', type:'decimal' },
-        { id:'canchasAux', label:'Número de canchas auxiliares', type:'stepper' }
+        { id:'alturaTecho', label:'Altura del techo (m)', type:'decimal' }
       ],
       disciplinas: ['Baloncesto','Voleibol','Fútbol sala','Balonmano','Bádminton','Gimnasia','Boxeo','Tenis de mesa','Karate','Taekwondo','Esgrima','Lucha'],
       fichaPorDisciplina: [
@@ -4014,6 +4117,8 @@
     fichaEspecifica: {}, // datos del sub-espacio 1 (retrocompatible)
     subEspacios: [], // [{ nombre:'Piscina 1', ficha:{} }, { nombre:'Piscina 2', ficha:{} }]
     subCount: 1,
+    compartirDisciplinas: true,  // toggle: sub-espacios comparten mismas disciplinas
+    compartirDetalles: true,     // toggle: sub-espacios comparten mismos detalles técnicos
     dotacion: {
       iluminacion: false, tipoIluminacion: '',
       vestieres: false, numVestieres: '',
@@ -4045,8 +4150,8 @@
     }
   };
 
-  // Paso del stepper unificado (1: info general, 2: escenario físico, 3: disciplinas, 4: documentación)
-  // Modal 3 sólo maneja los pasos 2, 3 y 4
+  // Paso del stepper unificado (1: info general, 2: escenario físico + disciplinas, 3: documentación)
+  // Modal 3 sólo maneja los pasos 2 y 3
   let reg3Step = 2;
   let reg3Valid = false;
 
@@ -4072,8 +4177,17 @@
     document.body.style.overflow = '';
   }
 
-  document.getElementById('regModal3Close').addEventListener('click', () => closeModal3());
-  modal3.addEventListener('click', e => { if(e.target === modal3) closeModal3(); });
+  function attemptClose3(){
+    // Si hay tipo de escenario seleccionado, hay progreso que proteger
+    if(reg3State && reg3State.tipo){
+      _warnCloseOrigin = 'reg3';
+      openDialog('dlgWarnClose');
+    } else {
+      closeModal3();
+    }
+  }
+  document.getElementById('regModal3Close').addEventListener('click', attemptClose3);
+  modal3.addEventListener('click', e => { if(e.target === modal3) attemptClose3(); });
 
   /* ═════════════════════════════════════════════════
      Navegación entre los tabs del modal 3 (stepper unificado 2/3/4)
@@ -4121,7 +4235,7 @@
     });
     // Actualizar chip del header
     const chip = document.getElementById('regModal3StepChip');
-    if(chip) chip.textContent = n + ' de 4';
+    if(chip) chip.textContent = n + ' de 3';
     // Actualizar stepper visual (los 4 tabs del stepper)
     document.querySelectorAll('#reg3Tabs [data-reg3-tab]').forEach(el => {
       const idx = parseInt(el.dataset.reg3Tab);
@@ -4140,11 +4254,11 @@
       el.classList.toggle('reg3-tabs__connector--done', to <= n);
       el.classList.toggle('reg3-tabs__connector--active', false);
     });
-    // Actualizar label del botón de continuar (paso 4 = guardar borrador)
+    // Actualizar label del botón de continuar (paso 3 = enviar a validación)
     const label = document.getElementById('reg3SubmitBtnLabel');
-    label.textContent = n === 4 ? 'Enviar a validación' : 'Continuar';
-    // Renderizar documentación al entrar al paso 4
-    if(n === 4) renderDocumentacion();
+    label.textContent = n === 3 ? 'Enviar a validación' : 'Continuar';
+    // Renderizar documentación al entrar al paso 3
+    if(n === 3) renderDocumentacion();
     // Scroll top del body del modal
     const body = document.querySelector('#regModal3Overlay .reg-modal__body');
     if(body) body.scrollTo({top: 0, behavior: 'instant'});
@@ -4168,16 +4282,100 @@
     if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); setCar(!carToggle.classList.contains('naowee-switch--on')); }
   });
 
+  /* ─── Toggles de compartir (disciplinas + detalles) ─── */
+  const shareDiscToggle = document.getElementById('reg3ShareDiscToggle');
+  const shareDetailsToggle = document.getElementById('reg3ShareDetailsToggle');
+  const sharingTogglesWrap = document.getElementById('reg3SharingToggles');
+
+  function updateSharingTogglesVisibility(){
+    const cfg = SCENARIO_CONFIG[reg3State.tipoEscenario];
+    const show = cfg && !cfg.multiEspacio && reg3State.subCount > 1;
+    sharingTogglesWrap.hidden = !show;
+    if(!show){
+      // Reset a compartido cuando no aplica
+      reg3State.compartirDisciplinas = true;
+      reg3State.compartirDetalles = true;
+      shareDiscToggle.classList.add('naowee-switch--on');
+      shareDiscToggle.setAttribute('aria-checked','true');
+      shareDetailsToggle.classList.add('naowee-switch--on');
+      shareDetailsToggle.setAttribute('aria-checked','true');
+    }
+  }
+
+  function setShareDisc(on){
+    reg3State.compartirDisciplinas = on;
+    shareDiscToggle.classList.toggle('naowee-switch--on', on);
+    shareDiscToggle.setAttribute('aria-checked', String(on));
+    if(!on){
+      // Copiar global → cada sub-space que no tenga aún
+      reg3State.subEspacios.forEach(sub => {
+        if(!sub.disciplinas || sub.disciplinas.length === 0){
+          sub.disciplinas = [...reg3State.disciplinas];
+          sub.disciplinasData = JSON.parse(JSON.stringify(reg3State.disciplinasData));
+        }
+      });
+    } else {
+      // Consolidar: si hay datos per-sub, tomar del primero como global
+      const first = reg3State.subEspacios[0];
+      if(first && first.disciplinas && first.disciplinas.length > 0){
+        reg3State.disciplinas = [...first.disciplinas];
+        reg3State.disciplinasData = JSON.parse(JSON.stringify(first.disciplinasData || {}));
+      }
+    }
+    renderDisciplineUI();
+    validate3();
+  }
+  shareDiscToggle.addEventListener('click', () => setShareDisc(!shareDiscToggle.classList.contains('naowee-switch--on')));
+  shareDiscToggle.addEventListener('keydown', e => {
+    if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); setShareDisc(!shareDiscToggle.classList.contains('naowee-switch--on')); }
+  });
+
+  function setShareDetails(on){
+    reg3State.compartirDetalles = on;
+    shareDetailsToggle.classList.toggle('naowee-switch--on', on);
+    shareDetailsToggle.setAttribute('aria-checked', String(on));
+    if(on){
+      // Copiar ficha[0] → todos los demás
+      const src = reg3State.subEspacios[0];
+      if(src){
+        reg3State.subEspacios.forEach((sub, i) => {
+          if(i > 0) sub.ficha = JSON.parse(JSON.stringify(src.ficha || {}));
+        });
+      }
+    }
+    renderFichaEspecifica(reg3State.tipoEscenario);
+    validate3();
+  }
+  shareDetailsToggle.addEventListener('click', () => setShareDetails(!shareDetailsToggle.classList.contains('naowee-switch--on')));
+  shareDetailsToggle.addEventListener('keydown', e => {
+    if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); setShareDetails(!shareDetailsToggle.classList.contains('naowee-switch--on')); }
+  });
+
   /* ─── Tipo de escenario ─── */
   // Labels contextuales para el stepper de sub-espacios
   // Solo estos tipos admiten múltiples sub-espacios del mismo tipo.
-  // Coliseo, Estadio, Pista atlética, Velódromo, Patódromo, Escenario náutico
-  // son inherentemente un solo espacio físico.
+  // Tipos con sub-count: Piscina, Cancha múltiple, Coliseo, Estadio, Pista atlética, Gimnasio, Escenario náutico
+  // Velódromo y Patódromo son inherentemente un solo espacio físico.
   const SUB_LABELS = {
     'Piscina':'¿Cuántas piscinas tiene?',
     'Cancha múltiple':'¿Cuántas canchas tiene?',
-    'Gimnasio':'¿Cuántos gimnasios tiene?'
+    'Coliseo':'¿Cuántas canchas tiene?',
+    'Estadio':'¿Cuántas canchas tiene?',
+    'Pista atlética':'¿Cuántas pistas tiene?',
+    'Gimnasio':'¿Cuántos gimnasios tiene?',
+    'Escenario náutico':'¿Cuántas zonas tiene?'
   };
+  // Nombres cortos para sub-espacios (evitar "Cancha múltiple 1")
+  const SUB_SHORT_NAME = {
+    'Cancha múltiple':'Cancha',
+    'Coliseo':'Cancha',
+    'Estadio':'Cancha',
+    'Pista atlética':'Pista',
+    'Escenario náutico':'Zona',
+    'Villa Olímpica':'Sub-espacio',
+    'Complejo deportivo':'Sub-espacio'
+  };
+  function subDisplayName(tipo, idx){ return `${SUB_SHORT_NAME[tipo] || tipo} ${idx + 1}`; }
   const subCountLabel = document.getElementById('reg3SubCountLabel');
   const subCountVal = document.getElementById('reg3SubCountVal');
   const subCountWrap = document.getElementById('reg3SubCountWrap');
@@ -4187,12 +4385,14 @@
     subCountVal.textContent = reg3State.subCount;
     // Asegurar que subEspacios tenga la longitud correcta
     while(reg3State.subEspacios.length < reg3State.subCount){
-      reg3State.subEspacios.push({ nombre: `${reg3State.tipoEscenario} ${reg3State.subEspacios.length + 1}`, ficha: {} });
+      reg3State.subEspacios.push({ nombre: subDisplayName(reg3State.tipoEscenario, reg3State.subEspacios.length), ficha: {} });
     }
     while(reg3State.subEspacios.length > reg3State.subCount){
       reg3State.subEspacios.pop();
     }
     renderFichaEspecifica(reg3State.tipoEscenario);
+    updateSharingTogglesVisibility();
+    renderDisciplineUI();
     validate3();
   }
 
@@ -4204,11 +4404,15 @@
       reg3State.disciplinas = [];
       reg3State.disciplinasData = {};
       reg3State.fichaEspecifica = {};
-      reg3State.subEspacios = [{ nombre: `${val} 1`, ficha: {} }];
+      reg3State.subEspacios = [{ nombre: subDisplayName(val, 0), ficha: {} }];
       reg3State.subCount = 1;
-      renderReg3Chips();
-      renderReg3Disciplines();
-      document.getElementById('reg3DynamicSection').hidden = true;
+      // Reset toggles de compartir
+      reg3State.compartirDisciplinas = true;
+      reg3State.compartirDetalles = true;
+      shareDiscToggle.classList.add('naowee-switch--on');
+      shareDiscToggle.setAttribute('aria-checked','true');
+      shareDetailsToggle.classList.add('naowee-switch--on');
+      shareDetailsToggle.setAttribute('aria-checked','true');
     }
     reg3State.tipoEscenario = val;
     // Mostrar stepper de cantidad solo para tipos que admiten múltiples
@@ -4226,12 +4430,19 @@
       reg3State.subEspacios = [{ nombre: val, tipo: val, ficha: {} }];
     }
     renderFichaEspecifica(val);
+    updateSharingTogglesVisibility();
+    // Mostrar sección de disciplinas (integrada al paso 2)
+    const discSection = document.getElementById('reg3DiscSection');
+    if(discSection) discSection.hidden = false;
+    renderDisciplineUI();
     const hint = document.getElementById('reg3DiscHint');
     const hintText = document.getElementById('reg3DiscHintText');
     if(hint && hintText){
       if(cfg && cfg.hint){
         hintText.textContent = cfg.hint;
         hint.hidden = false;
+      } else {
+        hint.hidden = true;
       }
     }
     validate3();
@@ -4348,10 +4559,16 @@
   /* ─── Render ficha específica por tipo de escenario (soporta N sub-espacios) ─── */
   function getSubFicha(idx){ return (reg3State.subEspacios[idx] || {}).ficha || {}; }
   function setSubFicha(idx, key, val){
-    if(!reg3State.subEspacios[idx]) reg3State.subEspacios[idx] = { nombre: `${reg3State.tipoEscenario} ${idx+1}`, ficha:{} };
+    if(!reg3State.subEspacios[idx]) reg3State.subEspacios[idx] = { nombre: subDisplayName(reg3State.tipoEscenario, idx), ficha:{} };
     reg3State.subEspacios[idx].ficha[key] = val;
     // Sincronizar retrocompat con fichaEspecifica cuando idx===0
     if(idx === 0) reg3State.fichaEspecifica[key] = val;
+    // Propagar a todos los sub-espacios cuando compartirDetalles=ON
+    if(reg3State.compartirDetalles && idx === 0){
+      reg3State.subEspacios.forEach((sub, i) => {
+        if(i > 0) sub.ficha[key] = val;
+      });
+    }
   }
 
   // Tipos disponibles para sub-espacios (excluye los complejos)
@@ -4375,25 +4592,32 @@
     }
     container.hidden = false;
 
+    // Modo compartido: monolítico con N>1 y toggle ON → solo 1 ficha
+    const sharedMode = !isComplex && n > 1 && reg3State.compartirDetalles;
+
     title.textContent = isComplex
       ? `SUB-ESPACIOS • ${tipo.toUpperCase()} (${n})`
-      : (n > 1 ? `FICHAS TÉCNICAS • ${tipo.toUpperCase()} (${n})` : `FICHA TÉCNICA • ${tipo.toUpperCase()}`);
+      : (sharedMode ? `FICHA TÉCNICA • ${tipo.toUpperCase()} (compartida)` :
+         (n > 1 ? `FICHAS TÉCNICAS • ${tipo.toUpperCase()} (${n})` : `FICHA TÉCNICA • ${tipo.toUpperCase()}`));
     fieldsWrap.innerHTML = '';
 
     // Asegurar subEspacios
     while(reg3State.subEspacios.length < n){
-      const defaultName = isComplex ? `Sub-espacio ${reg3State.subEspacios.length+1}` : `${tipo} ${reg3State.subEspacios.length+1}`;
+      const defaultName = subDisplayName(tipo, reg3State.subEspacios.length);
       reg3State.subEspacios.push({ nombre: defaultName, tipo: isComplex ? '' : tipo, ficha:{} });
     }
 
-    for(let idx = 0; idx < n; idx++){
+    // En modo compartido renderizar solo la ficha de sub-espacio 0
+    const loopCount = sharedMode ? 1 : n;
+
+    for(let idx = 0; idx < loopCount; idx++){
       const sub = reg3State.subEspacios[idx];
       const subData = sub.ficha;
       const subName = sub.nombre;
       const wrapper = document.createElement('div');
 
-      // Siempre envolver en card cuando hay N > 1 o es complejo
-      if(n > 1 || isComplex){
+      // Envolver en card cuando hay N > 1 (y no compartido) o es complejo
+      if((n > 1 && !sharedMode) || isComplex){
         wrapper.className = 'reg3-disc-card'; wrapper.style.marginTop = idx > 0 ? '12px' : '0';
         wrapper.innerHTML = `
           <div class="reg3-disc-card__header" role="button" aria-expanded="true" tabindex="0" data-sub-card-toggle="${idx}">
@@ -4444,22 +4668,13 @@
             ddWrap.classList.remove('naowee-dropdown--open');
             trigger.setAttribute('aria-expanded','false');
             // Actualizar tipo del sub-espacio y re-renderizar su ficha
+            const prevTipo = sub.tipo;
             sub.tipo = t;
-            sub.ficha = {}; // limpiar ficha anterior
-            sub.nombre = sub.nombre === `Sub-espacio ${idx+1}` ? `${t} ${idx+1}` : sub.nombre;
+            if(prevTipo !== t){ sub.ficha = {}; sub.subCount = 1; sub.subItems = []; }
+            sub.nombre = sub.nombre === subDisplayName(prevTipo || tipo, idx) ? subDisplayName(t, idx) : sub.nombre;
             const nameInput = wrapper.querySelector(`[data-sub-name="${idx}"]`);
             if(nameInput) nameInput.value = sub.nombre;
-            // Re-renderizar solo la ficha de este sub-espacio
-            const fichaWrap = bodyEl.querySelector('[data-sub-ficha-fields]');
-            if(fichaWrap) fichaWrap.remove();
-            const subCfg = SCENARIO_CONFIG[t];
-            if(subCfg && subCfg.fichaEspecifica && subCfg.fichaEspecifica.length > 0){
-              const fichaDiv = document.createElement('div');
-              fichaDiv.setAttribute('data-sub-ficha-fields','');
-              fichaDiv.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding-top:8px';
-              bodyEl.appendChild(fichaDiv);
-              renderOneFichaBlock(fichaDiv, subCfg.fichaEspecifica, sub.ficha, idx);
-            }
+            renderSubFichaContent(bodyEl, sub, idx, t);
             validate3();
           });
           menu.appendChild(el);
@@ -4471,24 +4686,28 @@
           trigger.setAttribute('aria-expanded', ddWrap.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
         });
 
-        // Si ya tiene tipo seleccionado, renderizar ficha
+        // Si ya tiene tipo seleccionado, renderizar ficha (con soporte sub-count)
         if(subTipo){
-          const subCfg = SCENARIO_CONFIG[subTipo];
-          if(subCfg && subCfg.fichaEspecifica && subCfg.fichaEspecifica.length > 0){
-            const fichaDiv = document.createElement('div');
-            fichaDiv.setAttribute('data-sub-ficha-fields','');
-            fichaDiv.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding-top:8px';
-            bodyEl.appendChild(fichaDiv);
-            renderOneFichaBlock(fichaDiv, subCfg.fichaEspecifica, sub.ficha, idx);
-          }
+          renderSubFichaContent(bodyEl, sub, idx, subTipo);
         }
       } else {
         // ── MONOLÍTICO: ficha directa ──
+        if(sharedMode){
+          const hint = document.createElement('div');
+          hint.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--blue-bg);border:1px solid #c4d9f2;border-radius:var(--radius-md);margin-bottom:8px;font-size:12px;color:var(--blue-info)';
+          const PLURAL_MAP = {'Piscina':'piscinas','Cancha múltiple':'canchas','Coliseo':'canchas','Estadio':'canchas','Pista atlética':'pistas','Gimnasio':'gimnasios','Escenario náutico':'zonas'};
+          const plural = PLURAL_MAP[tipo] || (tipo.toLowerCase() + 's');
+          hint.removeAttribute('style');
+          hint.className = 'naowee-message naowee-message--informative';
+          hint.style.marginBottom = '8px';
+          hint.innerHTML = `<div class="naowee-message__header"><div class="naowee-message__icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="4" x2="8" y2="8"/><line x1="8" y1="11" x2="8" y2="11.01"/></svg></div><div class="naowee-message__title">Ficha técnica compartida</div></div><p class="naowee-message__text">Estos datos aplican a ${n === 2 ? 'ambas' : 'todas las'} <strong>${n} ${plural}</strong>. Si necesitas valores distintos, desactiva el toggle "¿Los escenarios comparten los mismos detalles?".</p>`;
+          bodyEl.appendChild(hint);
+        }
         renderOneFichaBlock(bodyEl, cfg.fichaEspecifica, subData, idx);
       }
 
-      // Toggle colapsar (si multi)
-      if(n > 1 || isComplex){
+      // Toggle colapsar (si multi y no compartido)
+      if((n > 1 && !sharedMode) || isComplex){
         const header = wrapper.querySelector(`[data-sub-card-toggle="${idx}"]`);
         if(header){
           header.addEventListener('click', e => {
@@ -4512,6 +4731,117 @@
         ddFloatObserver.observe(dd, {attributes: true, attributeFilter: ['class']});
       });
     }, 50);
+  }
+
+  /* ─── Renderiza contenido de ficha de un sub-espacio complejo ───
+     Si el tipo soporta sub-count (ej: Piscina dentro de Villa Olímpica),
+     muestra un stepper + N fichas. Si no, una sola ficha directa. */
+  function renderSubFichaContent(bodyEl, sub, parentIdx, subTipo){
+    // Limpiar contenido anterior
+    const prev = bodyEl.querySelector('[data-sub-ficha-fields]');
+    if(prev) prev.remove();
+    const subCfg = SCENARIO_CONFIG[subTipo];
+    if(!subCfg || !subCfg.fichaEspecifica || subCfg.fichaEspecifica.length === 0) return;
+
+    const fichaDiv = document.createElement('div');
+    fichaDiv.setAttribute('data-sub-ficha-fields','');
+    fichaDiv.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding-top:8px';
+    bodyEl.appendChild(fichaDiv);
+
+    const hasSubCount = !!SUB_LABELS[subTipo];
+    if(!sub.subCount) sub.subCount = 1;
+    if(!sub.subItems) sub.subItems = [];
+
+    if(hasSubCount){
+      // ── Stepper de sub-count ──
+      const stepperWrap = document.createElement('div');
+      stepperWrap.className = 'naowee-input-stepper';
+      stepperWrap.style.marginBottom = '4px';
+      const shortName = SUB_SHORT_NAME[subTipo] || subTipo;
+      const stepLabel = SUB_LABELS[subTipo] || `¿Cuántos tiene?`;
+      stepperWrap.innerHTML = `
+        <label class="naowee-input-stepper__label">${stepLabel}</label>
+        <div class="naowee-input-stepper__content">
+          <div class="naowee-input-stepper__input">
+            <button type="button" class="naowee-input-stepper__btn" data-sub-stepper="minus" aria-label="Disminuir">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <div class="naowee-input-stepper__value">
+              <span class="naowee-input-stepper__value-text">${sub.subCount}</span>
+            </div>
+            <button type="button" class="naowee-input-stepper__btn" data-sub-stepper="plus" aria-label="Aumentar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+      fichaDiv.appendChild(stepperWrap);
+
+      const valSpan = stepperWrap.querySelector('.naowee-input-stepper__value-text');
+      stepperWrap.querySelector('[data-sub-stepper="minus"]').addEventListener('click', () => {
+        if(sub.subCount <= 1) return;
+        sub.subCount--;
+        valSpan.textContent = sub.subCount;
+        while(sub.subItems.length > sub.subCount) sub.subItems.pop();
+        renderSubItems();
+      });
+      stepperWrap.querySelector('[data-sub-stepper="plus"]').addEventListener('click', () => {
+        sub.subCount++;
+        valSpan.textContent = sub.subCount;
+        renderSubItems();
+      });
+
+      const itemsContainer = document.createElement('div');
+      itemsContainer.style.cssText = 'display:flex;flex-direction:column;gap:12px';
+      fichaDiv.appendChild(itemsContainer);
+
+      function renderSubItems(){
+        itemsContainer.innerHTML = '';
+        while(sub.subItems.length < sub.subCount){
+          sub.subItems.push({ nombre: `${shortName} ${sub.subItems.length + 1}`, ficha:{} });
+        }
+        for(let si = 0; si < sub.subCount; si++){
+          const item = sub.subItems[si];
+          if(sub.subCount === 1){
+            // Solo 1: renderizar ficha directa sin card wrapper
+            renderOneFichaBlock(itemsContainer, subCfg.fichaEspecifica, item.ficha, parentIdx * 100 + si);
+          } else {
+            // N > 1: renderizar cards colapsables
+            const itemCard = document.createElement('div');
+            itemCard.className = 'reg3-disc-card';
+            if(si > 0) itemCard.style.marginTop = '0';
+            itemCard.innerHTML = `
+              <div class="reg3-disc-card__header" role="button" aria-expanded="true" tabindex="0">
+                <span class="reg3-disc-card__title" style="gap:8px">
+                  <input type="text" class="reg3-sub-name" value="${item.nombre}" placeholder="Nombre" style="border:none;background:transparent;font:inherit;font-weight:600;padding:0;width:100%;outline:none;color:inherit"/>
+                </span>
+                <svg class="reg3-disc-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              <div class="reg3-disc-card__body-wrap"><div class="reg3-disc-card__body-inner"><div class="reg3-disc-card__body"></div></div></div>
+            `;
+            itemsContainer.appendChild(itemCard);
+            const itemBody = itemCard.querySelector('.reg3-disc-card__body');
+            renderOneFichaBlock(itemBody, subCfg.fichaEspecifica, item.ficha, parentIdx * 100 + si);
+
+            // Collapse toggle
+            const hdr = itemCard.querySelector('.reg3-disc-card__header');
+            hdr.addEventListener('click', e => {
+              if(e.target.closest('.reg3-sub-name')) return;
+              itemCard.classList.toggle('collapsed');
+              hdr.setAttribute('aria-expanded', String(!itemCard.classList.contains('collapsed')));
+            });
+            // Name edit
+            const nameIn = itemCard.querySelector('.reg3-sub-name');
+            nameIn.addEventListener('input', e => { item.nombre = e.target.value; });
+          }
+        }
+        validate3();
+      }
+      renderSubItems();
+    } else {
+      // ── Sin sub-count: una sola ficha directa ──
+      renderOneFichaBlock(fichaDiv, subCfg.fichaEspecifica, sub.ficha, parentIdx);
+    }
   }
 
   /* Renderiza los campos de UNA ficha específica dentro de un contenedor */
@@ -5059,7 +5389,8 @@
       const trigger = iluminacionDd.querySelector('.naowee-dropdown__trigger');
       const menu = iluminacionDd.querySelector('.naowee-dropdown__menu');
       const valueSpan = iluminacionDd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
-      const opts = DOTACION_FIELDS[0].sub.options;
+      const ilumField = DOTACION_GLOBAL.find(f => f.id === 'iluminacion');
+      const opts = ilumField.sub.options;
       menu.innerHTML = '';
       opts.forEach(opt => {
         const el = document.createElement('div');
@@ -5167,9 +5498,308 @@
   }
 
   /* ═════════════════════════════════════════════════
-     STEP 3 — Disciplinas deportivas
+     renderDisciplineUI — orquesta entre modo compartido y per-sub-space
+     ═════════════════════════════════════════════════ */
+  function renderDisciplineUI(){
+    const discSection = document.getElementById('reg3DiscSection');
+    const globalMulti = document.getElementById('reg3DiscMulti');
+    const dynamicSect = document.getElementById('reg3DynamicSection');
+    const listEl = document.getElementById('reg3DisciplinesList');
+    const cfg = SCENARIO_CONFIG[reg3State.tipoEscenario];
+    if(!cfg){ if(discSection) discSection.hidden = true; return; }
+    if(discSection) discSection.hidden = false;
+
+    const isComplex = !!(cfg && cfg.multiEspacio);
+    const perSub = !reg3State.compartirDisciplinas && reg3State.subCount > 1 && !isComplex;
+
+    if(perSub){
+      // ── PER-SUB-SPACE: ocultar multi-select global, renderizar por sub-espacio ──
+      globalMulti.hidden = true;
+      dynamicSect.hidden = false;
+      listEl.innerHTML = '';
+      const availableDiscs = getDisciplinasDisponibles();
+      for(let idx = 0; idx < reg3State.subCount; idx++){
+        const sub = reg3State.subEspacios[idx];
+        if(!sub) continue;
+        if(!sub.disciplinas) sub.disciplinas = [];
+        if(!sub.disciplinasData) sub.disciplinasData = {};
+        renderSubSpaceDisciplineCard(listEl, sub, idx, availableDiscs, cfg);
+      }
+    } else {
+      // ── SHARED / SINGLE: multi-select global (comportamiento actual) ──
+      globalMulti.hidden = false;
+      renderReg3DiscOptions();
+      renderReg3Chips();
+      renderReg3Disciplines();
+      dynamicSect.hidden = reg3State.disciplinas.length === 0;
+    }
+  }
+
+  /* ─── Renderiza card de disciplinas para un sub-espacio individual ─── */
+  function renderSubSpaceDisciplineCard(parentEl, sub, idx, availableDiscs, cfg){
+    const fichaDiscTemplate = cfg.fichaPorDisciplina || [];
+    const card = document.createElement('div');
+    card.className = 'reg3-disc-card';
+    card.dataset.subDiscIdx = idx;
+
+    // Header
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'reg3-disc-card__header';
+    headerDiv.setAttribute('role','button');
+    headerDiv.setAttribute('aria-expanded','true');
+    headerDiv.setAttribute('tabindex','0');
+    headerDiv.innerHTML = `
+      <span class="reg3-disc-card__title">${sub.nombre || subDisplayName(reg3State.tipoEscenario, idx)}</span>
+      <svg class="reg3-disc-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    `;
+    card.appendChild(headerDiv);
+
+    // Body wrap
+    const bodyWrap = document.createElement('div');
+    bodyWrap.className = 'reg3-disc-card__body-wrap';
+    const bodyInner = document.createElement('div');
+    bodyInner.className = 'reg3-disc-card__body-inner';
+    const body = document.createElement('div');
+    body.className = 'reg3-disc-card__body';
+    bodyInner.appendChild(body);
+    bodyWrap.appendChild(bodyInner);
+    card.appendChild(bodyWrap);
+
+    // ── Mini multi-select de disciplinas para este sub-espacio ──
+    const multiWrap = document.createElement('div');
+    multiWrap.className = 'reg-multi';
+    multiWrap.dataset.subMulti = idx;
+    const selectedDiscs = sub.disciplinas || [];
+    let subTempDisc = [...selectedDiscs];
+
+    // Chips display
+    const chipsHtml = selectedDiscs.length > 0
+      ? selectedDiscs.map(d => `<span class="reg-multi__chip">${d}<button type="button" class="reg-multi__chip-x" data-sub-chip-remove="${d}" data-sub-chip-idx="${idx}" aria-label="Quitar ${d}">×</button></span>`).join('')
+      : '<span class="reg-multi__placeholder">Seleccione la o las disciplinas</span>';
+
+    multiWrap.innerHTML = `
+      <label class="reg-multi__label">Disciplinas deportivas <span class="req" style="color:var(--accent)">*</span></label>
+      <button type="button" class="reg-multi__trigger" aria-haspopup="listbox" aria-expanded="false">
+        <span class="reg-multi__chips">${chipsHtml}</span>
+        <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="reg-multi__menu" role="listbox">
+        <div class="reg-multi__options"></div>
+        <div class="reg-multi__menu-footer">
+          <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small">Agregar</button>
+        </div>
+      </div>
+    `;
+    body.appendChild(multiWrap);
+
+    // Render options
+    const optsCont = multiWrap.querySelector('.reg-multi__options');
+    availableDiscs.forEach(disc => {
+      const opt = document.createElement('div');
+      opt.className = 'reg-multi__option' + (subTempDisc.includes(disc) ? ' reg-multi__option--selected' : '');
+      opt.setAttribute('role','option');
+      opt.innerHTML = `<span class="reg-multi__check"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8.5 6.5 12 13 4"/></svg></span>${disc}`;
+      opt.addEventListener('click', () => {
+        const i = subTempDisc.indexOf(disc);
+        if(i >= 0) subTempDisc.splice(i, 1);
+        else subTempDisc.push(disc);
+        opt.classList.toggle('reg-multi__option--selected', subTempDisc.includes(disc));
+      });
+      optsCont.appendChild(opt);
+    });
+
+    // Trigger open/close (floating para escapar del overflow de la card)
+    const trigger = multiWrap.querySelector('.reg-multi__trigger');
+    const subMenu = multiWrap.querySelector('.reg-multi__menu');
+    function floatSubMenu(){
+      const rect = trigger.getBoundingClientRect();
+      const vh = window.innerHeight;
+      subMenu.classList.add('reg-multi__menu--floating');
+      subMenu.style.width = rect.width + 'px';
+      subMenu.style.left = rect.left + 'px';
+      const spaceBelow = vh - rect.bottom;
+      if(spaceBelow >= 288 || spaceBelow >= rect.top){
+        subMenu.style.top = (rect.bottom + 4) + 'px';
+        subMenu.style.bottom = 'auto';
+      } else {
+        subMenu.style.top = 'auto';
+        subMenu.style.bottom = (vh - rect.top + 4) + 'px';
+      }
+    }
+    function unfloatSubMenu(){
+      subMenu.classList.remove('reg-multi__menu--floating');
+      subMenu.style.width = ''; subMenu.style.left = '';
+      subMenu.style.top = ''; subMenu.style.bottom = '';
+    }
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const wasOpen = multiWrap.classList.contains('open');
+      // Cerrar otros multi-selects abiertos
+      document.querySelectorAll('.reg-multi.open').forEach(m => {
+        if(m !== multiWrap){ m.classList.remove('open'); const fm = m.querySelector('.reg-multi__menu--floating'); if(fm) fm.classList.remove('reg-multi__menu--floating'); }
+      });
+      multiWrap.classList.toggle('open');
+      if(!wasOpen) floatSubMenu(); else unfloatSubMenu();
+    });
+
+    // Confirm button
+    const confirmBtn = multiWrap.querySelector('.naowee-btn');
+    confirmBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      sub.disciplinas = [...subTempDisc];
+      // Limpiar data de disciplinas quitadas
+      Object.keys(sub.disciplinasData).forEach(k => {
+        if(!sub.disciplinas.includes(k)) delete sub.disciplinasData[k];
+      });
+      multiWrap.classList.remove('open');
+      unfloatSubMenu();
+      // Re-render this card's discipline section
+      renderDisciplineUI();
+      validate3();
+    });
+
+    // Chip remove handlers
+    multiWrap.querySelectorAll('[data-sub-chip-remove]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const disc = btn.dataset.subChipRemove;
+        const i = sub.disciplinas.indexOf(disc);
+        if(i >= 0) sub.disciplinas.splice(i, 1);
+        delete sub.disciplinasData[disc];
+        subTempDisc = [...sub.disciplinas];
+        renderDisciplineUI();
+        validate3();
+      });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if(!e.target.closest(`[data-sub-multi="${idx}"]`)){
+        multiWrap.classList.remove('open');
+      }
+    });
+
+    // ── Accordion de disciplinas seleccionadas ──
+    if(selectedDiscs.length > 0){
+      const discListDiv = document.createElement('div');
+      discListDiv.style.marginTop = '12px';
+      selectedDiscs.forEach(disc => {
+        if(!sub.disciplinasData[disc]) sub.disciplinasData[disc] = {};
+        const discData = sub.disciplinasData[disc];
+        const discCard = document.createElement('div');
+        discCard.className = 'reg3-disc-card';
+        discCard.style.marginLeft = '0';
+        discCard.innerHTML = `
+          <div class="reg3-disc-card__header" role="button" aria-expanded="true" tabindex="0">
+            <span class="reg3-disc-card__title">${disc}</span>
+            <svg class="reg3-disc-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="reg3-disc-card__body-wrap"><div class="reg3-disc-card__body-inner"><div class="reg3-disc-card__body">
+            ${renderFichaDisciplinaFields(disc, fichaDiscTemplate, discData, false)}
+          </div></div></div>
+        `;
+        discListDiv.appendChild(discCard);
+
+        // Toggle collapse
+        const dHeader = discCard.querySelector('.reg3-disc-card__header');
+        dHeader.addEventListener('click', () => {
+          discCard.classList.toggle('collapsed');
+          dHeader.setAttribute('aria-expanded', String(!discCard.classList.contains('collapsed')));
+        });
+
+        // Wire input listeners (scoped to this sub-space)
+        discCard.querySelectorAll('[data-disc-input]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            const fid = inp.dataset.discInput;
+            const mode = inp.dataset.numeric;
+            let v = inp.value;
+            if(mode === 'int') v = v.replace(/\D/g,'');
+            else if(mode === 'decimal'){
+              v = v.replace(/[^0-9.]/g,'');
+              const parts = v.split('.');
+              if(parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+            }
+            if(v !== inp.value) inp.value = v;
+            sub.disciplinasData[disc][fid] = v;
+            validate3();
+          });
+        });
+
+        // Wire dropdown listeners
+        discCard.querySelectorAll('[data-disc-dd]').forEach(dd => {
+          const fid = dd.dataset.discDd;
+          const optsSource = dd.dataset.discOptions;
+          let options = [];
+          if(optsSource === 'SUPERFICIES_DEPORTIVAS') options = SUPERFICIES_DEPORTIVAS;
+          else if(optsSource === 'ESTADO_SUPERFICIE') options = ESTADO_SUPERFICIE;
+          else if(optsSource === 'MODALIDADES') options = getModalidades(disc);
+          else {
+            const field = fichaDiscTemplate.find(x => x.id === fid);
+            if(field && field.options) options = field.options;
+          }
+          if(options.length === 0) return;
+          const ddTrigger = dd.querySelector('.naowee-dropdown__trigger');
+          const ddMenu = dd.querySelector('.naowee-dropdown__menu');
+          const valSpan = dd.querySelector('.naowee-dropdown__placeholder, .naowee-dropdown__value');
+          ddMenu.innerHTML = '';
+          const curVal = sub.disciplinasData[disc][fid];
+          options.forEach(opt => {
+            const el = document.createElement('div');
+            el.className = 'naowee-dropdown__option';
+            el.setAttribute('role','option');
+            el.textContent = opt;
+            if(opt === curVal) el.classList.add('naowee-dropdown__option--selected');
+            el.addEventListener('click', () => {
+              ddMenu.querySelectorAll('.naowee-dropdown__option--selected').forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+              el.classList.add('naowee-dropdown__option--selected');
+              valSpan.textContent = opt;
+              valSpan.className = 'naowee-dropdown__value';
+              dd.classList.remove('naowee-dropdown--open');
+              ddTrigger.setAttribute('aria-expanded','false');
+              sub.disciplinasData[disc][fid] = opt;
+              validate3();
+            });
+            ddMenu.appendChild(el);
+          });
+          ddTrigger.addEventListener('click', e => {
+            e.stopPropagation();
+            document.querySelectorAll('.naowee-dropdown--open').forEach(o => { if(o !== dd) o.classList.remove('naowee-dropdown--open'); });
+            dd.classList.toggle('naowee-dropdown--open');
+            ddTrigger.setAttribute('aria-expanded', dd.classList.contains('naowee-dropdown--open') ? 'true' : 'false');
+          });
+        });
+
+        // Wire toggle listeners
+        discCard.querySelectorAll('[data-disc-toggle-field]').forEach(tog => {
+          tog.addEventListener('click', () => {
+            const fid = tog.dataset.discToggleField;
+            const newVal = !tog.classList.contains('naowee-switch--on');
+            tog.classList.toggle('naowee-switch--on', newVal);
+            tog.setAttribute('aria-checked', String(newVal));
+            sub.disciplinasData[disc][fid] = newVal;
+            validate3();
+          });
+        });
+      });
+      body.appendChild(discListDiv);
+    }
+
+    parentEl.appendChild(card);
+
+    // Toggle collapse del card principal
+    headerDiv.addEventListener('click', () => {
+      card.classList.toggle('collapsed');
+      headerDiv.setAttribute('aria-expanded', String(!card.classList.contains('collapsed')));
+    });
+    headerDiv.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); headerDiv.click(); }
+    });
+  }
+
+  /* ═════════════════════════════════════════════════
+     Disciplinas deportivas (integradas al paso 2)
      Sólo datos específicos del deporte (modalidad, categoría, equipamiento).
-     Las dimensiones físicas vienen del Step 2 y NO se duplican aquí.
+     Las dimensiones físicas vienen del escenario físico y NO se duplican aquí.
      ═════════════════════════════════════════════════ */
 
   /* ─── Multi-select Disciplinas ─── */
@@ -5525,9 +6155,7 @@
     Object.keys(reg3State.disciplinasData).forEach(k => {
       if(!reg3State.disciplinas.includes(k)) delete reg3State.disciplinasData[k];
     });
-    renderReg3Chips();
-    renderReg3Disciplines();
-    document.getElementById('reg3DynamicSection').hidden = reg3State.disciplinas.length === 0;
+    renderDisciplineUI();
     reg3DiscEl.classList.remove('open');
     reg3UnfloatMulti();
     validate3();
@@ -5616,23 +6244,38 @@
         const sub = s.subEspacios[si];
         if(!sub || !sub.fotos || !sub.fotos.foto_frontal) { photosOk = false; break; }
       }
-      ok = common && specific && dotOk && photosOk;
-    } else if(reg3Step === 3){
-      // Paso 3 (Disciplinas): al menos 1 disciplina
-      // Si el escenario es multiEspacio, cada disciplina debe tener largo, ancho, superficie y estado
-      ok = s.disciplinas.length > 0;
+      // Disciplinas (integradas al paso 2)
+      let discOk = false;
       const cfgDisc = SCENARIO_CONFIG[s.tipoEscenario];
-      if(ok && cfgDisc && cfgDisc.multiEspacio){
-        for(const d of s.disciplinas){
-          const dd = s.disciplinasData[d] || {};
-          if(!dd.largo || !dd.ancho || !dd.superficie || !dd.estado){
-            ok = false;
+      const isComplexDisc = !!(cfgDisc && cfgDisc.multiEspacio);
+      const perSubDisc = !s.compartirDisciplinas && s.subCount > 1 && !isComplexDisc;
+
+      if(perSubDisc){
+        // Per-sub-space: cada sub-espacio debe tener al menos 1 disciplina
+        discOk = true;
+        for(let si = 0; si < (s.subCount || 1); si++){
+          const sub = s.subEspacios[si] || {};
+          if(!sub.disciplinas || sub.disciplinas.length === 0){
+            discOk = false;
             break;
           }
         }
+      } else {
+        // Shared o single: disciplinas globales
+        discOk = s.disciplinas.length > 0;
+        if(discOk && isComplexDisc){
+          for(const d of s.disciplinas){
+            const dd = s.disciplinasData[d] || {};
+            if(!dd.largo || !dd.ancho || !dd.superficie || !dd.estado){
+              discOk = false;
+              break;
+            }
+          }
+        }
       }
-    } else if(reg3Step === 4){
-      // Paso 4 (Documentación): foto frontal general + fecha fotos obligatorios
+      ok = common && specific && dotOk && photosOk && discOk;
+    } else if(reg3Step === 3){
+      // Paso 3 (Documentación): foto frontal general + fecha fotos obligatorios
       const doc = s.documentacion;
       ok = !!doc.fotoFrontalGeneral && !!doc.fechaFotos;
     }
@@ -5732,14 +6375,13 @@
           }
         }
       }
-    } else if(reg3Step === 3){
-      // Al menos 1 disciplina
+      // Disciplinas (integradas al paso 2)
       if(s.disciplinas.length === 0){
         showFieldError(document.getElementById('reg3DiscMulti'));
       }
       // Si multiEspacio: largo, ancho, superficie, estado por disciplina
-      const cfgDisc = SCENARIO_CONFIG[s.tipoEscenario];
-      if(cfgDisc && cfgDisc.multiEspacio){
+      const cfgDiscH = SCENARIO_CONFIG[s.tipoEscenario];
+      if(cfgDiscH && cfgDiscH.multiEspacio){
         s.disciplinas.forEach(d => {
           const dd = s.disciplinasData[d] || {};
           const card = step.querySelector(`.reg3-disc-card [data-disc-toggle="${d}"]`)?.closest('.reg3-disc-card');
@@ -5762,7 +6404,7 @@
           }
         });
       }
-    } else if(reg3Step === 4){
+    } else if(reg3Step === 3){
       // Foto frontal general obligatoria
       if(!s.documentacion.fotoFrontalGeneral){
         const row = step.querySelector('[data-doc-row="fotoFrontalGeneral"]');
@@ -5780,7 +6422,7 @@
   }
 
   /* ═════════════════════════════════════════════════
-     PASO 4 — Documentación (fotos generales + documentos administrativos)
+     PASO 3 — Documentación (fotos generales + documentos administrativos)
      ═════════════════════════════════════════════════ */
   const DOC_PHOTOS = [
     { id:'fotoFrontalGeneral', label:'Fotografía frontal del escenario', required:true, formats:'JPG, PNG' },
@@ -5899,7 +6541,7 @@
     initDocDatepicker();
   }
 
-  /* ─── Datepicker de fecha de captura de fotos (paso 4) ─── */
+  /* ─── Datepicker de fecha de captura de fotos (paso 3) ─── */
   let docCalInited = false;
   function initDocDatepicker(){
     if(docCalInited) return;
@@ -6020,11 +6662,11 @@
       highlightReg3Errors();
       return;
     }
-    if(reg3Step < 4){
+    if(reg3Step < 3){
       switchReg3Step(reg3Step + 1);
       return;
     }
-    // Paso 4 → enviar a validación
+    // Paso 3 → enviar a validación
     reg3SubmitBtn.classList.add('naowee-btn--loading');
     setTimeout(() => {
       try {
@@ -6047,6 +6689,8 @@
           fichaEspecifica: JSON.parse(JSON.stringify(reg3State.fichaEspecifica)),
           subEspacios: JSON.parse(JSON.stringify(reg3State.subEspacios)),
           subCount: reg3State.subCount,
+          compartirDisciplinas: reg3State.compartirDisciplinas,
+          compartirDetalles: reg3State.compartirDetalles,
           dotacion: JSON.parse(JSON.stringify(reg3State.dotacion)),
           disciplinas: [...reg3State.disciplinas],
           disciplinasData: JSON.parse(JSON.stringify(reg3State.disciplinasData)),
@@ -6098,9 +6742,13 @@
         }
         reg3State.disciplinas = Array.isArray(d.disciplinas) ? [...d.disciplinas] : [];
         reg3State.disciplinasData = d.disciplinasData ? JSON.parse(JSON.stringify(d.disciplinasData)) : {};
+        reg3State.compartirDisciplinas = d.compartirDisciplinas !== false;
+        reg3State.compartirDetalles = d.compartirDetalles !== false;
         if(d.documentacion) Object.assign(reg3State.documentacion, d.documentacion);
         // Pintar UI toggles
         setCar(reg3State.car);
+        setShareDisc(reg3State.compartirDisciplinas);
+        setShareDetails(reg3State.compartirDetalles);
         // Pintar tipo de escenario
         const tipoEscSpan = document.querySelector('#reg3TipoEscDD .naowee-dropdown__placeholder, #reg3TipoEscDD .naowee-dropdown__value');
         if(tipoEscSpan){
@@ -6112,10 +6760,9 @@
             tipoEscSpan.className = 'naowee-dropdown__placeholder';
           }
         }
-        // Chips de disciplinas
-        renderReg3Chips();
-        renderReg3Disciplines();
-        document.getElementById('reg3DynamicSection').hidden = reg3State.disciplinas.length === 0;
+        // Disciplinas (shared o per-sub-space)
+        updateSharingTogglesVisibility();
+        renderDisciplineUI();
       } catch(err){}
     }
     openModal3();
@@ -6185,7 +6832,12 @@
       const mode = params.get('mode') || 'empty';
       const DEMO = {
         single: [{ nombre:'Centro deportivo Prado', catastral:'10000101010', departamento:'Antioquia', municipio:'Medellín', direccion:'Cra 30 #24-50', corregimiento:'', zona:'Urbana', lat:6.2518, lon:-75.5636 }],
-        multiple: [{ nombre:'Centro deportivo Prado', catastral:'10000101010' }, { nombre:'Centro deportivo Miramar', catastral:'1000020202' }, { nombre:'Centro deportivo Norte', catastral:'1000030303' }, { nombre:'Centro deportivo Sur', catastral:'1000040404' }]
+        multiple: [
+          { nombre:'Centro deportivo Prado', catastral:'10000101010', departamento:'Antioquia', municipio:'Medellín', direccion:'Cra 30 #24-50', corregimiento:'', zona:'Urbana', lat:6.2518, lon:-75.5636 },
+          { nombre:'Centro deportivo Miramar', catastral:'1000020202', departamento:'Antioquia', municipio:'Medellín', direccion:'Cl 45 #20-30', corregimiento:'', zona:'Urbana', lat:6.2600, lon:-75.5700 },
+          { nombre:'Centro deportivo Norte', catastral:'1000030303', departamento:'Antioquia', municipio:'Medellín', direccion:'Cra 65 #50-10', corregimiento:'', zona:'Urbana', lat:6.2800, lon:-75.5500 },
+          { nombre:'Centro deportivo Sur', catastral:'1000040404', departamento:'Antioquia', municipio:'Medellín', direccion:'Cl 10 #30-40', corregimiento:'', zona:'Urbana', lat:6.2200, lon:-75.5800 }
+        ]
       };
       const demos = DEMO[mode] || [];
       d = demos[idx];
@@ -6349,7 +7001,8 @@
 /* ═══ Cerrar sesión: limpia drafts acumulados y navega al login ═══ */
 document.getElementById('btnLogout')?.addEventListener('click', () => {
   try { sessionStorage.removeItem('regDrafts'); } catch(e){}
-  window.location.href = 'escenario-01-login.html';
+  if(window.wizardNavigate) wizardNavigate('escenario-01-login.html');
+  else window.location.href = 'escenario-01-login.html';
 });
 </script>
 
