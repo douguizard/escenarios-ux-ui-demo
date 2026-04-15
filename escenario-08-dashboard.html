@@ -2737,18 +2737,13 @@
   // Tracks which modal triggered the warn-close dialog
   let _warnCloseOrigin = 'reg1';
 
-  // Intento de cerrar: si hay datos, abre dialog de advertencia
+  // Intento de cerrar: si hay datos (válidos o no), abre dialog para que el
+  // usuario decida descartar o guardar borrador. Esto permite borradores
+  // parciales (ej. solo nombre + departamento) sin perder el progreso.
   function attemptClose(){
     if(isDirty()){
-      validate();
-      if(reg1Valid){
-        // Datos válidos: ofrecer guardar borrador
-        _warnCloseOrigin = 'reg1';
-        openDialog('dlgWarnClose');
-      } else {
-        // Datos incompletos: cerrar sin guardar
-        closeModal();
-      }
+      _warnCloseOrigin = 'reg1';
+      openDialog('dlgWarnClose');
     } else {
       closeModal();
     }
@@ -2768,14 +2763,17 @@
   /* ─── DIALOG HELPERS ─── */
   function openDialog(id){
     document.getElementById(id).classList.add('open');
-    // Oculta el modal principal para que solo se vea el dialog
-    overlay.classList.add('behind-dialog');
+    // Oculta TODOS los reg-modal abiertos (no solo el primero) para que el
+    // dialog no quede visualmente encima de otro modal con doble backdrop.
+    document.querySelectorAll('.reg-modal-overlay.open').forEach(m => m.classList.add('behind-dialog'));
   }
   function closeDialog(id){
     document.getElementById(id).classList.remove('open');
-    // Si no hay otros dialogs abiertos, vuelve a mostrar el modal principal
+    // Si no hay más dialogs abiertos, restaurar visibilidad de todos los modales
     const stillOpen = document.querySelectorAll('.dialog-overlay.open').length;
-    if(stillOpen === 0) overlay.classList.remove('behind-dialog');
+    if(stillOpen === 0){
+      document.querySelectorAll('.reg-modal-overlay.behind-dialog').forEach(m => m.classList.remove('behind-dialog'));
+    }
   }
 
   /* ─── INIT DROPDOWNS ─── */
