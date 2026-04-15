@@ -55,7 +55,7 @@ body{
 .carousel-track{position:relative;width:100%;height:100%;min-height:680px}
 .carousel-slide{
   position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;
-  padding:28px 28px 100px 28px;opacity:0;transition:opacity .6s ease;
+  padding:28px 28px 140px 28px;opacity:0;transition:opacity .6s ease;
   color:#fff;
 }
 .carousel-slide.active{opacity:1;z-index:2}
@@ -83,23 +83,23 @@ body{
 .slide-tag{
   display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;
   background:rgba(0,0,0,.45);backdrop-filter:blur(10px);
-  font-size:12px;font-weight:600;color:#fff;margin-bottom:16px;
+  font-size:12px;font-weight:600;color:#fff;margin-bottom:22px;
   border:1px solid rgba(255,255,255,.12);
 }
 .slide-title{
-  font-size:38px;font-weight:600;line-height:1.1;letter-spacing:-0.5px;
-  margin-bottom:18px;color:#fff;
+  font-size:38px;font-weight:600;line-height:1.15;letter-spacing:-0.5px;
+  margin-bottom:22px;color:#fff;
 }
 .slide-title em{font-style:normal;color:#FF7500;display:inline;font-weight:600}
 .slide-desc{
-  font-size:14px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.75);
-  margin-bottom:8px;
+  font-size:14px;font-weight:300;line-height:1.65;color:rgba(255,255,255,.78);
+  margin-bottom:0;max-width:92%;
 }
 
 /* Controls */
 .carousel-controls{
-  position:absolute;left:28px;right:28px;bottom:28px;z-index:5;
-  display:flex;flex-direction:column;gap:18px;
+  position:absolute;left:28px;right:28px;bottom:24px;z-index:5;
+  display:flex;flex-direction:column;gap:14px;
 }
 .carousel-controls__row{
   display:flex;align-items:center;justify-content:space-between;
@@ -551,7 +551,9 @@ body{
   let current = 0;
   const total = slides.length;
   const DURATION = 6000; // ms per slide
-  let autoplayId, progressId, progressStart;
+  let progressRafId = null;
+  let advanceTimerId = null;
+  let progressStart = 0;
 
   function go(i){
     current = (i + total) % total;
@@ -560,41 +562,64 @@ body{
     counter.textContent = String(current+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
   }
 
-  function startProgress(){
-    cancelAnimationFrame(progressId);
-    progressStart = performance.now();
-    progressBar.style.width = '0%';
-    function tick(now){
-      const elapsed = now - progressStart;
-      const pct = Math.min(100, (elapsed / DURATION) * 100);
-      progressBar.style.width = pct + '%';
-      if(pct >= 100){
-        go(current + 1);
-        startProgress();
-        return;
-      }
-      progressId = requestAnimationFrame(tick);
+  /* Loop cíclico robusto:
+     - setTimeout garantiza el avance a la siguiente slide incluso si la
+       pestaña pierde foco y rAF se pausa (rAF no corre en tabs ocultos).
+     - requestAnimationFrame solo pinta visualmente el progress bar — si se
+       pausa no importa porque el setTimeout sigue corriendo.
+     - Al volver visible, se resyncroniza sin perder el ciclo. */
+  function stopLoops(){
+    if(progressRafId){ cancelAnimationFrame(progressRafId); progressRafId = null; }
+    if(advanceTimerId){ clearTimeout(advanceTimerId); advanceTimerId = null; }
+  }
+
+  function tickProgress(){
+    const elapsed = Date.now() - progressStart;
+    const pct = Math.min(100, (elapsed / DURATION) * 100);
+    progressBar.style.width = pct + '%';
+    if(pct < 100){
+      progressRafId = requestAnimationFrame(tickProgress);
     }
-    progressId = requestAnimationFrame(tick);
   }
 
-  function resetAutoplay(){
-    startProgress();
+  function startCycle(){
+    stopLoops();
+    progressStart = Date.now();
+    progressBar.style.width = '0%';
+    // Pintar el progress en cada frame (visual)
+    progressRafId = requestAnimationFrame(tickProgress);
+    // Garantizar el avance aunque rAF esté pausado
+    advanceTimerId = setTimeout(() => {
+      go(current + 1);
+      startCycle(); // recursivo → ciclo infinito
+    }, DURATION);
   }
 
-  prev.addEventListener('click', ()=>{go(current-1); resetAutoplay();});
-  next.addEventListener('click', ()=>{go(current+1); resetAutoplay();});
-  dots.forEach(d=>d.addEventListener('click', e=>{
-    go(parseInt(e.currentTarget.dataset.go)-1);
-    resetAutoplay();
+  prev.addEventListener('click', ()=>{ go(current-1); startCycle(); });
+  next.addEventListener('click', ()=>{ go(current+1); startCycle(); });
+  dots.forEach(d => d.addEventListener('click', e => {
+    go(parseInt(e.currentTarget.dataset.go, 10) - 1);
+    startCycle();
   }));
 
-  // Resume autoplay when tab becomes visible again
+  // Al volver la pestaña visible, resync el progress con Date.now() para
+  // que no salte visualmente (setTimeout puede haber avanzado ya)
   document.addEventListener('visibilitychange', () => {
-    if(!document.hidden) resetAutoplay();
+    if(!document.hidden){
+      // Si el setTimeout ya pasó, saltar directo a la siguiente slide
+      const elapsed = Date.now() - progressStart;
+      if(elapsed >= DURATION){
+        go(current + 1);
+        startCycle();
+      } else {
+        // Sólo reanudar el rAF visual (setTimeout sigue activo)
+        if(progressRafId) cancelAnimationFrame(progressRafId);
+        progressRafId = requestAnimationFrame(tickProgress);
+      }
+    }
   });
 
-  resetAutoplay();
+  startCycle();
 })();
 
 /* ═══ PASSWORD TOGGLE ═══ */
