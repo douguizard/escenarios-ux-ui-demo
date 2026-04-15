@@ -551,48 +551,40 @@ body{
   let current = 0;
   const total = slides.length;
   const DURATION = 6000; // ms per slide
-  let progressRafId = null;
-  let advanceTimerId = null;
-  let progressStart = 0;
+  const TICK_MS = 50;    // 20 fps para el progress bar (fluido + barato)
+  let tickerId = null;
+  let cycleStart = 0;
 
   function go(i){
     current = (i + total) % total;
     slides.forEach((s,idx)=>s.classList.toggle('active', idx===current));
     dots.forEach((d,idx)=>d.classList.toggle('active', idx===current));
-    counter.textContent = String(current+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    // counter es opcional (fue removido del HTML) — defender contra null
+    if(counter) counter.textContent = String(current+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
   }
 
-  /* Loop cíclico robusto:
-     - setTimeout garantiza el avance a la siguiente slide incluso si la
-       pestaña pierde foco y rAF se pausa (rAF no corre en tabs ocultos).
-     - requestAnimationFrame solo pinta visualmente el progress bar — si se
-       pausa no importa porque el setTimeout sigue corriendo.
-     - Al volver visible, se resyncroniza sin perder el ciclo. */
-  function stopLoops(){
-    if(progressRafId){ cancelAnimationFrame(progressRafId); progressRafId = null; }
-    if(advanceTimerId){ clearTimeout(advanceTimerId); advanceTimerId = null; }
-  }
-
-  function tickProgress(){
-    const elapsed = Date.now() - progressStart;
-    const pct = Math.min(100, (elapsed / DURATION) * 100);
-    progressBar.style.width = pct + '%';
-    if(pct < 100){
-      progressRafId = requestAnimationFrame(tickProgress);
-    }
-  }
+  /* Loop cíclico simple con UN solo setInterval.
+     Toda la lógica (pintar barra + detectar fin de ciclo + avanzar) vive
+     en el mismo tick, así nunca hay desincronización entre "avanzar" y
+     "resetear barra". setInterval sobrevive pérdidas de foco (rAF no). */
+  function stopTicker(){ if(tickerId){ clearInterval(tickerId); tickerId = null; } }
 
   function startCycle(){
-    stopLoops();
-    progressStart = Date.now();
+    stopTicker();
+    cycleStart = Date.now();
     progressBar.style.width = '0%';
-    // Pintar el progress en cada frame (visual)
-    progressRafId = requestAnimationFrame(tickProgress);
-    // Garantizar el avance aunque rAF esté pausado
-    advanceTimerId = setTimeout(() => {
-      go(current + 1);
-      startCycle(); // recursivo → ciclo infinito
-    }, DURATION);
+    tickerId = setInterval(() => {
+      const elapsed = Date.now() - cycleStart;
+      if(elapsed >= DURATION){
+        // Avanzar y reiniciar el ciclo en el mismo tick
+        go(current + 1);
+        cycleStart = Date.now();
+        progressBar.style.width = '0%';
+        return;
+      }
+      const pct = (elapsed / DURATION) * 100;
+      progressBar.style.width = pct.toFixed(2) + '%';
+    }, TICK_MS);
   }
 
   prev.addEventListener('click', ()=>{ go(current-1); startCycle(); });
@@ -602,20 +594,17 @@ body{
     startCycle();
   }));
 
-  // Al volver la pestaña visible, resync el progress con Date.now() para
-  // que no salte visualmente (setTimeout puede haber avanzado ya)
+  // Cuando la pestaña vuelve a ser visible, resyncroniza (por si
+  // el throttling del browser pausó setInterval) saltando a donde
+  // corresponda según el tiempo transcurrido real.
   document.addEventListener('visibilitychange', () => {
-    if(!document.hidden){
-      // Si el setTimeout ya pasó, saltar directo a la siguiente slide
-      const elapsed = Date.now() - progressStart;
-      if(elapsed >= DURATION){
-        go(current + 1);
-        startCycle();
-      } else {
-        // Sólo reanudar el rAF visual (setTimeout sigue activo)
-        if(progressRafId) cancelAnimationFrame(progressRafId);
-        progressRafId = requestAnimationFrame(tickProgress);
-      }
+    if(document.hidden) return;
+    const elapsed = Date.now() - cycleStart;
+    if(elapsed >= DURATION){
+      // Saltar slides según cuántos ciclos completos pasaron
+      const cyclesPassed = Math.floor(elapsed / DURATION);
+      go(current + cyclesPassed);
+      startCycle();
     }
   });
 
