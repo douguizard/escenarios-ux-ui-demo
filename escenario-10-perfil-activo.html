@@ -333,6 +333,108 @@
   0%,100%{box-shadow:0 0 0 0 rgba(215,64,9,.35)}
   50%{box-shadow:0 0 0 8px rgba(215,64,9,0)}
 }
+
+/* ═══ LIGHTBOX (photo viewer fullscreen) ═══ */
+.gallery__item{cursor:zoom-in}
+.lb-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(0,0,0,.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:none;flex-direction:column;
+  animation:fadeIn .2s ease;
+}
+.lb-overlay.open{display:flex}
+.lb-header{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 24px;z-index:5;
+  pointer-events:none;
+}
+.lb-header > *{pointer-events:auto}
+.lb-counter{
+  color:#fff;font-size:13px;font-weight:500;
+  background:rgba(0,0,0,.45);padding:6px 14px;border-radius:9999px;
+  backdrop-filter:blur(4px);
+}
+.lb-close{
+  width:40px;height:40px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.12);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,transform .15s;
+  backdrop-filter:blur(4px);
+}
+.lb-close:hover{background:rgba(255,255,255,.22);transform:scale(1.05)}
+.lb-close svg{width:20px;height:20px}
+.lb-main{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;padding:60px 80px 140px;
+  min-height:0;
+}
+.lb-main__stage{
+  max-width:100%;max-height:100%;
+  display:flex;align-items:center;justify-content:center;
+  animation:lbPop .3s cubic-bezier(.4,0,.2,1);
+}
+.lb-main__img{
+  max-width:100%;max-height:calc(100vh - 220px);
+  width:auto;height:auto;
+  object-fit:contain;
+  border-radius:12px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+  user-select:none;-webkit-user-drag:none;
+}
+@keyframes lbPop{
+  from{opacity:0;transform:scale(.96)}
+  to{opacity:1;transform:scale(1)}
+}
+.lb-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:48px;height:48px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.12);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,transform .15s;
+  backdrop-filter:blur(4px);
+}
+.lb-nav:hover{background:rgba(255,255,255,.24)}
+.lb-nav:active{transform:translateY(-50%) scale(.95)}
+.lb-nav--prev{left:24px}
+.lb-nav--next{right:24px}
+.lb-nav svg{width:24px;height:24px}
+.lb-thumbs{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:18px 24px 22px;
+  background:linear-gradient(to top,rgba(0,0,0,.55),transparent);
+  display:flex;justify-content:center;
+  pointer-events:none;
+}
+.lb-thumbs__track{
+  display:flex;gap:8px;
+  max-width:100%;overflow-x:auto;
+  padding:4px;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+  pointer-events:auto;
+}
+.lb-thumbs__track::-webkit-scrollbar{display:none}
+.lb-thumb{
+  flex:0 0 auto;
+  width:72px;height:56px;
+  border-radius:8px;overflow:hidden;
+  cursor:pointer;
+  opacity:.55;border:2px solid transparent;
+  transition:opacity .15s,border-color .15s,transform .15s;
+  background:#000;
+}
+.lb-thumb:hover{opacity:.85}
+.lb-thumb--active{opacity:1;border-color:var(--naranja,#FF7500)}
+.lb-thumb img{width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-drag:none}
+@media(max-width:640px){
+  .lb-main{padding:60px 16px 120px}
+  .lb-nav{width:40px;height:40px}
+  .lb-nav--prev{left:8px}
+  .lb-nav--next{right:8px}
+  .lb-thumb{width:56px;height:44px}
+}
 </style>
 </head>
 <body>
@@ -1327,6 +1429,135 @@
   <div class="naowee-floating-footer__sep"></div>
   <span class="naowee-floating-footer__text">Todos los derechos reservados <strong>&copy; 2026</strong></span>
 </div>
+
+<!-- ═══ LIGHTBOX: visor de fotos en grande ═══ -->
+<div class="lb-overlay" id="lightbox" role="dialog" aria-label="Visor de fotos" aria-modal="true">
+  <div class="lb-header">
+    <div class="lb-counter" id="lbCounter">1 / 8</div>
+    <button class="lb-close" id="lbClose" type="button" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="lb-main">
+    <button class="lb-nav lb-nav--prev" id="lbPrev" type="button" aria-label="Foto anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="lb-main__stage" id="lbStage">
+      <img class="lb-main__img" id="lbImg" src="" alt=""/>
+    </div>
+    <button class="lb-nav lb-nav--next" id="lbNext" type="button" aria-label="Foto siguiente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <div class="lb-thumbs">
+    <div class="lb-thumbs__track" id="lbThumbs"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const overlay = document.getElementById('lightbox');
+  const imgEl = document.getElementById('lbImg');
+  const stageEl = document.getElementById('lbStage');
+  const counterEl = document.getElementById('lbCounter');
+  const thumbsEl = document.getElementById('lbThumbs');
+  const galleryItems = Array.from(document.querySelectorAll('.gallery__item img'));
+  if(galleryItems.length === 0) return;
+
+  // Las miniaturas comparten las mismas URLs que las fotos principales.
+  // El carrusel original usa Unsplash con ?w=400; acá las pedimos más grandes
+  // para el visor y reducidas para las thumbs.
+  const sources = galleryItems.map(img => {
+    // Intentar subir a 1600px si la URL lo permite; si no, usar tal cual.
+    const s = img.getAttribute('src') || '';
+    return {
+      full: s.replace(/w=\d+/, 'w=1600').replace(/h=\d+/, 'h=1000'),
+      thumb: s.replace(/w=\d+/, 'w=160').replace(/h=\d+/, 'h=100'),
+      alt: img.getAttribute('alt') || ''
+    };
+  });
+
+  let currentIdx = 0;
+
+  function renderThumbs(){
+    thumbsEl.innerHTML = sources.map((s, i) => `
+      <button class="lb-thumb${i === currentIdx ? ' lb-thumb--active' : ''}" data-thumb="${i}" type="button" aria-label="Ir a foto ${i+1}">
+        <img src="${s.thumb}" alt=""/>
+      </button>
+    `).join('');
+    thumbsEl.querySelectorAll('[data-thumb]').forEach(btn => {
+      btn.addEventListener('click', () => setIndex(parseInt(btn.dataset.thumb, 10)));
+    });
+  }
+
+  function updateActiveThumb(){
+    thumbsEl.querySelectorAll('.lb-thumb').forEach((el, i) => {
+      el.classList.toggle('lb-thumb--active', i === currentIdx);
+    });
+    // Scroll la thumb activa al centro del track si está fuera de vista
+    const active = thumbsEl.querySelector('.lb-thumb--active');
+    if(active){
+      const tRect = thumbsEl.getBoundingClientRect();
+      const aRect = active.getBoundingClientRect();
+      if(aRect.left < tRect.left || aRect.right > tRect.right){
+        active.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+      }
+    }
+  }
+
+  function setIndex(i){
+    const n = sources.length;
+    currentIdx = ((i % n) + n) % n; // módulo seguro para negativos
+    imgEl.src = sources[currentIdx].full;
+    imgEl.alt = sources[currentIdx].alt;
+    counterEl.textContent = (currentIdx + 1) + ' / ' + n;
+    // Retriggerar animación "pop"
+    stageEl.style.animation = 'none';
+    stageEl.offsetHeight;
+    stageEl.style.animation = '';
+    updateActiveThumb();
+  }
+
+  function open(idx){
+    currentIdx = idx || 0;
+    renderThumbs();
+    setIndex(currentIdx);
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function close(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Click en cada foto del carousel principal → abrir lightbox
+  document.querySelectorAll('.gallery__item').forEach((item, i) => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      open(i);
+    });
+  });
+
+  document.getElementById('lbClose').addEventListener('click', close);
+  document.getElementById('lbPrev').addEventListener('click', () => setIndex(currentIdx - 1));
+  document.getElementById('lbNext').addEventListener('click', () => setIndex(currentIdx + 1));
+
+  // Click fuera de la imagen (sobre el backdrop) también cierra
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay || e.target.classList.contains('lb-main')){
+      close();
+    }
+  });
+
+  // Teclado: Escape cierra, flechas navegan
+  document.addEventListener('keydown', (e) => {
+    if(!overlay.classList.contains('open')) return;
+    if(e.key === 'Escape') close();
+    else if(e.key === 'ArrowLeft') setIndex(currentIdx - 1);
+    else if(e.key === 'ArrowRight') setIndex(currentIdx + 1);
+  });
+})();
+</script>
 
 </body>
 </html>
