@@ -885,9 +885,12 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="shared/escenarios-store.js"></script>
 <script>
 (function(){
   'use strict';
+
+  const Store = window.EscStore;
 
   // ═══ Profile switcher ═══
   const ps = document.getElementById('profileSwitcher');
@@ -898,16 +901,20 @@
 
   // ═══ Estado-driven UI ═══
   const urlParams = new URLSearchParams(window.location.search);
-  const estado = urlParams.get('estado') || 'por-revisar';
   const revIdx = urlParams.get('idx') || '0';
+  const revIdxInt = parseInt(revIdx, 10);
+  // Cargar registro real del store
+  const record = Store ? Store.get(revIdxInt) : null;
+  // El estado real proviene del store; param sólo es fallback
+  const recStatusToParam = { 'revision':'por-revisar', 'activo':'activo', 'rechazado':'rechazado' };
+  const estado = (record && recStatusToParam[record.status]) || urlParams.get('estado') || 'por-revisar';
 
-  // Helper: persist estado change for revisor dashboard
-  function persistRevEstado(idx, nuevoEstado) {
-    try {
-      const map = JSON.parse(sessionStorage.getItem('revEstados') || '{}');
-      map[idx] = nuevoEstado;
-      sessionStorage.setItem('revEstados', JSON.stringify(map));
-    } catch(e){}
+  // Helper: persistir cambio de estado del registro (delega al store)
+  function persistRevEstado(idx, nuevoEstado, motivo) {
+    if(!Store) return;
+    const i = parseInt(idx, 10);
+    if(nuevoEstado === 'activo') Store.approve(i, Store.REVISOR_NAME);
+    else if(nuevoEstado === 'rechazado') Store.reject(i, Store.REVISOR_NAME, motivo || '');
   }
 
   const btnRechazarEl = document.getElementById('btnRechazar');
@@ -1073,9 +1080,10 @@
     document.getElementById('rechazoMotivo').value = '';
   });
   document.getElementById('dialogRechazarConfirm').addEventListener('click', () => {
+    const motivo = (document.getElementById('rechazoMotivo')?.value || '').trim();
     dialogRechazar.classList.remove('open');
     document.getElementById('rechazoMotivo').value = '';
-    persistRevEstado(revIdx, 'rechazado');
+    persistRevEstado(revIdx, 'rechazado', motivo);
     showToast('Registro rechazado', 'error');
     setTimeout(() => { window.location.href = 'escenario-11-revisor-dashboard.html'; }, 1200);
   });
@@ -1214,6 +1222,16 @@
   // Select first row by default
   if (docRows.length) selectDocRow(docRows[0]);
 
+  // Mapeo entre keys del HTML local de esc-12 y las del store (compartidas con esc-09)
+  const DOC_KEY_MAP = {
+    fotoFrontal: 'fotoFrontalGeneral',
+    fotoPanoramica: 'fotoPanoramica',
+    fotoInstalaciones: 'fotoInstalaciones',
+    fotoPanoramicaAerea: 'fotoPanoramica',
+    planoEscenario: 'planoEscenario',
+    planoLocalizacion: 'planoLocalizacion'
+  };
+
   // ═══ Right panel action buttons ═══
   document.querySelector('.rev-action-approve')?.addEventListener('click', () => {
     if (!selectedRow) return;
@@ -1223,6 +1241,11 @@
       leftBadge.className = 'naowee-badge naowee-badge--quiet naowee-badge--positive naowee-badge--small';
       leftBadge.textContent = 'Aprobado';
     }
+    // Persistir al store
+    if(Store){
+      const storeDocId = DOC_KEY_MAP[selectedRow.dataset.docRow] || selectedRow.dataset.docRow;
+      Store.approveDoc(revIdxInt, storeDocId, Store.REVISOR_NAME);
+    }
     selectDocRow(selectedRow); // refresh panel
     updateBulkActions();
     showToast('Documento aprobado', 'success');
@@ -1230,15 +1253,31 @@
 
   document.querySelector('.rev-action-reject')?.addEventListener('click', () => {
     if (!selectedRow) return;
-    // Show nota textarea for motivo
     selectedRow.dataset.docStatus = 'rechazado';
     const leftBadge = selectedRow.querySelector('.naowee-badge');
     if (leftBadge) {
       leftBadge.className = 'naowee-badge naowee-badge--quiet naowee-badge--negative naowee-badge--small';
       leftBadge.textContent = 'Rechazado';
     }
-    selectDocRow(selectedRow); // refresh panel — will show nota
+    selectDocRow(selectedRow); // refresh panel — will show nota textarea
     revNotaTextarea.focus();
+    // Capturar la nota cuando el revisor la escriba (on blur o on input)
+    if(Store){
+      const storeDocId = DOC_KEY_MAP[selectedRow.dataset.docRow] || selectedRow.dataset.docRow;
+      const initialNota = revNotaTextarea.value || 'Documento rechazado por el revisor.';
+      Store.rejectDoc(revIdxInt, storeDocId, Store.REVISOR_NAME, initialNota);
+      // Actualizar la nota en el store cada vez que el revisor edite el textarea
+      const onChange = () => {
+        Store.update(revIdxInt, (() => {
+          const rec = Store.get(revIdxInt);
+          if(!rec.documentacion) rec.documentacion = {};
+          if(!rec.documentacion[storeDocId]) rec.documentacion[storeDocId] = { file: null };
+          rec.documentacion[storeDocId].notaRechazo = revNotaTextarea.value || initialNota;
+          return { documentacion: rec.documentacion };
+        })());
+      };
+      revNotaTextarea.addEventListener('blur', onChange, { once: true });
+    }
     updateBulkActions();
     showToast('Documento rechazado', 'error');
   });

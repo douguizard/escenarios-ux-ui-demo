@@ -1193,6 +1193,12 @@
     </nav>
 
     <div class="sidebar-bottom">
+      <div class="nav-row" id="btnResetDemo" title="Resetear datos a la semilla inicial (4 ejemplos)">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4M3 4v5h5" stroke="#B5B9D4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="lbl">Resetear demo</span>
+      </div>
       <div class="nav-row" id="btnLogout">
         <div class="icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#B5B9D4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2221,6 +2227,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="shared/escenarios-store.js"></script>
 <script src="shared/transitions.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -2240,80 +2247,41 @@
     const mm = String(d.getMinutes()).padStart(2,'0');
     return `${meses[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}, ${d.getFullYear()} ${h}:${mm} ${ampm}`;
   }
-  let draftItems = [];
-  try {
-    const raw = sessionStorage.getItem('regDrafts');
-    if(raw){
-      const arr = JSON.parse(raw);
-      if(Array.isArray(arr)){
-        draftItems = arr.map((d, i) => ({
-          name: d.nombre,
-          id: d.catastral || '—',
-          car: '—',
-          state: { label: 'Borrador', variant: 'informative' },
-          modifiedDate: formatDraftDate(d.savedAt),
-          modifiedBy: 'De ' + (d.responsable || 'Juan Hernandez Granados'),
-          action: 'edit',
-          isDraft: true,
-          draftIdx: i
-        }));
-      }
-    }
-  } catch(err){ /* ignore */ }
+  // ── Fuente única: EscStore (localStorage). El semilleo de los 4 mock
+  //    coherentes con el flujo lo hace el módulo al cargar el script.
+  const allRecords = (window.EscStore ? window.EscStore.getAll() : []);
 
-  // Mock data — respeta lo que muestra el Figma
-  const DATA = {
-    empty: [],
-    single: [
-      {
-        name: 'Centro deportivo Prado',
-        id: '10000101010',
-        car: '—',
-        state: { label: 'Borrador', variant: 'informative' },
-        modifiedDate: 'Feb. 13, 2026 1:22 PM',
-        modifiedBy: 'De Juan Hernandez Granados',
-        action: 'edit'
-      }
-    ],
-    multiple: [
-      {
-        name: 'Centro deportivo Prado',
-        id: '10000101010',
-        car: '—',
-        state: { label: 'Borrador', variant: 'neutral' },
-        modifiedDate: 'Feb. 13, 2026 1:22 PM',
-        modifiedBy: 'De Juan Hernandez Granados',
-        action: 'edit'
-      },
-      {
-        name: 'Centro deportivo Miramar',
-        id: '1000020202',
-        car: 'Sí',
-        state: { label: 'En revisión', variant: 'caution' },
-        modifiedDate: 'Feb. 20, 2026 1:22 PM',
-        modifiedBy: 'De Juan Hernandez Granados',
-        action: 'view'
-      },
-      {
-        name: 'Centro deportivo Norte',
-        id: '1000030303',
-        car: 'Sí',
-        state: { label: 'Activo', variant: 'positive' },
-        modifiedDate: 'Feb. 02, 2026 1:22 PM',
-        modifiedBy: 'De Juan Hernandez Granados',
-        action: 'view'
-      },
-      {
-        name: 'Centro deportivo Sur',
-        id: '1000040404',
-        car: 'No',
-        state: { label: 'Rechazado', variant: 'negative' },
-        modifiedDate: 'Feb. 02, 2026 1:22 PM',
-        modifiedBy: 'De Juan Hernandez Granados',
-        action: 'edit'
-      }
-    ]
-  };
+  // El query param ?mode= ahora SOLO controla cuántos mostramos para la demo,
+  // los datos siempre vienen del store (cero divergencia con el revisor).
+  let visible;
+  if(mode === 'empty'){
+    visible = [];
+  } else if(mode === 'single'){
+    visible = allRecords.slice(0, 1);
+  } else { // 'multiple' o cualquier otro valor
+    visible = allRecords;
+  }
+
+  // Adaptar al formato que la tabla espera. action y attr dependen del status real.
+  const draftItems = visible.map((d, i) => {
+    const meta = (window.EscStore && window.EscStore.ESTADO_BADGE[d.status])
+      || { label: 'Borrador', variant: 'neutral' };
+    const isEditable = (d.status === 'borrador' || d.status === 'rechazado');
+    return {
+      name: d.nombre,
+      id: d.catastral || '—',
+      car: typeof d.car === 'boolean' ? (d.car ? 'Sí' : 'No') : (d.car || '—'),
+      state: meta,
+      modifiedDate: formatDraftDate(d.sentAt || d.reviewedAt || d.savedAt),
+      modifiedBy: 'De ' + (d.responsable || (window.EscStore ? window.EscStore.GESTOR_NAME : 'Juan Hernandez Granados')),
+      action: isEditable ? 'edit' : 'view',
+      storeIdx: i,
+      status: d.status
+    };
+  });
+
+  // (mock DATA legacy eliminada; todo viene del store ahora)
+  const DATA = { empty: [], single: [], multiple: [] };
 
   const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   const ICON_VIEW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -2321,12 +2289,9 @@
   function renderRow(item, idx){
     const icon = item.action === 'edit' ? ICON_EDIT : ICON_VIEW;
     const actionLabel = item.action === 'edit' ? 'Editar' : 'Ver detalle';
-    let actionAttr = '';
-    if(item.isDraft) actionAttr = ` data-draft-idx="${item.draftIdx}"`;
-    else if(item.state.variant === 'informative' || item.state.variant === 'neutral') actionAttr = ` data-demo-draft="${idx}"`;
-    else if(item.state.variant === 'negative') actionAttr = ` data-rechazado-idx="${idx}"`;
-    else if(item.state.variant === 'caution') actionAttr = ` data-review-idx="${idx}"`;
-    else if(item.state.variant === 'positive') actionAttr = ` data-activo-idx="${idx}"`;
+    // Routing por status real (todo viene del store, storeIdx es índice global)
+    let actionAttr = ` data-store-idx="${item.storeIdx}" data-status="${item.status}"`;
+    if(item.status === 'borrador') actionAttr += ` data-draft-idx="${item.storeIdx}"`;
     return `
       <tr>
         <td><div class="cell-name">${item.name}</div></td>
@@ -2386,12 +2351,21 @@
     pgInput.value = '1';
     pgTotal.textContent = '1';
 
-    // Click en editar de un draft → abre modal 2 con datos precargados
-    tbody.querySelectorAll('[data-draft-idx]').forEach(btn => {
+    // Click en cualquier botón de acción → enrutar según status real
+    tbody.querySelectorAll('[data-store-idx]').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
-        const idx = parseInt(btn.getAttribute('data-draft-idx'), 10);
-        if(window.openEditDraft) window.openEditDraft(idx);
+        const storeIdx = parseInt(btn.getAttribute('data-store-idx'), 10);
+        const status = btn.getAttribute('data-status');
+        if(status === 'borrador'){
+          if(window.openEditDraft) window.openEditDraft(storeIdx);
+        } else if(status === 'activo'){
+          window.location.href = `escenario-10-perfil-activo.html?idx=${storeIdx}`;
+        } else if(status === 'rechazado'){
+          window.location.href = `escenario-09-detalle-revision.html?idx=${storeIdx}&estado=rechazado`;
+        } else { // 'revision'
+          window.location.href = `escenario-09-detalle-revision.html?idx=${storeIdx}&estado=revision`;
+        }
       });
     });
   }
@@ -3001,10 +2975,7 @@
   /* ─── DIALOG: Validación exitosa ─── */
   function appendDraft(extra){
     try {
-      let arr = [];
-      const raw = sessionStorage.getItem('regDrafts');
-      if(raw) arr = JSON.parse(raw) || [];
-      if(!Array.isArray(arr)) arr = [];
+      const Store = window.EscStore;
       // Base: datos paso 1
       const data = {
         nombre: regState.nombre,
@@ -3016,21 +2987,28 @@
         direccion: regState.direccion,
         corregimiento: regState.corregimiento,
         zona: regState.zona,
-        responsable: (extra && extra.responsable) || '',
+        responsable: (extra && extra.responsable) || (Store ? Store.GESTOR_NAME : ''),
+        status: 'borrador',
         savedAt: Date.now()
       };
       // Si estamos en paso 2+, incluir reg2State
       if(_warnCloseOrigin === 'reg2' || _warnCloseOrigin === 'reg3'){
         Object.assign(data, fullReg2Snapshot());
       }
-      // Si estamos editando un draft existente, actualizar en vez de push
-      if(editingDraftIdx != null){
-        const prev = arr[editingDraftIdx] || {};
-        arr[editingDraftIdx] = Object.assign({}, prev, data, extra || {});
-      } else {
-        arr.push(Object.assign(data, extra || {}));
+      Object.assign(data, extra || {});
+
+      if(Store){
+        if(editingDraftIdx != null){
+          Store.update(editingDraftIdx, data);
+        } else {
+          const idx = Store.add(data);
+          Store.pushEvent(idx, Store.buildEvent(
+            'asignaciones', 'Registro creado',
+            'Borrador iniciado por el gestor.',
+            'gestor', data.responsable
+          ));
+        }
       }
-      sessionStorage.setItem('regDrafts', JSON.stringify(arr));
     } catch(err){ /* ignore */ }
   }
 
@@ -6675,19 +6653,18 @@
     reg3SubmitBtn.classList.add('naowee-btn--loading');
     setTimeout(() => {
       try {
-        let arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]');
-        if(!Array.isArray(arr)) arr = [];
-        const prev = (editingDraftIdx != null && arr[editingDraftIdx]) || {};
-        const newData = Object.assign({}, prev, fullReg2Snapshot(), {
-          nombre: regState.nombre || prev.nombre || '',
-          catastral: regState.catastral || prev.catastral || '',
-          departamento: regState.departamento || prev.departamento || '',
-          municipio: regState.municipio || prev.municipio || '',
-          lat: regState.lat != null ? regState.lat : (prev.lat != null ? prev.lat : null),
-          lon: regState.lon != null ? regState.lon : (prev.lon != null ? prev.lon : null),
-          direccion: regState.direccion || prev.direccion || '',
-          corregimiento: regState.corregimiento || prev.corregimiento || '',
-          zona: regState.zona || prev.zona || '',
+        const Store = window.EscStore;
+        // Construir el patch del paso 2+3 desde estado en memoria
+        const patch = Object.assign({}, fullReg2Snapshot(), {
+          nombre: regState.nombre || '',
+          catastral: regState.catastral || '',
+          departamento: regState.departamento || '',
+          municipio: regState.municipio || '',
+          lat: regState.lat != null ? regState.lat : null,
+          lon: regState.lon != null ? regState.lon : null,
+          direccion: regState.direccion || '',
+          corregimiento: regState.corregimiento || '',
+          zona: regState.zona || '',
           car: reg3State.car,
           tipoEscenario: reg3State.tipoEscenario,
           fichaComun: JSON.parse(JSON.stringify(reg3State.fichaComun)),
@@ -6700,16 +6677,34 @@
           disciplinas: [...reg3State.disciplinas],
           disciplinasData: JSON.parse(JSON.stringify(reg3State.disciplinasData)),
           documentacion: JSON.parse(JSON.stringify(reg3State.documentacion)),
-          status: 'revision', // cambia estado a "En revisión"
-          savedAt: Date.now()
+          responsable: Store ? Store.GESTOR_NAME : 'Juan Hernandez Granados'
         });
-        if(editingDraftIdx != null && arr[editingDraftIdx]){
-          arr[editingDraftIdx] = newData;
+
+        let idx;
+        if(editingDraftIdx != null){
+          // Editar registro existente y reenviar (caso "rechazado → corregido → reenviar")
+          if(Store){
+            Store.update(editingDraftIdx, patch);
+            Store.sendToReview(editingDraftIdx, patch.responsable);
+          }
+          idx = editingDraftIdx;
         } else {
-          arr.push(newData);
+          // Nuevo registro: crear con status='borrador' luego enviar a revisión
+          // (esto registra los 3 eventos del historial: creado + docs + enviado)
+          if(Store){
+            patch.status = 'borrador';
+            patch.savedAt = Date.now();
+            idx = Store.add(patch);
+            // Eventos: creación + documentación + envío
+            const docCount = Object.keys(patch.documentacion || {}).filter(k => patch.documentacion[k] && patch.documentacion[k].file).length;
+            Store.pushEvent(idx, Store.buildEvent('asignaciones', 'Registro creado', 'El gestor creó el registro inicial.', 'gestor', patch.responsable));
+            if(docCount > 0){
+              Store.pushEvent(idx, Store.buildEvent('documentos', 'Documentación cargada', `${docCount} documento${docCount === 1 ? '' : 's'} cargado${docCount === 1 ? '' : 's'}.`, 'gestor', patch.responsable));
+            }
+            Store.sendToReview(idx, patch.responsable);
+          }
         }
-        sessionStorage.setItem('regDrafts', JSON.stringify(arr));
-      } catch(err){}
+      } catch(err){ console.warn('Submit error:', err); }
       editingDraftIdx = null;
       reg3SubmitBtn.classList.remove('naowee-btn--loading');
       closeModal3();
@@ -6828,29 +6823,9 @@
 
   /* ─── API pública: abrir modal 0 readonly + modal 2 preparado con datos del draft ─── */
   window.openEditDraft = function(idx){
-    let arr = [];
-    try { arr = JSON.parse(sessionStorage.getItem('regDrafts') || '[]'); } catch(e){}
-    let d = arr[idx];
-    // Si no existe en sessionStorage, crear un draft mock a partir de la data demo
-    if(!d){
-      const params = new URLSearchParams(window.location.search);
-      const mode = params.get('mode') || 'empty';
-      const DEMO = {
-        single: [{ nombre:'Centro deportivo Prado', catastral:'10000101010', departamento:'Antioquia', municipio:'Medellín', direccion:'Cra 30 #24-50', corregimiento:'', zona:'Urbana', lat:6.2518, lon:-75.5636 }],
-        multiple: [
-          { nombre:'Centro deportivo Prado', catastral:'10000101010', departamento:'Antioquia', municipio:'Medellín', direccion:'Cra 30 #24-50', corregimiento:'', zona:'Urbana', lat:6.2518, lon:-75.5636 },
-          { nombre:'Centro deportivo Miramar', catastral:'1000020202', departamento:'Antioquia', municipio:'Medellín', direccion:'Cl 45 #20-30', corregimiento:'', zona:'Urbana', lat:6.2600, lon:-75.5700 },
-          { nombre:'Centro deportivo Norte', catastral:'1000030303', departamento:'Antioquia', municipio:'Medellín', direccion:'Cra 65 #50-10', corregimiento:'', zona:'Urbana', lat:6.2800, lon:-75.5500 },
-          { nombre:'Centro deportivo Sur', catastral:'1000040404', departamento:'Antioquia', municipio:'Medellín', direccion:'Cl 10 #30-40', corregimiento:'', zona:'Urbana', lat:6.2200, lon:-75.5800 }
-        ]
-      };
-      const demos = DEMO[mode] || [];
-      d = demos[idx];
-      if(!d) return;
-      // Guardar en sessionStorage para que el flujo de edición funcione
-      arr[idx] = d;
-      sessionStorage.setItem('regDrafts', JSON.stringify(arr));
-    }
+    const Store = window.EscStore;
+    const d = Store ? Store.get(idx) : null;
+    if(!d) return;
     editingDraftIdx = idx;
 
     // Precargar state del modal 1
@@ -7008,6 +6983,16 @@ document.getElementById('btnLogout')?.addEventListener('click', () => {
   try { sessionStorage.removeItem('regDrafts'); } catch(e){}
   if(window.wizardNavigate) wizardNavigate('escenario-01-login.html');
   else window.location.href = 'escenario-01-login.html';
+});
+
+/* ═══ Resetear demo: borra localStorage y recarga con la semilla ═══ */
+document.getElementById('btnResetDemo')?.addEventListener('click', () => {
+  if(window.EscStore){
+    if(confirm('¿Resetear la demo? Se borrarán todos los registros actuales y se restaurarán los 4 ejemplos iniciales.')){
+      window.EscStore.reset();
+      window.location.reload();
+    }
+  }
 });
 </script>
 

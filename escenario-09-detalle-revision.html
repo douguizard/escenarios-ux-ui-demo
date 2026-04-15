@@ -334,8 +334,16 @@
           Regresar a la lista
         </button>
 
-        <h1 class="detail-header__title" id="detailTitle">--</h1>
-        <p class="detail-header__id" id="detailId" style="margin-bottom:16px">ID: --</p>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px">
+          <div style="flex:1;min-width:0">
+            <h1 class="detail-header__title" id="detailTitle" style="margin-bottom:4px">--</h1>
+            <p class="detail-header__id" id="detailId">ID: --</p>
+          </div>
+          <button class="naowee-btn naowee-btn--accent" id="btnSendToReview" type="button" style="display:none;flex-shrink:0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            <span id="btnSendToReviewLabel">Enviar a revisión</span>
+          </button>
+        </div>
 
         <!-- Status banner -->
         <div class="naowee-message naowee-message--caution" id="statusBanner">
@@ -558,6 +566,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="shared/escenarios-store.js"></script>
 <script>
 (function(){
   'use strict';
@@ -578,10 +587,9 @@
   const params = new URLSearchParams(window.location.search);
   const idx = parseInt(params.get('idx')) || 0;
 
-  // ═══ Load data from sessionStorage ═══
-  let drafts = [];
-  try { drafts = JSON.parse(sessionStorage.getItem('regDrafts') || '[]'); } catch(e){}
-  let d = drafts[idx];
+  // ═══ Load data from EscStore (localStorage) ═══
+  const Store = window.EscStore;
+  let d = Store ? Store.get(idx) : null;
 
   // ═══ Back link (must register before early return) ═══
   document.getElementById('btnBack').addEventListener('click', () => {
@@ -599,27 +607,11 @@
     });
   });
 
-  // Si no hay datos reales, usar mock para demo
+  // Si no hay datos reales (URL inválida), volver al dashboard
   if(!d){
-    drafts[idx] = {
-      nombre:'Centro deportivo Prado', catastral:'10000101010',
-      departamento:'Antioquia', municipio:'Medellín',
-      lat:6.2518, lon:-75.5636,
-      direccion:'Cra 30 #24-50', corregimiento:'', zona:'Urbana',
-      entidad:'Alcaldía de Medellín', propietario:'Público',
-      administradora:'INDER Medellín', tenencia:'Comodato',
-      responsable:'Juan Hernandez Granados', telefono:'3001234567', correoResp:'juan@ejemplo.co',
-      car:false, tipoEscenario:'Piscina',
-      fichaComun:{areaTotal:'5000',areaUtil:'3200',cubierto:'Mixto',capacidad:'500',anioCons:'2018',estado:'Bueno'},
-      subEspacios:[{nombre:'Piscina Olímpica',tipo:'Piscina',ficha:{longitud:'50',ancho:'25',profMin:'1.2',profMax:'2.5',carriles:'8',tipoPiscina:'Olímpica',tratamiento:'Cloro'}}],
-      subCount:1,
-      disciplinas:['Natación','Waterpolo','Clavados'],
-      disciplinasData:{},
-      documentacion:{fotoFrontalGeneral:'frontal_escenario.jpg',fotoPanoramica:'',fotoInstalaciones:'',fechaFotos:'2026-04-08',planoEscenario:'plano_v2.pdf',planoLocalizacion:'',docPropiedad:'',conceptoBomberos:'',conceptoSalud:'',conceptoInfraestructura:'',resolucionCreacion:''},
-      status:'revision', savedAt:Date.now()-86400000
-    };
+    window.location.href = 'escenario-08-dashboard.html?mode=multiple';
+    return;
   }
-  d = drafts[idx];
 
   // ═══ Month names ═══
   const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -640,22 +632,35 @@
   document.getElementById('detailTitle').textContent = d.nombre || 'Sin nombre';
   document.getElementById('detailId').textContent = 'ID: ' + (d.catastral || '--');
 
-  // ═══ Banner ═══
+  // ═══ Estado-driven banner (basado en d.status real, no en query param) ═══
   const savedAt = d.savedAt || Date.now();
-  document.getElementById('bannerDate').textContent = 'Enviado el ' + fmtDate(savedAt);
+  const estado = d.status || params.get('estado') || 'revision';
 
-  // ═══ Estado-driven banner ═══
-  const estadoParam = params.get('estado');
-  if (estadoParam === 'borrador') {
-    document.getElementById('statusBanner').className = 'naowee-message naowee-message--informative';
-    document.getElementById('statusBannerIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-    document.getElementById('statusBannerTitle').textContent = 'Borrador';
-    document.getElementById('bannerDate').textContent = 'Último guardado el ' + fmtDate(savedAt);
-  } else if (estadoParam === 'rechazado') {
-    document.getElementById('statusBanner').className = 'naowee-message naowee-message--negative';
-    document.getElementById('statusBannerIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-    document.getElementById('statusBannerTitle').textContent = 'Registro rechazado';
-    document.getElementById('bannerDate').textContent = 'Rechazado el ' + fmtDate(savedAt);
+  function setBanner(variant, iconSvg, title, dateText){
+    document.getElementById('statusBanner').className = 'naowee-message naowee-message--' + variant;
+    document.getElementById('statusBannerIcon').innerHTML = iconSvg;
+    document.getElementById('statusBannerTitle').textContent = title;
+    document.getElementById('bannerDate').textContent = dateText;
+  }
+
+  if (estado === 'borrador') {
+    setBanner('informative',
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+      'Borrador',
+      'Último guardado el ' + fmtDate(savedAt));
+  } else if (estado === 'rechazado') {
+    setBanner('negative',
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+      'Registro rechazado',
+      'Rechazado el ' + fmtDate(d.reviewedAt || savedAt));
+  } else if (estado === 'activo') {
+    setBanner('positive',
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polyline points="20 6 9 17 4 12"/></svg>',
+      'Registro activo',
+      'Aprobado el ' + fmtDate(d.reviewedAt || savedAt));
+  } else {
+    // revision
+    document.getElementById('bannerDate').textContent = 'Enviado el ' + fmtDate(d.sentAt || savedAt);
   }
 
   // (Back link + tab switcher already registered above early-return)
@@ -801,35 +806,30 @@
   let docHtml = '';
   let firstLoadedId = null;
 
-  // Doc statuses depending on overall estado
-  const hasRealDocs = d.documentacion && Object.values(d.documentacion).some(v => v);
-  // When rechazado: some docs rejected, some not loaded, none in revision
-  const RECHAZADO_DOCS = new Set(['fotoFrontalGeneral','fotoPanoramica','planoEscenario','docPropiedad']);
-  const RECHAZADO_NO_CARGADOS = new Set(['fotoInstalaciones','planoLocalizacion','conceptoBomberos','conceptoSalud','conceptoInfraestructura']);
-  DOC_FIELDS.forEach(([id, label, format]) => {
-    const val = d.documentacion ? d.documentacion[id] : null;
-    const isLoaded = val || !hasRealDocs;
-    if(!firstLoadedId) firstLoadedId = id;
+  // Render per-document desde el store: usa docStatus real (pendiente/aprobado/rechazado)
+  // Fallback: si el doc no tiene archivo (file falsy), se considera "No cargado".
+  function getDocMeta(id){
+    const raw = d.documentacion ? d.documentacion[id] : null;
+    if(raw == null) return { file:null, docStatus:'sin', notaRechazo:null, reviewedAt:null };
+    if(typeof raw === 'string') return { file: raw, docStatus:'pendiente', notaRechazo:null, reviewedAt:null };
+    return raw;
+  }
+  function badgeForDoc(meta){
+    if(!meta.file) return '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
+    if(meta.docStatus === 'aprobado') return '<span class="naowee-badge naowee-badge--quiet naowee-badge--positive naowee-badge--small">Aprobado</span>';
+    if(meta.docStatus === 'rechazado') return '<span class="naowee-badge naowee-badge--quiet naowee-badge--negative naowee-badge--small">Rechazado</span>';
+    return '<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small">En revisión</span>';
+  }
+  DOC_FIELDS.forEach(([id, label]) => {
+    const meta = getDocMeta(id);
+    if(!firstLoadedId && meta.file) firstLoadedId = id;
     const isPhoto = id.startsWith('foto');
     const ext = isPhoto ? 'jpg' : 'pdf';
     const extIcon = `<div class="doc-ext-icon"><img src="shared/icons/file-folded-format-${ext}.svg" alt="${ext.toUpperCase()}"/></div>`;
-    let statusBadge;
-    if (estadoParam === 'rechazado') {
-      if (RECHAZADO_DOCS.has(id)) {
-        statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--negative naowee-badge--small">Rechazado</span>';
-      } else if (RECHAZADO_NO_CARGADOS.has(id)) {
-        statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
-      } else {
-        statusBadge = '<span class="naowee-badge naowee-badge--quiet naowee-badge--positive naowee-badge--small">Aprobado</span>';
-      }
-    } else {
-      statusBadge = isLoaded
-        ? '<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small">En revisión</span>'
-        : '<span class="naowee-badge naowee-badge--quiet naowee-badge--neutral naowee-badge--small">No cargado</span>';
-    }
-    const needsDate = estadoParam === 'rechazado' ? RECHAZADO_DOCS.has(id) : isLoaded;
-    const dateStr = needsDate ? new Date(savedAt).toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','') : '';
-    const showUpload = estadoParam === 'rechazado' ? (RECHAZADO_NO_CARGADOS.has(id) || RECHAZADO_DOCS.has(id)) : !isLoaded;
+    const statusBadge = badgeForDoc(meta);
+    const dateStr = meta.file ? new Date(meta.uploadedAt || savedAt).toLocaleDateString('es-CO', {month:'short', day:'2-digit', year:'numeric'}).replace('.','') : '';
+    // Upload CTA aparece si: no cargado, o cargado pero rechazado (gestor lo reemplaza)
+    const showUpload = !meta.file || meta.docStatus === 'rechazado';
     const uploadCta = showUpload
       ? `<label class="naowee-btn naowee-btn--mute naowee-btn--small" style="font-size:11px;color:var(--accent);gap:4px;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir<input type="file" accept="${isPhoto?'image/*':'.pdf'}" style="display:none" data-upload-for="${id}"/></label>`
       : '';
@@ -842,13 +842,31 @@
   });
   docBody.innerHTML = docHtml;
 
-  // File upload handlers — native file picker
+  // File upload handlers — native file picker (persiste al store)
   docBody.querySelectorAll('input[data-upload-for]').forEach(input => {
     input.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const docId = input.dataset.uploadFor;
       const row = input.closest('tr');
+      // Persistir al store: cambiar docStatus a 'pendiente' y limpiar nota
+      if(window.EscStore){
+        const current = d.documentacion || {};
+        current[docId] = {
+          file: file.name,
+          uploadedAt: Date.now(),
+          docStatus: 'pendiente',
+          notaRechazo: null,
+          reviewedAt: null
+        };
+        window.EscStore.update(idx, { documentacion: current });
+        d = window.EscStore.get(idx); // refresh local
+        window.EscStore.pushEvent(idx, window.EscStore.buildEvent(
+          'documentos', 'Documento subido',
+          `${window.EscStore.docLabel(docId)} fue cargado por el gestor.`,
+          'gestor', d.responsable || window.EscStore.GESTOR_NAME
+        ));
+      }
       // Update badge to "En revisión"
       const badge = row.querySelector('.naowee-badge');
       if (badge) {
@@ -918,18 +936,16 @@
     const row = docBody.querySelector(`[data-doc-preview="${id}"]`);
     if(row) row.classList.add('doc-row--active');
 
-    // Show/hide reviewer rejection note
+    // Show/hide reviewer rejection note (lee del store: docStatus + notaRechazo)
     const noteEl = document.getElementById('docReviewerNote');
     if(noteEl){
-      if(estadoParam === 'rechazado' && RECHAZADO_DOCS.has(id)){
-        const REJECTION_NOTES = {
-          fotoFrontalGeneral: 'La imagen no corresponde al escenario registrado. Se requiere una fotografía frontal clara donde se identifique la fachada principal de la instalación.',
-          fotoPanoramica: 'La fotografía panorámica está borrosa y no permite identificar las dimensiones reales del escenario. Por favor, subir una imagen con mejor resolución.',
-          planoEscenario: 'El plano presentado no incluye las medidas reglamentarias ni la distribución de las áreas de juego. Debe cumplir con la normativa vigente.',
-          docPropiedad: 'El certificado de tradición y libertad tiene más de 90 días de expedición. Se requiere un documento actualizado.'
-        };
-        noteEl.querySelector('#docReviewerNoteText').textContent = REJECTION_NOTES[id] || 'Documento rechazado por el revisor.';
-        noteEl.querySelector('#docReviewerNoteDate').textContent = new Date(savedAt + 86400000).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}).replace('.','');
+      const docMeta = getDocMeta(id);
+      if(docMeta.docStatus === 'rechazado' && docMeta.notaRechazo){
+        noteEl.querySelector('#docReviewerNoteText').textContent = docMeta.notaRechazo;
+        const reviewedAt = docMeta.reviewedAt || d.reviewedAt || savedAt;
+        noteEl.querySelector('#docReviewerNoteDate').textContent = new Date(reviewedAt).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}).replace('.','');
+        const reviewerEl = noteEl.querySelector('strong');
+        if(reviewerEl) reviewerEl.textContent = d.reviewerName || (window.EscStore ? window.EscStore.REVISOR_NAME : 'María Alejandra Gómez');
         noteEl.style.display = '';
       } else {
         noteEl.style.display = 'none';
@@ -1022,38 +1038,43 @@
     });
   }
 
-  // ═══ TAB 3: Historial ═══
+  // ═══ TAB 3: Historial (dinámico desde el store) ═══
   const timelineEl = document.getElementById('timeline');
-  const createdAt = d.createdAt || (savedAt - 2 * 24 * 60 * 60 * 1000);
-  const docUploadAt = d.docUploadAt || (savedAt - 1 * 24 * 60 * 60 * 1000);
 
-  const clockIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-  const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  const sendIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
-  const userIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-  const infoIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  const ICONS = {
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    send:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+    user:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    info:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  };
   const clockDateIcon = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1"/><path d="M6 3.5v2.5l1.5 1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>';
 
-  // Build events based on status
-  const tlEvents = [];
-
-  if (estadoParam === 'rechazado') {
-    tlEvents.push(
-      { color:'orange', icon:clockIcon, title:'Registro rechazado', desc:'Se requiere corrección de documentos para continuar.', date:fmtDateTime(savedAt + 86400000), category:'estado' },
-      { color:'blue', icon:sendIcon, title:'Registro enviado', desc:'Por Juan Hernández', date:fmtDateTime(savedAt), category:'estado' },
-      { color:'green', icon:checkIcon, title:'Documentación cargada', desc:(d.disciplinas?.length||6)+' documentos adjuntados · Por Juan Hernández', date:fmtDateTime(docUploadAt), category:'documentos' },
-      { color:'blue', icon:userIcon, title:'Revisor asignado', desc:'Ana María López', date:fmtDateTime(docUploadAt - 3600000), category:'asignaciones' },
-      { color:'gray', icon:infoIcon, title:'Registro creado', desc:'Se creó el registro del escenario deportivo.', date:fmtDateTime(createdAt), category:'asignaciones' }
-    );
-  } else {
-    tlEvents.push(
-      { color:'orange', icon:clockIcon, title:'En revisión', desc:'El registro está siendo revisado por el equipo de documentación.', date:fmtDateTime(savedAt + 3600000), category:'estado' },
-      { color:'blue', icon:sendIcon, title:'Registro enviado', desc:'Por Juan Hernández', date:fmtDateTime(savedAt), category:'estado' },
-      { color:'green', icon:checkIcon, title:'Documentación cargada', desc:(d.disciplinas?.length||6)+' documentos adjuntados · Por Juan Hernández', date:fmtDateTime(docUploadAt), category:'documentos' },
-      { color:'blue', icon:userIcon, title:'Revisor asignado', desc:'Ana María López', date:fmtDateTime(docUploadAt - 3600000), category:'asignaciones' },
-      { color:'gray', icon:infoIcon, title:'Registro creado', desc:'Se creó el registro del escenario deportivo.', date:fmtDateTime(createdAt), category:'asignaciones' }
-    );
+  // Mapeo evento del store → estilo del timeline (color + icono)
+  function styleForEvent(ev){
+    const t = (ev.title || '').toLowerCase();
+    if(t.includes('rechaz')) return { color:'red',    icon: ICONS.cross };
+    if(t.includes('aprob') || t.includes('activo')) return { color:'green', icon: ICONS.check };
+    if(t.includes('enviad') || t.includes('reenviad')) return { color:'blue', icon: ICONS.send };
+    if(t.includes('subido') || t.includes('cargad')) return { color:'green', icon: ICONS.check };
+    if(t.includes('revisor') || t.includes('asignad')) return { color:'blue', icon: ICONS.user };
+    if(t.includes('creado') || t.includes('borrador')) return { color:'gray', icon: ICONS.info };
+    return { color:'orange', icon: ICONS.clock };
   }
+
+  // Eventos vienen del store, ordenados descendente (más reciente arriba)
+  const rawEvents = Array.isArray(d.historial) ? d.historial.slice().sort((a,b) => (b.ts||0) - (a.ts||0)) : [];
+  const tlEvents = rawEvents.map(ev => {
+    const sty = styleForEvent(ev);
+    return {
+      color: sty.color, icon: sty.icon,
+      title: ev.title || '—',
+      desc: (ev.desc || '') + (ev.actorName ? ' · Por ' + ev.actorName : ''),
+      date: fmtDateTime(ev.ts || Date.now()),
+      category: ev.category || 'estado'
+    };
+  });
 
   // Count categories
   const catCounts = {};
@@ -1092,6 +1113,31 @@
       });
     });
   });
+
+  // ═══ Botón Enviar / Reenviar a revisión (solo borrador o rechazado) ═══
+  const btnSend = document.getElementById('btnSendToReview');
+  const btnSendLabel = document.getElementById('btnSendToReviewLabel');
+  if(btnSend){
+    if(estado === 'borrador'){
+      btnSend.style.display = '';
+      btnSendLabel.textContent = 'Enviar a revisión';
+    } else if(estado === 'rechazado'){
+      btnSend.style.display = '';
+      btnSendLabel.textContent = 'Reenviar a revisión';
+    } else {
+      btnSend.style.display = 'none';
+    }
+    btnSend.addEventListener('click', () => {
+      if(!window.EscStore) return;
+      const actor = d.responsable || window.EscStore.GESTOR_NAME;
+      window.EscStore.sendToReview(idx, actor);
+      window.EscStore.setToast({
+        title: estado === 'rechazado' ? 'Registro reenviado a revisión' : 'Registro enviado a revisión',
+        body: 'El revisor recibirá el registro y revisará los documentos.'
+      });
+      window.location.href = 'escenario-08-dashboard.html?mode=multiple';
+    });
+  }
 
   // ═══ Logout ═══
   function fadeAndGo(url){document.body.style.transition='opacity .25s ease';document.body.style.opacity='0';setTimeout(()=>{window.location.href=url},260)}
