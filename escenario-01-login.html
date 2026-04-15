@@ -30,11 +30,9 @@ body{
   background:#fff;position:relative;z-index:10;flex-shrink:0;
 }
 .auth-header__logos{display:flex;align-items:center;gap:20px}
-.logo-naowee{height:32px;width:auto;display:block}
-.logo-sep{width:1px;height:40px;background:var(--naowee-color-border-default,#e7e9f3)}
-.logo-ministerio{height:44px;width:auto;display:block}
-.logo-colombia{height:44px;width:auto;display:block}
-.logo-suid{height:44px;width:auto;display:block}
+.logo-sep{width:1px;height:48px;background:var(--naowee-color-border-default,#e7e9f3)}
+.logo-ministerio{height:56px;width:auto;display:block}
+.logo-suid{height:56px;width:auto;display:block}
 .auth-header__actions{display:flex;align-items:center;gap:12px}
 
 /* ═══ MAIN ═══ */
@@ -292,7 +290,7 @@ body{
   .auth-header{padding:0 20px;height:72px}
   .auth-header__logos{gap:12px}
   .auth-header__logos .logo-sep,
-  .logo-ministerio,.logo-colombia,.logo-suid{display:none}
+  .logo-ministerio{display:none}
   .auth-header__actions .naowee-btn{padding:0 12px;font-size:12px}
   .auth-form__title{font-size:22px}
 }
@@ -305,11 +303,7 @@ body{
   <!-- ═══ HEADER ═══ -->
   <header class="auth-header">
     <div class="auth-header__logos">
-      <img src="shared/logos/naowee.svg" alt="Naowee" class="logo-naowee"/>
-      <div class="logo-sep"></div>
       <img src="shared/logos/ministerio.svg" alt="Ministerio del Deporte Colombia" class="logo-ministerio"/>
-      <div class="logo-sep"></div>
-      <img src="shared/logos/colombia.svg" alt="Comité Olímpico Colombiano" class="logo-colombia"/>
       <div class="logo-sep"></div>
       <img src="shared/logos/suid.png" alt="SUID — Sistema Único de Información del Deporte" class="logo-suid"/>
     </div>

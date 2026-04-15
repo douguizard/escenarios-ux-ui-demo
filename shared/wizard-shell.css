@@ -44,17 +44,14 @@ body{overflow:visible}
 .auth-header__logos{display:flex;align-items:center;gap:24px;transition:gap .25s ease}
 .auth-header.is-stuck .auth-header__logos{gap:16px}
 
-.logo-naowee{height:33px;width:auto;display:block;transition:height .25s ease}
-.auth-header.is-stuck .logo-naowee{height:28px}
+.logo-sep{width:1px;height:48px;background:var(--naowee-color-border-default,#d0d4e6);transition:height .25s ease}
+.auth-header.is-stuck .logo-sep{height:34px}
 
-.logo-sep{width:1px;height:32px;background:var(--naowee-color-border-default,#d0d4e6);transition:height .25s ease}
-.auth-header.is-stuck .logo-sep{height:24px}
+.logo-ministerio{height:56px;width:auto;display:block;transition:height .25s ease}
+.auth-header.is-stuck .logo-ministerio{height:40px}
 
-.logo-ministerio{height:46px;width:auto;display:block;transition:height .25s ease}
-.auth-header.is-stuck .logo-ministerio{height:34px}
-
-.logo-colombia{height:48px;width:auto;display:block;transition:height .25s ease}
-.auth-header.is-stuck .logo-colombia{height:36px}
+.logo-suid{height:56px;width:auto;display:block;transition:height .25s ease}
+.auth-header.is-stuck .logo-suid{height:40px}
 
 .auth-header__actions{
   padding-top:12px;
@@ -94,6 +91,6 @@ body{overflow:visible}
   .auth-header{padding:24px 20px 0 20px;flex-wrap:wrap}
   .auth-header.is-stuck{padding:12px 20px}
   .auth-header__logos{gap:12px}
-  .logo-sep,.logo-ministerio,.logo-colombia{display:none}
+  .logo-sep,.logo-ministerio{display:none}
   .auth-header__actions{padding-top:0;font-size:14px}
 }

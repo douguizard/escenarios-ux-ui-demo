@@ -15,8 +15,9 @@
    ═══════════════════════════════════════════════════════════════ */
 
 /* Sidebar logo override */
-.sidebar-logo .naowee-logo-img{height:32px;width:auto;display:block;flex-shrink:0}
-.sidebar.collapsed .naowee-logo-img{display:none}
+.sidebar-logo .sb-logo-img{height:40px;width:auto;display:block;flex-shrink:0}
+.sidebar-logo .logo-sep{width:1px;height:36px;background:var(--border);flex-shrink:0}
+.sidebar.collapsed .sb-logo-img,.sidebar.collapsed .sidebar-logo .logo-sep{display:none}
 .sidebar.collapsed .sidebar-logo{justify-content:center}
 .sidebar.collapsed .nav-row{padding:0}
 .sidebar.collapsed .nav-row .active-bar{display:none}
@@ -25,9 +26,11 @@
 .user-chip{padding:8px 16px 8px 8px;max-width:220px;gap:10px}
 .user-chip .ava-ring{
   width:40px;height:40px;
-  background:linear-gradient(135deg,#FF7500 0%,#d74009 100%);
+  background:#FF7500;
   color:#fff;font-size:13px;font-weight:700;
 }
+.user-chip__chevron svg{transition:transform .2s ease}
+.user-chip.is-open .user-chip__chevron svg{transform:rotate(180deg)}
 .user-chip .user-name{
   font-size:14px;font-weight:600;color:var(--text-primary);
   max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -258,7 +261,9 @@
       <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('collapsed')" aria-label="Toggle sidebar">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="#282834" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
-      <img src="shared/logos/naowee.svg" alt="Naowee" class="naowee-logo-img"/>
+      <img src="shared/logos/ministerio.svg" alt="Ministerio del Deporte" class="sb-logo-img"/>
+      <div class="logo-sep"></div>
+      <img src="shared/logos/suid.png" alt="SUID" class="sb-logo-img"/>
     </div>
 
     <nav class="sidebar-nav">
@@ -562,8 +567,12 @@
   document.getElementById('userChip')?.addEventListener('click', (e) => {
     e.stopPropagation();
     ps09.classList.toggle('open');
+    ps09.querySelector('.role-dropdown')?.classList.toggle('open');
   });
-  document.addEventListener('click', () => ps09?.classList.remove('open'));
+  document.addEventListener('click', () => {
+    ps09?.classList.remove('open');
+    ps09?.querySelector('.role-dropdown')?.classList.remove('open');
+  });
 
   // ═══ Parse query param ═══
   const params = new URLSearchParams(window.location.search);

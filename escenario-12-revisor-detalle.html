@@ -14,8 +14,9 @@
    ═══════════════════════════════════════════════════════════════ */
 
 /* Sidebar logo override */
-.sidebar-logo .naowee-logo-img{height:32px;width:auto;display:block;flex-shrink:0}
-.sidebar.collapsed .naowee-logo-img{display:none}
+.sidebar-logo .sb-logo-img{height:40px;width:auto;display:block;flex-shrink:0}
+.sidebar-logo .logo-sep{width:1px;height:36px;background:var(--border);flex-shrink:0}
+.sidebar.collapsed .sb-logo-img,.sidebar.collapsed .sidebar-logo .logo-sep{display:none}
 .sidebar.collapsed .sidebar-logo{justify-content:center}
 .sidebar.collapsed .nav-row{padding:0}
 .sidebar.collapsed .nav-row .active-bar{display:none}
@@ -38,9 +39,12 @@
 .user-chip{padding:8px 16px 8px 8px;max-width:220px;gap:10px}
 .user-chip .ava-ring{
   width:40px;height:40px;
-  background:linear-gradient(135deg,#7c3aed 0%,#5b21b6 100%);
+  background:#7c3aed;
   color:#fff;font-size:13px;font-weight:700;
 }
+.user-chip__chevron svg{transition:transform .2s ease}
+.user-chip:has(.role-dropdown.open) .user-chip__chevron svg,
+.profile-switcher:has(.role-dropdown.open) .user-chip__chevron svg{transform:rotate(180deg)}
 .user-chip .user-name{
   font-size:14px;font-weight:600;color:var(--text-primary);
   max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -328,7 +332,9 @@
       <button class="burger-btn" onclick="document.getElementById('sidebar').classList.toggle('collapsed')" aria-label="Toggle sidebar">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="#282834" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
-      <img src="shared/logos/naowee.svg" alt="Naowee" class="naowee-logo-img"/>
+      <img src="shared/logos/ministerio.svg" alt="Ministerio del Deporte" class="sb-logo-img"/>
+      <div class="logo-sep"></div>
+      <img src="shared/logos/suid.png" alt="SUID" class="sb-logo-img"/>
     </div>
 
     <nav class="sidebar-nav">
@@ -369,14 +375,14 @@
       <div class="profile-switcher" id="profileSwitcher">
         <div class="user-chip" id="userChip">
           <div class="ava">
-            <div class="ava-ring">JH</div>
+            <div class="ava-ring">MA</div>
             <div class="ava-dot"></div>
           </div>
           <div class="user-info">
-            <span class="user-name">Juan Hernandez</span>
+            <span class="user-name">María Alejandra Gómez</span>
             <span class="user-role">Revisor</span>
           </div>
-          <button class="user-chip__chevron" type="button" aria-label="Cambiar rol" onclick="event.stopPropagation();this.closest('.profile-switcher').querySelector('.role-dropdown').classList.toggle('open')">
+          <button class="user-chip__chevron" type="button" aria-label="Cambiar rol" onclick="event.stopPropagation();const p=this.closest('.profile-switcher');p.querySelector('.role-dropdown').classList.toggle('open');p.classList.toggle('open')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
         </div>

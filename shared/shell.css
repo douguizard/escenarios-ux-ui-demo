@@ -26,6 +26,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);font
 /* SIDEBAR */
 .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;transition:width .2s,min-width .2s}
 .sidebar-logo{height:var(--header-h);display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-logo > img:first-of-type{margin-left:auto}
+.sidebar-logo > img:last-of-type{margin-right:auto}
 .burger-btn{background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;border-radius:var(--radius-sm);transition:background .15s,transform .2s}
 .burger-btn:hover{background:rgba(0,0,0,.06)}
 .burger-btn:active{transform:scale(.9)}
