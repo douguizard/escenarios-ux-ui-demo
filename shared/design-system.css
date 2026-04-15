@@ -5854,3 +5854,35 @@
   border-color: var(--naowee-color-feedback-border-negative-loud);
   background: var(--naowee-color-feedback-fill-negative-quiet);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NAOWEE FLOATING FOOTER
+   Pill flotante esquina inferior derecha con logo Naowee + copyright.
+   - position:fixed → siempre visible aunque el contenido scrollee
+   - backdrop-filter:blur → translúcido elegante sobre tablas largas
+   - z-index bajo (30) → no tapa modales, dialogs ni dropdowns
+   - Responsive ≤640px: solo logo
+   ═══════════════════════════════════════════════════════════════ */
+.naowee-floating-footer{
+  position:fixed;bottom:16px;right:20px;z-index:30;
+  display:inline-flex;align-items:center;gap:10px;
+  height:34px;padding:0 16px 0 10px;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(231,233,243,.8);
+  border-radius:9999px;
+  box-shadow:0 4px 16px rgba(0,43,91,.08),0 1px 2px rgba(0,43,91,.04);
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:#646587;
+  letter-spacing:.2px;user-select:none;pointer-events:auto;
+  transition:transform .2s ease,opacity .2s ease;
+}
+.naowee-floating-footer:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,43,91,.12),0 1px 2px rgba(0,43,91,.06)}
+.naowee-floating-footer__logo{height:18px;width:auto;display:block;flex-shrink:0;opacity:.9}
+.naowee-floating-footer__sep{width:1px;height:14px;background:#e7e9f3;flex-shrink:0}
+.naowee-floating-footer__text{white-space:nowrap}
+.naowee-floating-footer__text strong{color:#282834;font-weight:600}
+@media(max-width:640px){
+  .naowee-floating-footer{bottom:12px;right:12px;padding:0 10px 0 8px}
+  .naowee-floating-footer__sep,.naowee-floating-footer__text{display:none}
+}

@@ -2080,17 +2080,22 @@
         </div>
       </div>
 
-      <div class="naowee-dropdown" id="reg2UsuariosDD">
-        <label class="naowee-dropdown__label" for="reg2UsuariosTrigger">Usuarios actuales <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
-        <button type="button" class="naowee-dropdown__trigger" id="reg2UsuariosTrigger" aria-haspopup="listbox" aria-expanded="false">
-          <span class="naowee-dropdown__placeholder" id="reg2UsuariosValue">Selecciona una opción</span>
-          <span class="naowee-dropdown__controls">
-            <span class="naowee-dropdown__chevron">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </span>
+      <div class="reg-multi" id="reg2UsuariosMulti">
+        <label class="reg-multi__label">Usuarios actuales<span class="req">*</span></label>
+        <button type="button" class="reg-multi__trigger" id="reg2UsuariosTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="reg-multi__chips" id="reg2UsuariosChips">
+            <span class="reg-multi__placeholder">Selecciona una o varias opciones</span>
           </span>
+          <svg class="reg-multi__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </button>
-        <div class="naowee-dropdown__menu" role="listbox" id="reg2UsuariosMenu"></div>
+        <div class="reg-multi__menu" role="listbox">
+          <div class="reg-multi__options" id="reg2UsuariosOptions"></div>
+          <div class="reg-multi__menu-footer">
+            <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--small" id="reg2UsuariosConfirm">
+              Agregar
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -2397,7 +2402,67 @@
   }
 })();
 
-/* ═══ Searchbox: toggle clear visibility + reset ═══ */
+/* ═══ Estado compartido de filtros (status + texto) ═══
+   Compartido entre el dropdown "Estados" y el searchbox para combinar
+   ambos filtros al mismo tiempo. Vive en window para que los dos IIFEs
+   (searchbox e iife del dropdown) accedan al mismo estado. */
+window._esc08Filters = window._esc08Filters || { status: 'todos', text: '' };
+
+window.applyEsc08Filters = function(){
+  const tbody = document.getElementById('tbodyScenarios');
+  if(!tbody) return;
+  const { status, text } = window._esc08Filters;
+  const q = (text || '').trim().toLowerCase();
+  const rows = tbody.querySelectorAll('tr');
+  let visible = 0;
+  rows.forEach(tr => {
+    // Ignorar filas de estado vacío previas (las limpiamos al final)
+    if(tr.hasAttribute('data-filter-empty')) return;
+    const btn = tr.querySelector('[data-status]');
+    // Fila sin data-status → probablemente el empty-state — se muestra sólo
+    // cuando no hay filtros activos
+    if(!btn){
+      tr.style.display = (status === 'todos' && q === '') ? '' : 'none';
+      return;
+    }
+    const rowStatus = btn.getAttribute('data-status');
+    const statusMatch = (status === 'todos') || (rowStatus === status);
+    let textMatch = true;
+    if(q){
+      const name = (tr.querySelector('.cell-name')?.textContent || '').toLowerCase();
+      const id = (tr.querySelector('.cell-id')?.textContent || '').toLowerCase();
+      textMatch = name.includes(q) || id.includes(q);
+    }
+    const match = statusMatch && textMatch;
+    tr.style.display = match ? '' : 'none';
+    if(match) visible++;
+  });
+
+  // Mostrar mensaje vacío si los filtros no arrojan resultados
+  const existing = tbody.querySelector('[data-filter-empty]');
+  if(existing) existing.remove();
+  if(visible === 0 && (status !== 'todos' || q !== '')){
+    const emptyRow = document.createElement('tr');
+    emptyRow.setAttribute('data-filter-empty', '1');
+    let msg = 'No hay registros';
+    if(status !== 'todos' && q) msg += ` con estado <strong>${status}</strong> que coincidan con <strong>"${q}"</strong>`;
+    else if(status !== 'todos') msg += ` con estado <strong>${status}</strong>`;
+    else if(q) msg += ` que coincidan con <strong>"${q}"</strong>`;
+    msg += '.';
+    emptyRow.innerHTML = `<td colspan="6" style="padding:40px 16px;text-align:center;color:var(--text-secondary);font-size:13px">${msg}</td>`;
+    tbody.appendChild(emptyRow);
+  }
+
+  // Paginador
+  const pgInput = document.getElementById('pgInput');
+  const pgTotal = document.getElementById('pgTotal');
+  if(pgInput && pgTotal){
+    if(visible === 0){ pgInput.value = '0'; pgTotal.textContent = '0'; }
+    else { pgInput.value = '1'; pgTotal.textContent = '1'; }
+  }
+};
+
+/* ═══ Searchbox: toggle clear visibility + filtrado por nombre/ID ═══ */
 (function(){
   const sb = document.getElementById('searchbox');
   const input = document.getElementById('searchInput');
@@ -2410,10 +2475,15 @@
       sb.classList.remove('naowee-searchbox--has-value');
     }
   }
-  input.addEventListener('input', sync);
+  function onInput(){
+    sync();
+    window._esc08Filters.text = input.value;
+    window.applyEsc08Filters();
+  }
+  input.addEventListener('input', onInput);
   clearBtn.addEventListener('click', () => {
     input.value = '';
-    sync();
+    onInput();
     input.focus();
   });
 })();
@@ -2489,7 +2559,7 @@
     administradora:'', tenencia:'', vencimiento:'',
     responsable:'', telefono:'', correoResp:'',
     horario:'', accesoPublico:false,
-    costo:'', usos:[], usuarios:''
+    costo:'', usos:[], usuarios:[]
   };
 
   function isDirty(){
@@ -2501,7 +2571,7 @@
     const r = reg2State;
     return !!(r.entidad || r.propietario || r.administradora || r.tenencia ||
       r.vencimiento || r.responsable || r.telefono || r.correoResp ||
-      r.horario || r.accesoPublico || r.costo || r.usos.length || r.usuarios);
+      r.horario || r.accesoPublico || r.costo || r.usos.length || r.usuarios.length);
   }
 
   /* ─── DROPDOWN BEHAVIOR (copiado del wizard público) ─── */
@@ -3085,14 +3155,16 @@
     goToSingleMode();
   });
 
-  // Continuar registro: cierra el dialog y abre el modal 2
+  // Continuar registro: cierra el dialog y abre el modal 2.
+  // IMPORTANTE: NO resetear editingDraftIdx. Si venimos editando un borrador,
+  // debe preservarse para que appendDraft/submit hagan UPDATE en vez de crear
+  // un duplicado. El flujo de "nuevo registro" ya llega aquí con editingDraftIdx=null.
   document.getElementById('dlgValContinue').addEventListener('click', () => {
     closeDialog('dlgValidation');
     overlay.classList.remove('open'); // cierra modal 1 sin warning
-    modal2Origin = 'new'; // flujo de nuevo registro
-    editingDraftIdx = null;
+    // modal2Origin se mantiene como estaba ('edit' si vino de openEditDraft, 'new' si no).
     document.getElementById('regModal2Overlay').classList.add('open');
-    // Muestra el ID único generado (mock)
+    // Muestra el ID único generado (usa el catastral ingresado)
     document.getElementById('regModal2IdChip').textContent = regState.catastral || '10000101010';
   });
 
@@ -3241,9 +3313,126 @@
     'Niños y jóvenes',
     'Adultos mayores'
   ];
-  initDropdown('reg2UsuariosDD', USUARIOS_ACTUALES, (val) => {
-    reg2State.usuarios = val;
+  // Multi-select de Usuarios actuales (clonado del patrón de Usos actuales)
+  const usuMultiEl = document.getElementById('reg2UsuariosMulti');
+  const usuMultiTrigger = document.getElementById('reg2UsuariosTrigger');
+  const usuMultiOptionsEl = document.getElementById('reg2UsuariosOptions');
+  const usuMultiChips = document.getElementById('reg2UsuariosChips');
+  const usuMultiConfirm = document.getElementById('reg2UsuariosConfirm');
+  let tempUsuarios = [];
+
+  function renderUsuariosOptions(){
+    usuMultiOptionsEl.innerHTML = '';
+    USUARIOS_ACTUALES.forEach(opt => {
+      const row = document.createElement('div');
+      row.className = 'reg-multi__option' + (tempUsuarios.includes(opt) ? ' reg-multi__option--selected' : '');
+      row.innerHTML = `
+        <div class="reg-multi__checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>${opt}</span>
+      `;
+      row.addEventListener('click', e => {
+        e.stopPropagation();
+        if(tempUsuarios.includes(opt)){
+          tempUsuarios = tempUsuarios.filter(u => u !== opt);
+        } else {
+          tempUsuarios.push(opt);
+        }
+        renderUsuariosOptions();
+      });
+      usuMultiOptionsEl.appendChild(row);
+    });
+  }
+
+  function renderUsuariosChips(){
+    const usus = reg2State.usuarios;
+    if(!Array.isArray(usus) || usus.length === 0){
+      usuMultiChips.innerHTML = '<span class="reg-multi__placeholder">Selecciona una o varias opciones</span>';
+      return;
+    }
+    const first = usus[0];
+    const rest = usus.length - 1;
+    usuMultiChips.innerHTML = `
+      <span class="naowee-tag naowee-tag--small naowee-tag--accent">
+        ${first}
+        <span class="naowee-tag__active-area" data-remove="0" role="button" aria-label="Quitar ${first}">
+          <span class="naowee-tag__close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </span>
+        </span>
+      </span>
+      ${rest > 0 ? `<span class="naowee-tag naowee-tag--small naowee-tag--accent">+${rest}</span>` : ''}
+    `;
+    usuMultiChips.querySelectorAll('[data-remove]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const idx = parseInt(el.dataset.remove);
+        reg2State.usuarios.splice(idx, 1);
+        renderUsuariosChips();
+        validate2();
+      });
+    });
+  }
+
+  function floatUsuariosMenu(){
+    const menu = usuMultiEl.querySelector('.reg-multi__menu');
+    if(!menu) return;
+    const rect = usuMultiTrigger.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const spaceBelow = vh - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuMaxHeight = 288;
+    menu.classList.add('reg-multi__menu--floating');
+    menu.style.width = rect.width + 'px';
+    menu.style.left = rect.left + 'px';
+    if(spaceBelow >= menuMaxHeight + 8 || spaceBelow >= spaceAbove){
+      menu.style.top = (rect.bottom + 4) + 'px';
+      menu.style.bottom = 'auto';
+    } else {
+      menu.style.top = 'auto';
+      menu.style.bottom = (vh - rect.top + 4) + 'px';
+    }
+  }
+  function unfloatUsuariosMenu(){
+    const menu = usuMultiEl.querySelector('.reg-multi__menu');
+    if(!menu) return;
+    menu.classList.remove('reg-multi__menu--floating');
+    menu.style.width = '';
+    menu.style.left = '';
+    menu.style.top = '';
+    menu.style.bottom = '';
+  }
+
+  usuMultiTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = usuMultiEl.classList.contains('open');
+    if(!wasOpen){
+      document.querySelectorAll('.naowee-dropdown--open').forEach(dd => dd.classList.remove('naowee-dropdown--open'));
+      tempUsuarios = [...(reg2State.usuarios || [])];
+      renderUsuariosOptions();
+      usuMultiEl.classList.add('open');
+      floatUsuariosMenu();
+    } else {
+      usuMultiEl.classList.remove('open');
+      unfloatUsuariosMenu();
+    }
+  });
+  usuMultiConfirm.addEventListener('click', e => {
+    e.stopPropagation();
+    reg2State.usuarios = [...tempUsuarios];
+    renderUsuariosChips();
+    usuMultiEl.classList.remove('open');
+    unfloatUsuariosMenu();
     validate2();
+  });
+  document.addEventListener('click', e => {
+    if(!e.target.closest('#reg2UsuariosMulti') && !e.target.closest('.reg-multi__menu')){
+      if(usuMultiEl.classList.contains('open')){
+        usuMultiEl.classList.remove('open');
+        unfloatUsuariosMenu();
+      }
+    }
   });
 
   /* ─── Multi-select Usos actuales ─── */
@@ -3723,7 +3912,7 @@
       { id:'reg2FldTelefono', empty: r.telefono.length !== 10 },
       { id:'reg2CostoDD', empty: !r.costo },
       { id:'reg2UsosMulti', empty: r.usos.length === 0 },
-      { id:'reg2UsuariosDD', empty: !r.usuarios }
+      { id:'reg2UsuariosMulti', empty: !Array.isArray(r.usuarios) || r.usuarios.length === 0 }
     ];
     checks.forEach(c => {
       if(c.empty) showFieldError(document.getElementById(c.id));
@@ -3744,7 +3933,7 @@
       (!TENENCIAS_CON_VENCIMIENTO.has(r.tenencia) || r.vencimiento) &&
       r.responsable && r.telefono.length === 10 &&
       correoOk &&
-      r.costo && r.usos.length > 0 && r.usuarios
+      r.costo && r.usos.length > 0 && Array.isArray(r.usuarios) && r.usuarios.length > 0
     );
     // Ya no deshabilitamos el botón — el handler decide si avanza o muestra errores
   }
@@ -3833,7 +4022,7 @@
       accesoPublico: reg2State.accesoPublico,
       costo: reg2State.costo,
       usos: [...reg2State.usos],
-      usuarios: reg2State.usuarios
+      usuarios: Array.isArray(reg2State.usuarios) ? [...reg2State.usuarios] : []
     };
   }
 
@@ -4128,6 +4317,256 @@
     fichaPorDisciplina: []
   };
   SCENARIO_CONFIG['Otro'] = SCENARIO_CONFIG_COMPLEJO;
+
+  /* ─── Dotación / elementos reglamentarios específicos por disciplina ────
+     El SCENARIO_CONFIG.fichaPorDisciplina aporta campos del escenario común;
+     este diccionario agrega elementos propios de cada deporte. Se combinan
+     en renderFichaDisciplinaFields: primero los elementos por deporte, luego
+     los campos del escenario. Si una disciplina no está aquí, solo se pintan
+     los campos generales del escenario. ─── */
+  const DOTACION_POR_DISCIPLINA = {
+    // ── Acuáticos ──────────────────────────────
+    'Waterpolo': [
+      { id:'mallaSeparadora', label:'Malla separadora de cancha', type:'toggle' },
+      { id:'porteriasFlotantes', label:'Porterías flotantes reglamentarias', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones oficiales', type:'toggle' },
+      { id:'gorrosEquipo', label:'Gorros de equipo (2 juegos)', type:'toggle' },
+      { id:'boyasDelimitacion', label:'Boyas delimitadoras de zona', type:'toggle' },
+      { id:'profundidadMinima', label:'Profundidad mínima 2 m en toda el área', type:'toggle' }
+    ],
+    'Natación': [
+      { id:'carrilesOficiales', label:'Carriles/cuerdas corchos oficiales', type:'toggle' },
+      { id:'blocksSalida', label:'Blocks de salida reglamentarios', type:'toggle' },
+      { id:'cronometraje', label:'Sistema de cronometraje electrónico', type:'toggle' },
+      { id:'banderasDorso', label:'Banderas de espalda (dorso)', type:'toggle' }
+    ],
+    'Natación artística': [
+      { id:'sonidoSubacuatico', label:'Sistema de sonido subacuático', type:'toggle' },
+      { id:'profundidadUniforme', label:'Profundidad uniforme ≥ 3 m', type:'toggle' }
+    ],
+    'Nado sincronizado': [
+      { id:'sonidoSubacuatico', label:'Sistema de sonido subacuático', type:'toggle' },
+      { id:'profundidadUniforme', label:'Profundidad uniforme ≥ 3 m', type:'toggle' }
+    ],
+    'Clavados': [
+      { id:'trampolines1m', label:'Trampolines de 1 m', type:'toggle' },
+      { id:'trampolines3m', label:'Trampolines de 3 m', type:'toggle' },
+      { id:'plataforma5m', label:'Plataforma de 5 m', type:'toggle' },
+      { id:'plataforma10m', label:'Plataforma de 10 m', type:'toggle' },
+      { id:'profundidadMinima', label:'Profundidad mínima 5 m', type:'toggle' }
+    ],
+    'Apnea': [
+      { id:'profundidadMinima', label:'Profundidad mínima 5 m', type:'toggle' },
+      { id:'sistemaSeguridad', label:'Sistema de seguridad y monitoreo', type:'toggle' }
+    ],
+    'Buceo': [
+      { id:'profundidadMinima', label:'Profundidad mínima 4 m', type:'toggle' },
+      { id:'equipamientoSeguridad', label:'Equipamiento de seguridad', type:'toggle' }
+    ],
+
+    // ── Deportes con aro / canasta ─────────────
+    'Baloncesto': [
+      { id:'arosReglamentarios', label:'Aros reglamentarios (2)', type:'toggle' },
+      { id:'mallasAros', label:'Mallas de aros', type:'toggle' },
+      { id:'tableros', label:'Tableros acrílicos/vidrio', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas pintadas (área, triples, tiro libre)', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones oficiales', type:'toggle' },
+      { id:'marcador', label:'Marcador electrónico / 24s', type:'toggle' }
+    ],
+    'Baloncesto 3x3': [
+      { id:'aroReglamentario', label:'Aro reglamentario (1)', type:'toggle' },
+      { id:'tablero', label:'Tablero acrílico', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas 3x3 pintadas', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones 3x3 oficiales', type:'toggle' }
+    ],
+
+    // ── Deportes con red / malla ───────────────
+    'Voleibol': [
+      { id:'redReglamentaria', label:'Red reglamentaria con cintas laterales', type:'toggle' },
+      { id:'postes', label:'Postes acolchados', type:'toggle' },
+      { id:'antenas', label:'Antenas reglamentarias', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones oficiales', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas reglamentarias pintadas', type:'toggle' },
+      { id:'sillaArbitro', label:'Silla de árbitro', type:'toggle' }
+    ],
+    'Mini voleibol': [
+      { id:'redAltura', label:'Red altura reducida', type:'toggle' },
+      { id:'balonesInfantiles', label:'Balones infantiles', type:'toggle' }
+    ],
+    'Bádminton': [
+      { id:'redReglamentaria', label:'Red reglamentaria de bádminton', type:'toggle' },
+      { id:'postes', label:'Postes reglamentarios', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas reglamentarias pintadas', type:'toggle' },
+      { id:'raquetas', label:'Juego de raquetas', type:'toggle' },
+      { id:'plumillas', label:'Plumillas oficiales', type:'toggle' }
+    ],
+    'Tenis': [
+      { id:'redReglamentaria', label:'Red reglamentaria', type:'toggle' },
+      { id:'postes', label:'Postes reglamentarios', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas reglamentarias pintadas', type:'toggle' },
+      { id:'pelotasOficiales', label:'Pelotas oficiales', type:'toggle' }
+    ],
+    'Tenis de mesa': [
+      { id:'mesaOficial', label:'Mesa reglamentaria', type:'toggle' },
+      { id:'redMesa', label:'Red de mesa con tensor', type:'toggle' },
+      { id:'raquetasPelotas', label:'Raquetas y pelotas oficiales', type:'toggle' }
+    ],
+
+    // ── Fútbol y variantes ─────────────────────
+    'Fútbol': [
+      { id:'arcos', label:'Arcos reglamentarios con red', type:'toggle' },
+      { id:'banderines', label:'Banderines de córner', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas reglamentarias pintadas', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones oficiales', type:'toggle' },
+      { id:'bancasTecnicas', label:'Bancas técnicas/suplentes', type:'toggle' }
+    ],
+    'Fútbol sala': [
+      { id:'arcosReducidos', label:'Arcos de fútbol sala con red', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas reglamentarias pintadas', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones de fútbol sala', type:'toggle' }
+    ],
+    'Microfútbol': [
+      { id:'arcosReducidos', label:'Arcos con red', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas reglamentarias pintadas', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones oficiales', type:'toggle' }
+    ],
+    'Fútbol americano': [
+      { id:'posteshYardas', label:'Postes en H y líneas de yardas', type:'toggle' },
+      { id:'equipoProteccion', label:'Equipo de protección disponible', type:'toggle' }
+    ],
+    'Rugby': [
+      { id:'postesReglamentarios', label:'Postes en H reglamentarios', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas reglamentarias pintadas', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones oficiales', type:'toggle' }
+    ],
+
+    // ── Deportes de bate ───────────────────────
+    'Béisbol': [
+      { id:'bases', label:'Bases reglamentarias', type:'toggle' },
+      { id:'montaculoPitcher', label:'Montículo del pitcher', type:'toggle' },
+      { id:'backstop', label:'Red backstop detrás del home', type:'toggle' },
+      { id:'bates', label:'Bates reglamentarios', type:'toggle' },
+      { id:'dugouts', label:'Dugouts para ambos equipos', type:'toggle' }
+    ],
+    'Softbol': [
+      { id:'bases', label:'Bases reglamentarias', type:'toggle' },
+      { id:'montaculoPitcher', label:'Círculo del pitcher', type:'toggle' },
+      { id:'backstop', label:'Red backstop', type:'toggle' }
+    ],
+
+    // ── Balonmano / Hockey ─────────────────────
+    'Balonmano': [
+      { id:'arcos', label:'Arcos reglamentarios con red', type:'toggle' },
+      { id:'lineasPintadas', label:'Líneas (áreas 6m y 9m) pintadas', type:'toggle' },
+      { id:'balonesOficiales', label:'Balones oficiales', type:'toggle' },
+      { id:'resinaEspecifica', label:'Resina permitida para jugadores', type:'toggle' }
+    ],
+    'Hockey sobre patines': [
+      { id:'arcosHockey', label:'Arcos de hockey con red', type:'toggle' },
+      { id:'vallasPerimetrales', label:'Vallas perimetrales', type:'toggle' },
+      { id:'bastonesPelota', label:'Bastones y pelotas reglamentarias', type:'toggle' }
+    ],
+
+    // ── Artes marciales / contacto ─────────────
+    'Boxeo': [
+      { id:'ringReglamentario', label:'Ring reglamentario', type:'toggle' },
+      { id:'lonaAcolchada', label:'Lona acolchada', type:'toggle' },
+      { id:'sacosGuantes', label:'Sacos y guantes de entrenamiento', type:'toggle' },
+      { id:'esquina', label:'Sillas/esquina para coach', type:'toggle' }
+    ],
+    'Karate': [
+      { id:'tatami', label:'Tatami reglamentario', type:'toggle' },
+      { id:'zonasDelimitadas', label:'Zonas de combate delimitadas', type:'toggle' }
+    ],
+    'Taekwondo': [
+      { id:'tatami', label:'Tatami reglamentario', type:'toggle' },
+      { id:'protectoresElectronicos', label:'Protectores electrónicos (petos)', type:'toggle' },
+      { id:'paletasEntrenamiento', label:'Paletas de entrenamiento', type:'toggle' }
+    ],
+    'Lucha': [
+      { id:'colchonetaLucha', label:'Colchoneta de lucha reglamentaria', type:'toggle' }
+    ],
+    'Esgrima': [
+      { id:'pistasMetalicas', label:'Pistas metálicas (2+)', type:'toggle' },
+      { id:'aparatoElectronico', label:'Aparato eléctrico de arbitraje', type:'toggle' },
+      { id:'equipoProteccion', label:'Equipo de protección y armas', type:'toggle' }
+    ],
+
+    // ── Gimnasia ───────────────────────────────
+    'Gimnasia': [
+      { id:'aparatosArtistica', label:'Aparatos de gimnasia artística', type:'toggle' },
+      { id:'colchonetas', label:'Colchonetas de protección', type:'toggle' },
+      { id:'tarimaElastica', label:'Tarima elástica', type:'toggle' }
+    ],
+    'Gimnasia artística': [
+      { id:'aparatosArtistica', label:'Aparatos (paralelas, barra, caballete, anillas, potro)', type:'toggle' },
+      { id:'colchonetas', label:'Colchonetas de seguridad', type:'toggle' }
+    ],
+    'Gimnasia rítmica': [
+      { id:'tapizRitmica', label:'Tapiz de 13x13 m', type:'toggle' },
+      { id:'implementosOficiales', label:'Cuerda, aro, pelota, mazas y cinta', type:'toggle' }
+    ],
+
+    // ── Ciclismo / pista ───────────────────────
+    'Ciclismo velocidad':        [{ id:'pistaPeraltada', label:'Pista peraltada oficial', type:'toggle' }, { id:'bicicletasPista', label:'Bicicletas de pista disponibles', type:'toggle' }],
+    'Persecución individual':    [{ id:'pistaPeraltada', label:'Pista peraltada oficial', type:'toggle' }, { id:'cronometrajeUCI', label:'Cronometraje UCI', type:'toggle' }],
+    'Persecución por equipos':   [{ id:'pistaPeraltada', label:'Pista peraltada oficial', type:'toggle' }, { id:'cronometrajeUCI', label:'Cronometraje UCI', type:'toggle' }],
+    'Madison':                   [{ id:'pistaPeraltada', label:'Pista peraltada oficial', type:'toggle' }],
+    'Keirin':                    [{ id:'motocicletaDerny', label:'Motocicleta Derny', type:'toggle' }, { id:'pistaPeraltada', label:'Pista peraltada oficial', type:'toggle' }],
+    'Kilómetro contrarreloj':    [{ id:'cronometrajeUCI', label:'Cronometraje UCI', type:'toggle' }],
+    'Scratch':                   [{ id:'pistaPeraltada', label:'Pista peraltada oficial', type:'toggle' }],
+    'Ómnium':                    [{ id:'pistaPeraltada', label:'Pista peraltada oficial', type:'toggle' }],
+    'BMX': [
+      { id:'rampasBMX', label:'Rampas BMX reglamentarias', type:'toggle' },
+      { id:'cascosProteccion', label:'Cascos y protección', type:'toggle' }
+    ],
+
+    // ── Patinaje ───────────────────────────────
+    'Patinaje artístico': [
+      { id:'superficieLisa', label:'Superficie lisa pulida', type:'toggle' },
+      { id:'equipoSonido', label:'Equipo de sonido', type:'toggle' }
+    ],
+    'Patinaje de velocidad': [
+      { id:'cronometraje', label:'Sistema de cronometraje', type:'toggle' }
+    ],
+    'Patinaje agresivo': [
+      { id:'modulosRampas', label:'Módulos / rampas', type:'toggle' }
+    ],
+
+    // ── Atletismo (pruebas frecuentes) ─────────
+    'Salto largo':               [{ id:'foso', label:'Foso con arena reglamentaria', type:'toggle' }, { id:'tablaPicado', label:'Tabla de picado', type:'toggle' }],
+    'Triple salto':              [{ id:'foso', label:'Foso con arena reglamentaria', type:'toggle' }, { id:'tablaPicado', label:'Tabla de picado', type:'toggle' }],
+    'Salto alto':                [{ id:'colchonetaSalto', label:'Colchoneta de salto alto', type:'toggle' }, { id:'listonSoportes', label:'Listón y soportes', type:'toggle' }],
+    'Salto con pértiga':         [{ id:'colchonetaPertiga', label:'Colchoneta de pértiga', type:'toggle' }, { id:'pertigasSoportes', label:'Pértigas y soportes', type:'toggle' }],
+    'Lanzamiento de bala':       [{ id:'circuloLanzamiento', label:'Círculo de lanzamiento', type:'toggle' }, { id:'zonaCaida', label:'Zona de caída delimitada', type:'toggle' }],
+    'Lanzamiento de disco':      [{ id:'circuloLanzamiento', label:'Círculo de lanzamiento con jaula', type:'toggle' }, { id:'zonaCaida', label:'Zona de caída delimitada', type:'toggle' }],
+    'Lanzamiento de martillo':   [{ id:'circuloLanzamiento', label:'Círculo de lanzamiento con jaula', type:'toggle' }, { id:'zonaCaida', label:'Zona de caída delimitada', type:'toggle' }],
+    'Lanzamiento de jabalina':   [{ id:'pasilloLanzamiento', label:'Pasillo de lanzamiento', type:'toggle' }, { id:'zonaCaida', label:'Zona de caída delimitada', type:'toggle' }],
+
+    // ── Halterofilia / fuerza ──────────────────
+    'Levantamiento de pesas': [
+      { id:'tarimaOlimpica', label:'Tarima olímpica', type:'toggle' },
+      { id:'barrasDiscos', label:'Barras y discos olímpicos', type:'toggle' },
+      { id:'soporteSentadilla', label:'Soporte de sentadilla', type:'toggle' }
+    ],
+
+    // ── Náutico / remo ─────────────────────────
+    'Remo':               [{ id:'boteArribo', label:'Botes / embarcaderos', type:'toggle' }, { id:'banderinesBoya', label:'Boyas / banderines de carril', type:'toggle' }],
+    'Canotaje C1':        [{ id:'canoa', label:'Canoas C1 disponibles', type:'toggle' }],
+    'Canotaje C2':        [{ id:'canoa', label:'Canoas C2 disponibles', type:'toggle' }],
+    'Canotaje K1':        [{ id:'kayak', label:'Kayaks K1 disponibles', type:'toggle' }],
+    'Canotaje K2':        [{ id:'kayak', label:'Kayaks K2 disponibles', type:'toggle' }],
+    'Canotaje K4':        [{ id:'kayak', label:'Kayaks K4 disponibles', type:'toggle' }],
+    'Piragüismo':         [{ id:'piraguas', label:'Piraguas disponibles', type:'toggle' }],
+    'Vela ligera':        [{ id:'veleros', label:'Veleros ligeros / dinghy', type:'toggle' }],
+    'Vela de crucero':    [{ id:'veleros', label:'Veleros de crucero', type:'toggle' }],
+    'Windsurf':           [{ id:'tablasVela', label:'Tablas y velas', type:'toggle' }],
+    'Kitesurf':           [{ id:'cometa', label:'Equipos de kite', type:'toggle' }],
+    'Esquí acuático':     [{ id:'lanchaRemolque', label:'Lancha de remolque + cables', type:'toggle' }],
+    'Wakeboard':          [{ id:'lanchaRemolque', label:'Lancha de remolque + cables', type:'toggle' }],
+    'SUP (Stand Up Paddle)':[{ id:'tablasSup', label:'Tablas SUP + remos', type:'toggle' }],
+    'Natación aguas abiertas':[{ id:'boyasCircuito', label:'Boyas de circuito', type:'toggle' }]
+  };
 
   const TIPOS_ESCENARIO = Object.keys(SCENARIO_CONFIG);
 
@@ -6077,6 +6516,13 @@
   }
 
   function renderFichaDisciplinaFields(disc, template, data, multi){
+    // Combinar el template genérico del escenario con la dotación específica
+    // de la disciplina (malla, aros, etc.). La dotación se pinta al inicio.
+    const dotacionDisc = DOTACION_POR_DISCIPLINA[disc] || [];
+    // Filtrar dotación para evitar duplicar ids ya presentes en el template.
+    const existingIds = new Set((template || []).map(f => f.id));
+    const dotacionExtra = dotacionDisc.filter(f => !existingIds.has(f.id));
+    const effectiveTemplate = [...dotacionExtra, ...(template || [])];
     // multi = el escenario es complejo (Villa Olímpica, etc.) y cada disciplina
     // ocupa un sub-espacio físicamente distinto. Renderiza campos físicos extra.
     let physicalFields = '';
@@ -6119,7 +6565,7 @@
       `;
     }
 
-    const templateHtml = template.map(f => {
+    const templateHtml = effectiveTemplate.map(f => {
       const val = data[f.id] != null ? data[f.id] : '';
       // Si el campo es type:'text' pero el id es 'modalidad', lo convertimos a dropdown dinámico
       const isModalidad = f.id === 'modalidad';
@@ -6906,7 +7352,8 @@
     reg2State.accesoPublico = !!d.accesoPublico;
     reg2State.costo = d.costo || '';
     reg2State.usos = Array.isArray(d.usos) ? [...d.usos] : [];
-    reg2State.usuarios = d.usuarios || '';
+    // Backward-compat: si viene como string (data vieja), envolver en array
+    reg2State.usuarios = Array.isArray(d.usuarios) ? [...d.usuarios] : (d.usuarios ? [d.usuarios] : []);
 
     // Pintar inputs del modal 2 (se usarán si el usuario avanza al paso 2)
     const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
@@ -6952,7 +7399,8 @@
     paintDropdown('reg2TenenciaDD', d.tenencia, 'Seleccione un tipo');
     paintDropdown('reg2HorarioDD', d.horario, 'Ej: Lunes a viernes 6 am - 10pm');
     paintDropdown('reg2CostoDD', d.costo, 'Selecciona una opción');
-    paintDropdown('reg2UsuariosDD', d.usuarios, 'Selecciona una opción');
+    // Usuarios ahora es multi-select; los chips se repintan con renderUsuariosChips()
+    if(typeof renderUsuariosChips === 'function') renderUsuariosChips();
 
     reg2FldVenc.hidden = !TENENCIAS_CON_VENCIMIENTO.has(reg2State.tenencia);
     setAcceso(reg2State.accesoPublico);
@@ -7003,7 +7451,13 @@
       items.forEach(i => i.setAttribute('aria-selected','false'));
       item.setAttribute('aria-selected','true');
       const text = item.textContent.trim();
-      label.textContent = item.dataset.value === 'todos' ? 'Estados' : text;
+      const value = item.dataset.value;
+      label.textContent = value === 'todos' ? 'Estados' : text;
+      // Guardar en estado compartido y aplicar filtros combinados (status + texto)
+      if(window._esc08Filters){
+        window._esc08Filters.status = value;
+        if(typeof window.applyEsc08Filters === 'function') window.applyEsc08Filters();
+      }
       close();
     });
   });
@@ -7033,6 +7487,13 @@ document.getElementById('btnResetDemo')?.addEventListener('click', () => {
   }
 });
 </script>
+
+<!-- Footer flotante Naowee -->
+<div class="naowee-floating-footer" role="contentinfo" aria-label="Pie de página Naowee">
+  <img src="shared/logos/naowee.svg" alt="Naowee" class="naowee-floating-footer__logo"/>
+  <div class="naowee-floating-footer__sep"></div>
+  <span class="naowee-floating-footer__text">Todos los derechos reservados <strong>&copy; 2026</strong></span>
+</div>
 
 </body>
 </html>

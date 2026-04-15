@@ -77,3 +77,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);font
   .sidebar{width:72px;min-width:72px;overflow:hidden}
   .sidebar .naowee-logo,.sidebar .lbl,.sidebar .nav-arrow,.sidebar .nav-section{display:none}
 }
+
+/* Nota: estilos del componente naowee-floating-footer se movieron a
+   design-system.css para que estén disponibles también en páginas que
+   NO usan shell.css (ej. wizard de registro esc-02..07). */
