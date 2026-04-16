@@ -443,6 +443,29 @@
           </div>
           <p class="naowee-message__text" id="statusBannerText">Enviado el 13 de Febrero de 2026</p>
         </div>
+
+        <!-- Update request banner (solo visible si hay solicitud pendiente del gestor) -->
+        <div id="updateReqBanner" hidden style="margin-top:16px">
+          <div class="naowee-message naowee-message--caution">
+            <div class="naowee-message__header">
+              <div class="naowee-message__icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><polyline points="8 4 8 8 10.5 9.5"/></svg>
+              </div>
+              <div class="naowee-message__title">Solicitud de actualización pendiente</div>
+            </div>
+            <p class="naowee-message__text" id="updateReqBannerText">El gestor solicitó actualizar este registro.</p>
+            <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+              <button class="naowee-btn naowee-btn--link" type="button" id="btnRechazarSolicitud" style="color:var(--naowee-color-feedback-fill-negative-loud,#e53935)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Rechazar solicitud
+              </button>
+              <button class="naowee-btn naowee-btn--loud" type="button" id="btnAprobarSolicitud" style="background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);border-color:var(--naowee-color-feedback-fill-positive-loud,#1f8923)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polyline points="20 6 9 17 4 12"/></svg>
+                Aprobar solicitud
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Card container for tabs + content -->
@@ -884,6 +907,51 @@
   </div>
 </div>
 
+<!-- ═══ DIALOG: Aprobar solicitud de actualización ═══ -->
+<div class="dialog-overlay" id="dialogAprobarSolicitud">
+  <div class="dialog" style="text-align:center">
+    <div style="padding:36px 32px 0;display:flex;flex-direction:column;align-items:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--green,#1f8923);display:flex;align-items:center;justify-content:center;margin-bottom:24px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3 style="font-size:22px;font-weight:700;color:var(--text-primary);margin:0 0 12px">Aprobar solicitud de actualización</h3>
+      <p style="font-size:14px;color:var(--text-primary);line-height:22px;margin:0 0 12px">El gestor podrá editar el registro y reenviarlo a revisión.</p>
+      <p id="dialogAprobarSolicitudMotivo" style="font-size:13px;color:var(--text-secondary);line-height:20px;margin:0">Motivo: —</p>
+    </div>
+    <div class="dialog__footer" style="justify-content:space-between;padding:28px 32px">
+      <button class="naowee-btn naowee-btn--link" type="button" id="dialogAprobarSolicitudCancel" style="color:var(--accent)">Cancelar</button>
+      <button class="naowee-btn naowee-btn--loud" type="button" id="dialogAprobarSolicitudConfirm" style="background:var(--green,#1f8923);border-color:var(--green,#1f8923);min-width:160px">
+        Confirmar aprobación
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: Rechazar solicitud de actualización ═══ -->
+<div class="dialog-overlay" id="dialogRechazarSolicitud">
+  <div class="dialog" style="text-align:center">
+    <div style="padding:36px 32px 0;display:flex;flex-direction:column;align-items:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--red-bg,#fff0ee);display:flex;align-items:center;justify-content:center;margin-bottom:24px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent,#d74009)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <h3 style="font-size:22px;font-weight:700;color:var(--text-primary);margin:0 0 12px">Rechazar solicitud de actualización</h3>
+      <p id="dialogRechazarSolicitudMotivo" style="font-size:13px;color:var(--text-secondary);line-height:20px;margin:0 0 20px">Motivo del gestor: —</p>
+      <div class="naowee-textfield naowee-textfield--textarea" style="width:100%;text-align:left">
+        <label class="naowee-textfield__label naowee-textfield__label--required">Nota del revisor</label>
+        <div class="naowee-textfield__input-wrap">
+          <textarea class="naowee-textfield__input" rows="3" id="rechazoSolicitudMotivo" placeholder="Explique por qué se rechaza la solicitud..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__footer" style="justify-content:space-between;padding:28px 32px">
+      <button class="naowee-btn naowee-btn--link" type="button" id="dialogRechazarSolicitudCancel" style="color:var(--accent)">Cancelar</button>
+      <button class="naowee-btn naowee-btn--loud" type="button" id="dialogRechazarSolicitudConfirm" style="background:var(--accent,#d74009);border-color:var(--accent,#d74009);min-width:160px">
+        Rechazar solicitud
+      </button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="shared/escenarios-store.js"></script>
 <script>
@@ -950,6 +1018,71 @@
   } else {
     // Por revisar (default): ambos botones
     btnDesactivar.style.display = 'none';
+  }
+
+  // ═══ Banner de solicitud de actualización pendiente ═══
+  const updateReqBanner = document.getElementById('updateReqBanner');
+  const updateReqBannerText = document.getElementById('updateReqBannerText');
+  const btnAprobarSolicitud = document.getElementById('btnAprobarSolicitud');
+  const btnRechazarSolicitud = document.getElementById('btnRechazarSolicitud');
+  const dialogAprobarSolicitud = document.getElementById('dialogAprobarSolicitud');
+  const dialogRechazarSolicitud = document.getElementById('dialogRechazarSolicitud');
+
+  function fmtDate(ts){
+    if(!ts) return '';
+    const dt = new Date(ts);
+    return dt.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}).replace('.','');
+  }
+
+  if (record && record.updateRequest && record.updateRequest.status === 'pending') {
+    const ur = record.updateRequest;
+    const gestorName = record.actorName || (Store && Store.GESTOR_NAME) || 'Gestor';
+    updateReqBannerText.innerHTML = `<strong>${gestorName}</strong> solicitó actualizar este registro el ${fmtDate(ur.createdAt)}. <strong>Motivo:</strong> ${ur.motivo || '—'}`;
+    updateReqBanner.hidden = false;
+    // Ocultar el status banner base (activo/rechazado) porque la solicitud es más relevante
+    if (statusBanner) statusBanner.style.display = 'none';
+    // Ocultar acciones del registro (aprobar/rechazar registro completo, desactivar)
+    // — la acción ahora es sobre la solicitud, no sobre el registro
+    if (btnDesactivar) btnDesactivar.style.display = 'none';
+    if (btnAprobarEl) btnAprobarEl.style.display = 'none';
+    if (btnRechazarEl) btnRechazarEl.style.display = 'none';
+
+    btnAprobarSolicitud.addEventListener('click', () => {
+      document.getElementById('dialogAprobarSolicitudMotivo').textContent = 'Motivo: ' + (ur.motivo || '—');
+      dialogAprobarSolicitud.classList.add('open');
+    });
+    document.getElementById('dialogAprobarSolicitudCancel').addEventListener('click', () => {
+      dialogAprobarSolicitud.classList.remove('open');
+    });
+    document.getElementById('dialogAprobarSolicitudConfirm').addEventListener('click', () => {
+      dialogAprobarSolicitud.classList.remove('open');
+      if (Store) Store.approveUpdateRequest(revIdxInt, Store.REVISOR_NAME);
+      showToast('Solicitud aprobada — el registro volvió a modo edición', 'success');
+      setTimeout(() => { window.location.href = 'escenario-11-revisor-dashboard.html'; }, 1200);
+    });
+
+    btnRechazarSolicitud.addEventListener('click', () => {
+      document.getElementById('dialogRechazarSolicitudMotivo').textContent = 'Motivo del gestor: ' + (ur.motivo || '—');
+      document.getElementById('rechazoSolicitudMotivo').value = '';
+      dialogRechazarSolicitud.classList.add('open');
+    });
+    document.getElementById('dialogRechazarSolicitudCancel').addEventListener('click', () => {
+      dialogRechazarSolicitud.classList.remove('open');
+      document.getElementById('rechazoSolicitudMotivo').value = '';
+    });
+    document.getElementById('dialogRechazarSolicitudConfirm').addEventListener('click', () => {
+      const nota = (document.getElementById('rechazoSolicitudMotivo')?.value || '').trim();
+      if (!nota) return; // requerido
+      dialogRechazarSolicitud.classList.remove('open');
+      if (Store) Store.rejectUpdateRequest(revIdxInt, Store.REVISOR_NAME, nota);
+      showToast('Solicitud rechazada', 'error');
+      setTimeout(() => { window.location.href = 'escenario-11-revisor-dashboard.html'; }, 1200);
+    });
+
+    // Cerrar dialogs clicando fuera
+    [dialogAprobarSolicitud, dialogRechazarSolicitud].forEach(dlg => {
+      dlg.addEventListener('click', e => { if (e.target === dlg) dlg.classList.remove('open'); });
+    });
   }
 
   // ═══ If rechazado, override doc table to show majority rejected ═══

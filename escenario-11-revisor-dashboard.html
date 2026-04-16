@@ -588,7 +588,7 @@
       const showActions = !isActivo;
       const lastTs = (hasPendingUR ? d.updateRequest.createdAt : 0) || d.reviewedAt || d.sentAt || d.savedAt;
       const urBadge = hasPendingUR
-        ? `<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small" style="margin-left:6px" title="El gestor solicitó actualizar este registro">✎ Solicitud</span>`
+        ? `<span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small" title="El gestor solicitó actualizar este registro">✎ Solicitud pendiente</span>`
         : '';
       return `
         <tr data-store-idx="${i}">
@@ -597,8 +597,7 @@
           <td>${d.catastral || '—'}</td>
           <td>${d.car ? 'Si' : 'No'}</td>
           <td>
-            <span class="naowee-badge naowee-badge--quiet ${meta.cls} naowee-badge--small">${meta.label}</span>
-            ${urBadge}
+            ${hasPendingUR ? urBadge : `<span class="naowee-badge naowee-badge--quiet ${meta.cls} naowee-badge--small">${meta.label}</span>`}
           </td>
           <td class="cell-date">${fmtShort(lastTs)}</td>
           <td>

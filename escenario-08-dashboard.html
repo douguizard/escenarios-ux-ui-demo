@@ -507,6 +507,12 @@
   top:auto;left:auto;right:auto;
   z-index:3000 !important;
 }
+/* Timepicker menu en modo floating (mismo patrón que el dropdown) */
+.naowee-timepicker__menu.naowee-timepicker__menu--floating{
+  position:fixed !important;
+  top:auto;left:auto;right:auto;
+  z-index:3000 !important;
+}
 /* Spacer para rows con un solo field */
 .reg-row__spacer{display:block}
 
@@ -587,6 +593,91 @@
   font-size:14px;color:var(--text-primary);
 }
 .reg-toggle-row__label .req{color:var(--accent)}
+
+/* Timepicker: asegurar alineación izquierda del value/placeholder */
+.naowee-timepicker__value{text-align:left}
+
+/* ── Horario de atención: grupos + chips de días + timepickers ── */
+.reg-horario{display:flex;flex-direction:column;gap:14px}
+.reg-horario__field{display:flex;flex-direction:column;gap:8px}
+.reg-horario__label{
+  font-size:14px;font-weight:400;line-height:18px;
+  color:var(--text-primary);
+}
+.reg-horario__label .req{color:var(--accent);margin-left:2px}
+
+/* Grupos */
+.reg-horario__groups{display:flex;flex-direction:column;gap:12px}
+.reg-horario__group{
+  background:#fff;border:1px solid var(--border,#e7e9f3);
+  border-radius:12px;padding:16px;
+  display:flex;flex-direction:column;gap:12px;
+  animation:fadeInUp .25s ease;
+}
+.reg-horario__group-header{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.reg-horario__group-title{
+  font-size:13px;font-weight:700;color:var(--text-primary);
+  letter-spacing:.2px;text-transform:uppercase;
+}
+/* Add another group */
+.reg-horario__add{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  background:transparent;border:1.5px dashed var(--border-dark,#d0d4e6);
+  border-radius:12px;padding:12px;cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--accent);
+  transition:background .15s,border-color .15s;
+}
+.reg-horario__add:hover{background:var(--orange-bg,#fff3e6);border-color:var(--accent)}
+.reg-horario__add:disabled{
+  opacity:.5;cursor:not-allowed;color:var(--text-secondary);
+}
+.reg-horario__add:disabled:hover{background:transparent;border-color:var(--border-dark)}
+.reg-horario__add svg{width:14px;height:14px}
+
+/* Chips de días — estilo "quiet" (menos naranja) */
+.reg-horario__days{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;
+}
+.reg-horario__day{
+  display:flex;align-items:center;justify-content:center;
+  height:40px;border-radius:10px;
+  background:#fff;border:1.5px solid var(--border-dark,#d0d4e6);
+  color:var(--text-primary);
+  font-size:14px;font-weight:600;
+  cursor:pointer;user-select:none;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.reg-horario__day:hover{border-color:var(--accent);color:var(--accent)}
+.reg-horario__day--active{
+  background:var(--orange-bg,#fff3e6);
+  border-color:var(--accent,#d74009);
+  color:var(--accent,#d74009);
+}
+.reg-horario__day--taken{
+  opacity:.45;cursor:not-allowed;
+  background:#f5f6fa;border-style:dashed;
+}
+.reg-horario__day--taken:hover{border-color:var(--border-dark);color:var(--text-primary)}
+
+/* Fila apertura/cierre */
+.reg-horario__row{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  align-items:flex-end;
+}
+.reg-horario__row--disabled{opacity:.5;pointer-events:none}
+
+/* 24h row */
+.reg-horario__24h-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px;background:#f5f6fa;border-radius:10px;
+}
+.reg-horario__24h-label{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:500;color:var(--text-primary);
+}
+.reg-horario__24h-label svg{width:16px;height:16px;color:var(--text-secondary)}
 
 /* Multi-select dropdown con checkboxes (Usos actuales) */
 .reg-multi{position:relative;width:100%;display:flex;flex-direction:column}
@@ -2025,17 +2116,25 @@
       <!-- ══ DATOS ADMINISTRATIVOS ══ -->
       <h3 class="reg-section__title">DATOS ADMINISTRATIVOS</h3>
 
-      <div class="naowee-dropdown" id="reg2HorarioDD">
-        <label class="naowee-dropdown__label" for="reg2HorarioTrigger">Horario de atención</label>
-        <button type="button" class="naowee-dropdown__trigger" id="reg2HorarioTrigger" aria-haspopup="listbox" aria-expanded="false">
-          <span class="naowee-dropdown__placeholder" id="reg2HorarioValue">Ej: Lunes a viernes 6 am - 10pm</span>
-          <span class="naowee-dropdown__controls">
-            <span class="naowee-dropdown__chevron">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </span>
-          </span>
+      <div class="reg-horario" id="reg2HorarioWrap">
+        <label class="reg-horario__label">Días y horarios de atención<span class="req">*</span></label>
+
+        <!-- Presets rápidos -->
+        <div class="naowee-segment naowee-segment--small naowee-segment--proportional" id="reg2HorarioPresets" role="tablist">
+          <button type="button" class="naowee-segment__item" data-preset="lun-vie">L-V igual</button>
+          <button type="button" class="naowee-segment__item" data-preset="todos">Todos los días</button>
+          <button type="button" class="naowee-segment__item" data-preset="lv-finde">L-V + Fin de semana</button>
+          <button type="button" class="naowee-segment__item" data-preset="custom">Personalizado</button>
+        </div>
+
+        <!-- Container de grupos (renderizado dinámicamente) -->
+        <div class="reg-horario__groups" id="reg2HorarioGroups"></div>
+
+        <!-- Botón agregar otro horario -->
+        <button type="button" class="reg-horario__add" id="reg2HorarioAdd">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar otro horario
         </button>
-        <div class="naowee-dropdown__menu" role="listbox" id="reg2HorarioMenu"></div>
       </div>
 
       <div class="reg-toggle-row">
@@ -2558,7 +2657,8 @@ window.applyEsc08Filters = function(){
     entidad:'', propietario:'',
     administradora:'', tenencia:'', vencimiento:'',
     responsable:'', telefono:'', correoResp:'',
-    horario:'', accesoPublico:false,
+    horarios:[ { dias:[], apertura:'', cierre:'', es24h:false } ],
+    accesoPublico:false,
     costo:'', usos:[], usuarios:[]
   };
 
@@ -2569,9 +2669,12 @@ window.applyEsc08Filters = function(){
   }
   function isDirty2(){
     const r = reg2State;
+    const horarioDirty = Array.isArray(r.horarios) && r.horarios.some(g =>
+      (g.dias && g.dias.length) || g.apertura || g.cierre || g.es24h);
     return !!(r.entidad || r.propietario || r.administradora || r.tenencia ||
       r.vencimiento || r.responsable || r.telefono || r.correoResp ||
-      r.horario || r.accesoPublico || r.costo || r.usos.length || r.usuarios.length);
+      horarioDirty ||
+      r.accesoPublico || r.costo || r.usos.length || r.usuarios.length);
   }
 
   /* ─── DROPDOWN BEHAVIOR (copiado del wizard público) ─── */
@@ -3286,18 +3389,429 @@ window.applyEsc08Filters = function(){
     validate2();
   });
 
-  const HORARIOS = [
-    'Lunes a viernes 6 am - 10 pm',
-    'Lunes a sábado 6 am - 10 pm',
-    'Lunes a domingo 6 am - 10 pm',
-    'Lunes a viernes 8 am - 6 pm',
-    'Fin de semana 8 am - 6 pm',
-    '24 horas'
-  ];
-  initDropdown('reg2HorarioDD', HORARIOS, (val) => {
-    reg2State.horario = val;
+  // ═══════════════════════════════════════════════════════════════
+  // HORARIO DE ATENCIÓN (modelo de GRUPOS, max 3)
+  // state: reg2State.horarios = [{dias:[], apertura:'', cierre:'', es24h:false}, ...]
+  // ═══════════════════════════════════════════════════════════════
+  const DIAS_CLAVES = ['lun','mar','mie','jue','vie','sab','dom'];
+  const DIAS_LARGO = {lun:'Lunes',mar:'Martes',mie:'Miércoles',jue:'Jueves',vie:'Viernes',sab:'Sábado',dom:'Domingo'};
+  const DIAS_CORTO = {lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
+  const DIAS_LETRA = {lun:'L',mar:'M',mie:'M',jue:'J',vie:'V',sab:'S',dom:'D'};
+  const MAX_HORARIOS = 3;
+
+  // Presets: crean grupos completos (sobreescriben reg2State.horarios)
+  const HORARIO_PRESETS = {
+    'lun-vie':[{dias:['lun','mar','mie','jue','vie']}],
+    'todos':[{dias:['lun','mar','mie','jue','vie','sab','dom']}],
+    'lv-finde':[
+      {dias:['lun','mar','mie','jue','vie']},
+      {dias:['sab','dom']}
+    ]
+  };
+
+  // Time options cada 30 min
+  function buildTimeOptions(){
+    const opts = [];
+    for(let h=0; h<24; h++){
+      for(const m of [0,30]){
+        const hh24 = String(h).padStart(2,'0');
+        const mm = String(m).padStart(2,'0');
+        const value = `${hh24}:${mm}`;
+        const period = h < 12 ? 'AM' : 'PM';
+        const h12 = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+        const label = `${String(h12).padStart(2,'0')}:${mm} ${period}`;
+        opts.push({value, label});
+      }
+    }
+    return opts;
+  }
+  const TIME_OPTS = buildTimeOptions();
+  function fmtTimeLabel(value){
+    if(!value) return '';
+    const found = TIME_OPTS.find(o => o.value === value);
+    return found ? found.label : value;
+  }
+
+  // Label de un solo grupo → "Lunes a viernes 06:00 AM - 10:00 PM"
+  function labelGroup(g){
+    const dias = (g.dias || []).slice().sort((a,b) => DIAS_CLAVES.indexOf(a) - DIAS_CLAVES.indexOf(b));
+    if(!dias.length) return '';
+    const idxs = dias.map(d => DIAS_CLAVES.indexOf(d));
+    const contiguo = idxs.every((v,i) => i === 0 || v === idxs[i-1] + 1);
+    let diasLabel;
+    if(contiguo && dias.length >= 2) diasLabel = `${DIAS_LARGO[dias[0]]} a ${DIAS_LARGO[dias[dias.length-1]].toLowerCase()}`;
+    else if(dias.length === 1) diasLabel = DIAS_LARGO[dias[0]];
+    else diasLabel = dias.map(d => DIAS_CORTO[d]).join(', ');
+    if(g.es24h) return `${diasLabel} · 24 horas`;
+    if(!g.apertura || !g.cierre) return diasLabel;
+    return `${diasLabel} ${fmtTimeLabel(g.apertura)} - ${fmtTimeLabel(g.cierre)}`;
+  }
+
+  // Label completo (concatena todos los grupos)
+  function buildHorarioLabel(st){
+    const horarios = st.horarios || [];
+    return horarios.map(labelGroup).filter(Boolean).join(' · ');
+  }
+
+  // Parser legacy (string) → horarios[]
+  function parseLegacyHorario(str){
+    const g = { dias:[], apertura:'', cierre:'', es24h:false };
+    if(!str) return [g];
+    const s = str.toLowerCase().trim();
+    if(s.includes('24 hora')) g.es24h = true;
+    if(s.includes('lunes a viernes')) g.dias = ['lun','mar','mie','jue','vie'];
+    else if(s.includes('lunes a sábado') || s.includes('lunes a sabado')) g.dias = ['lun','mar','mie','jue','vie','sab'];
+    else if(s.includes('lunes a domingo')) g.dias = ['lun','mar','mie','jue','vie','sab','dom'];
+    else if(s.includes('fin de semana')) g.dias = ['sab','dom'];
+    else if(g.es24h) g.dias = ['lun','mar','mie','jue','vie','sab','dom'];
+    if(!g.es24h){
+      const m = s.match(/(\d{1,2})\s*(am|pm)\s*[-–]\s*(\d{1,2})\s*(am|pm)/);
+      if(m){
+        const to24 = (h, p) => { h = parseInt(h,10); if(p === 'am') return (h === 12 ? 0 : h); return (h === 12 ? 12 : h + 12); };
+        g.apertura = `${String(to24(m[1], m[2])).padStart(2,'0')}:00`;
+        g.cierre = `${String(to24(m[3], m[4])).padStart(2,'0')}:00`;
+      }
+    }
+    return [g];
+  }
+
+  // Sincroniza el preset activo
+  function syncHorarioPresetActive(){
+    const horarios = reg2State.horarios || [];
+    const signature = JSON.stringify(horarios.map(g =>
+      [...g.dias].sort((a,b) => DIAS_CLAVES.indexOf(a) - DIAS_CLAVES.indexOf(b))
+    ));
+    let activeKey = 'custom';
+    for(const [key, presetGroups] of Object.entries(HORARIO_PRESETS)){
+      const presetSig = JSON.stringify(presetGroups.map(g =>
+        [...g.dias].sort((a,b) => DIAS_CLAVES.indexOf(a) - DIAS_CLAVES.indexOf(b))
+      ));
+      if(presetSig === signature){ activeKey = key; break; }
+    }
+    document.querySelectorAll('#reg2HorarioPresets .naowee-segment__item').forEach(btn => {
+      btn.classList.toggle('naowee-segment__item--active', btn.dataset.preset === activeKey);
+    });
+  }
+
+  // Genera markup de un grupo
+  function renderGroupHTML(groupIdx){
+    const g = reg2State.horarios[groupIdx];
+    const canRemove = reg2State.horarios.length > 1;
+    return `
+      <div class="reg-horario__group" data-group="${groupIdx}">
+        <div class="reg-horario__group-header">
+          <span class="reg-horario__group-title">Horario ${groupIdx + 1}</span>
+          ${canRemove ? `
+            <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--small" data-remove-group="${groupIdx}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+              Eliminar
+            </button>
+          ` : ''}
+        </div>
+        <div class="reg-horario__days" data-days-of="${groupIdx}">
+          ${DIAS_CLAVES.map(d => `
+            <button type="button" class="reg-horario__day" data-dia="${d}" aria-pressed="false">${DIAS_LETRA[d]}</button>
+          `).join('')}
+        </div>
+        <div class="reg-horario__24h-row">
+          <span class="reg-horario__24h-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Abierto 24 horas
+          </span>
+          <div class="naowee-switch" data-24h-of="${groupIdx}" role="switch" aria-checked="false" aria-label="Abierto 24 horas" tabindex="0">
+            <div class="naowee-switch__track"><div class="naowee-switch__handle"></div></div>
+          </div>
+        </div>
+        <div class="reg-horario__row" data-horas-of="${groupIdx}">
+          <div class="naowee-timepicker" data-tp="apertura" data-group-tp="${groupIdx}">
+            <label class="naowee-timepicker__label">Apertura<span class="req" style="color:var(--accent);margin-left:2px">*</span></label>
+            <button type="button" class="naowee-timepicker__field" aria-haspopup="listbox" aria-expanded="false">
+              <span class="naowee-timepicker__clock">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </span>
+              <span class="naowee-timepicker__value" data-placeholder="Ej: 06:00 AM">Ej: 06:00 AM</span>
+              <span class="naowee-timepicker__chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </button>
+            <div class="naowee-timepicker__menu" role="listbox"></div>
+          </div>
+          <div class="naowee-timepicker" data-tp="cierre" data-group-tp="${groupIdx}">
+            <label class="naowee-timepicker__label">Cierre<span class="req" style="color:var(--accent);margin-left:2px">*</span></label>
+            <button type="button" class="naowee-timepicker__field" aria-haspopup="listbox" aria-expanded="false">
+              <span class="naowee-timepicker__clock">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </span>
+              <span class="naowee-timepicker__value" data-placeholder="Ej: 10:00 PM">Ej: 10:00 PM</span>
+              <span class="naowee-timepicker__chevron">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </button>
+            <div class="naowee-timepicker__menu" role="listbox"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Pinta el estado de chips/switch/timepicker de un grupo existente en DOM
+  function paintGroup(groupIdx){
+    const g = reg2State.horarios[groupIdx];
+    if(!g) return;
+    // Días tomados por OTROS grupos (deshabilitados visualmente en este)
+    const taken = new Set();
+    reg2State.horarios.forEach((other, oi) => {
+      if(oi !== groupIdx) other.dias.forEach(d => taken.add(d));
+    });
+    // Chips
+    const root = document.querySelector(`#reg2HorarioGroups [data-group="${groupIdx}"]`);
+    if(!root) return;
+    root.querySelectorAll('.reg-horario__day').forEach(btn => {
+      const dia = btn.dataset.dia;
+      const isActive = g.dias.includes(dia);
+      const isTaken = !isActive && taken.has(dia);
+      btn.classList.toggle('reg-horario__day--active', isActive);
+      btn.classList.toggle('reg-horario__day--taken', isTaken);
+      btn.setAttribute('aria-pressed', String(isActive));
+    });
+    // Switch 24h
+    const sw = root.querySelector('.naowee-switch');
+    sw.classList.toggle('naowee-switch--on', !!g.es24h);
+    sw.setAttribute('aria-checked', String(!!g.es24h));
+    const horasRow = root.querySelector(`[data-horas-of="${groupIdx}"]`);
+    if(horasRow) horasRow.style.display = g.es24h ? 'none' : '';
+    // Timepickers
+    ['apertura','cierre'].forEach(role => {
+      const tp = root.querySelector(`[data-tp="${role}"]`);
+      const valEl = tp.querySelector('.naowee-timepicker__value');
+      const val = g[role];
+      if(val){
+        tp.classList.add('naowee-timepicker--has-value');
+        valEl.textContent = fmtTimeLabel(val);
+      } else {
+        tp.classList.remove('naowee-timepicker--has-value');
+        valEl.textContent = valEl.dataset.placeholder || '';
+      }
+      tp.querySelectorAll('.naowee-timepicker__option').forEach(o => {
+        o.classList.toggle('naowee-timepicker__option--selected', o.dataset.value === val);
+      });
+    });
+  }
+
+  // Wire-up de los listeners de un grupo ya renderizado
+  function wireGroup(groupIdx){
+    const root = document.querySelector(`#reg2HorarioGroups [data-group="${groupIdx}"]`);
+    if(!root) return;
+
+    // Remove
+    const removeBtn = root.querySelector(`[data-remove-group="${groupIdx}"]`);
+    if(removeBtn){
+      removeBtn.addEventListener('click', () => {
+        if(reg2State.horarios.length <= 1) return;
+        reg2State.horarios.splice(groupIdx, 1);
+        renderAllGroups();
+        validate2();
+      });
+    }
+
+    // Chips
+    root.querySelectorAll('.reg-horario__day').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dia = btn.dataset.dia;
+        const g = reg2State.horarios[groupIdx];
+        if(!g) return;
+        const idx = g.dias.indexOf(dia);
+        if(idx >= 0){
+          // Quitar del grupo actual
+          g.dias.splice(idx, 1);
+        } else {
+          // Si está en otro grupo, quitarlo de allí primero
+          reg2State.horarios.forEach((other, oi) => {
+            if(oi !== groupIdx){
+              const oidx = other.dias.indexOf(dia);
+              if(oidx >= 0) other.dias.splice(oidx, 1);
+            }
+          });
+          g.dias.push(dia);
+        }
+        // Repintar TODOS los grupos (porque un cambio afecta chips 'taken')
+        reg2State.horarios.forEach((_, i) => paintGroup(i));
+        syncHorarioPresetActive();
+        validate2();
+      });
+    });
+
+    // Switch 24h
+    const sw = root.querySelector('.naowee-switch');
+    const toggle = () => {
+      const g = reg2State.horarios[groupIdx];
+      if(!g) return;
+      g.es24h = !g.es24h;
+      if(g.es24h){ g.apertura = ''; g.cierre = ''; }
+      paintGroup(groupIdx);
+      validate2();
+    };
+    sw.addEventListener('click', toggle);
+    sw.addEventListener('keydown', (e) => {
+      if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggle(); }
+    });
+
+    // Timepickers
+    ['apertura','cierre'].forEach(role => {
+      const tp = root.querySelector(`[data-tp="${role}"]`);
+      const field = tp.querySelector('.naowee-timepicker__field');
+      const menu = tp.querySelector('.naowee-timepicker__menu');
+      menu.innerHTML = TIME_OPTS.map(o =>
+        `<div class="naowee-timepicker__option" role="option" data-value="${o.value}">${o.label}</div>`
+      ).join('');
+      field.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Cerrar otros timepickers abiertos + limpiar su floating
+        document.querySelectorAll('.naowee-timepicker--open').forEach(other => {
+          if(other !== tp){
+            other.classList.remove('naowee-timepicker--open');
+            unfloatTimepickerMenu(other);
+          }
+        });
+        const willOpen = !tp.classList.contains('naowee-timepicker--open');
+        tp.classList.toggle('naowee-timepicker--open', willOpen);
+        field.setAttribute('aria-expanded', String(willOpen));
+        if(willOpen) floatTimepickerMenu(tp);
+        else unfloatTimepickerMenu(tp);
+      });
+      menu.querySelectorAll('.naowee-timepicker__option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const g = reg2State.horarios[groupIdx];
+          if(!g) return;
+          g[role] = opt.dataset.value;
+          paintGroup(groupIdx);
+          tp.classList.remove('naowee-timepicker--open');
+          unfloatTimepickerMenu(tp);
+          field.setAttribute('aria-expanded', 'false');
+          validate2();
+        });
+      });
+    });
+  }
+
+  function renderAllGroups(){
+    const container = document.getElementById('reg2HorarioGroups');
+    if(!container) return;
+    container.innerHTML = reg2State.horarios.map((_, i) => renderGroupHTML(i)).join('');
+    reg2State.horarios.forEach((_, i) => { wireGroup(i); paintGroup(i); });
+    syncHorarioPresetActive();
+    updateAddButton();
+  }
+
+  function updateAddButton(){
+    const btn = document.getElementById('reg2HorarioAdd');
+    if(!btn) return;
+    btn.disabled = reg2State.horarios.length >= MAX_HORARIOS;
+    btn.textContent = '';
+    btn.insertAdjacentHTML('afterbegin',
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+    );
+    const txt = document.createTextNode(
+      reg2State.horarios.length >= MAX_HORARIOS
+        ? ` Máximo ${MAX_HORARIOS} horarios`
+        : ' Agregar otro horario'
+    );
+    btn.appendChild(txt);
+  }
+
+  // Botón "Agregar otro horario"
+  document.getElementById('reg2HorarioAdd').addEventListener('click', () => {
+    if(reg2State.horarios.length >= MAX_HORARIOS) return;
+    reg2State.horarios.push({ dias:[], apertura:'', cierre:'', es24h:false });
+    renderAllGroups();
     validate2();
   });
+
+  // Presets
+  document.querySelectorAll('#reg2HorarioPresets .naowee-segment__item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = btn.dataset.preset;
+      if(preset === 'custom'){
+        syncHorarioPresetActive();
+        return;
+      }
+      const groups = HORARIO_PRESETS[preset];
+      if(!groups) return;
+      // Preservar apertura/cierre/es24h si el usuario ya los tenía en el primer grupo
+      reg2State.horarios = groups.map((g, i) => {
+        const prev = reg2State.horarios[i] || {};
+        return {
+          dias: [...g.dias],
+          apertura: prev.apertura || '',
+          cierre: prev.cierre || '',
+          es24h: !!prev.es24h
+        };
+      });
+      renderAllGroups();
+      validate2();
+    });
+  });
+
+  // Posicionamiento floating del menu del timepicker — escapa del overflow del body
+  function floatTimepickerMenu(tp){
+    const field = tp.querySelector('.naowee-timepicker__field');
+    const menu = tp.querySelector('.naowee-timepicker__menu');
+    if(!field || !menu) return;
+    const rect = field.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const spaceBelow = vh - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuMaxHeight = 280;
+    menu.classList.add('naowee-timepicker__menu--floating');
+    menu.style.width = rect.width + 'px';
+    menu.style.left = rect.left + 'px';
+    if(spaceBelow >= menuMaxHeight + 8 || spaceBelow >= spaceAbove){
+      menu.style.top = (rect.bottom + 4) + 'px';
+      menu.style.bottom = 'auto';
+    } else {
+      menu.style.top = 'auto';
+      menu.style.bottom = (vh - rect.top + 4) + 'px';
+    }
+  }
+  function unfloatTimepickerMenu(tp){
+    const menu = tp.querySelector('.naowee-timepicker__menu');
+    if(!menu) return;
+    menu.classList.remove('naowee-timepicker__menu--floating');
+    menu.style.width = '';
+    menu.style.left = '';
+    menu.style.top = '';
+    menu.style.bottom = '';
+  }
+
+  // Cerrar timepickers al click fuera (global, una vez)
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.naowee-timepicker')){
+      document.querySelectorAll('.naowee-timepicker--open').forEach(tp => {
+        tp.classList.remove('naowee-timepicker--open');
+        unfloatTimepickerMenu(tp);
+        const f = tp.querySelector('.naowee-timepicker__field');
+        if(f) f.setAttribute('aria-expanded', 'false');
+      });
+    }
+  });
+
+  // Al scrollear el body del modal o resizear, cerrar cualquier timepicker abierto
+  // (evita que el menu floating quede desalineado del field)
+  const _modalBodyEl = document.querySelector('.reg-modal__body');
+  function closeAllOpenTimepickers(){
+    document.querySelectorAll('.naowee-timepicker--open').forEach(tp => {
+      tp.classList.remove('naowee-timepicker--open');
+      unfloatTimepickerMenu(tp);
+      const f = tp.querySelector('.naowee-timepicker__field');
+      if(f) f.setAttribute('aria-expanded', 'false');
+    });
+  }
+  if(_modalBodyEl) _modalBodyEl.addEventListener('scroll', closeAllOpenTimepickers, { passive: true });
+  window.addEventListener('resize', closeAllOpenTimepickers);
+
+  // Render inicial
+  renderAllGroups();
 
   const COSTOS = ['Gratuito','Pago','Mixto (Según usuario)'];
   initDropdown('reg2CostoDD', COSTOS, (val) => {
@@ -3927,12 +4441,23 @@ window.applyEsc08Filters = function(){
   function validate2(){
     const r = reg2State;
     const correoOk = !r.correoResp || emailRegex.test(r.correoResp);
+    // Horario: cada grupo debe tener días + (24h | apertura<cierre). Al menos 1 grupo con días.
+    const horarios = Array.isArray(r.horarios) ? r.horarios : [];
+    const atLeastOne = horarios.some(g => g.dias && g.dias.length);
+    const everyGroupOk = horarios.every(g => {
+      const hasDias = Array.isArray(g.dias) && g.dias.length > 0;
+      if(!hasDias) return false;
+      if(g.es24h) return true;
+      return g.apertura && g.cierre && g.apertura < g.cierre;
+    });
+    const horarioOk = atLeastOne && everyGroupOk;
     reg2Valid = (
       r.entidad && r.propietario &&
       r.tenencia &&
       (!TENENCIAS_CON_VENCIMIENTO.has(r.tenencia) || r.vencimiento) &&
       r.responsable && r.telefono.length === 10 &&
       correoOk &&
+      horarioOk &&
       r.costo && r.usos.length > 0 && Array.isArray(r.usuarios) && r.usuarios.length > 0
     );
     // Ya no deshabilitamos el botón — el handler decide si avanza o muestra errores
@@ -4018,7 +4543,13 @@ window.applyEsc08Filters = function(){
       responsable: reg2State.responsable,
       telefono: reg2State.telefono,
       correoResp: reg2State.correoResp,
-      horario: reg2State.horario,
+      horarios: reg2State.horarios.map(g => ({
+        dias: [...(g.dias || [])],
+        apertura: g.apertura || '',
+        cierre: g.cierre || '',
+        es24h: !!g.es24h
+      })),
+      horario: buildHorarioLabel(reg2State), // string de preview (para lista/perfil)
       accesoPublico: reg2State.accesoPublico,
       costo: reg2State.costo,
       usos: [...reg2State.usos],
@@ -7348,7 +7879,29 @@ window.applyEsc08Filters = function(){
     reg2State.responsable = d.responsable || '';
     reg2State.telefono = d.telefono || '';
     reg2State.correoResp = d.correoResp || '';
-    reg2State.horario = d.horario || '';
+    // Horario de atención: soporta 3 shapes
+    // (1) nuevo: d.horarios = [{dias,apertura,cierre,es24h}, ...]
+    // (2) intermedio: d.horarioDias + d.horarioApertura + ... (un solo grupo)
+    // (3) legacy: d.horario string ("Lunes a viernes 6 am - 10 pm")
+    if(Array.isArray(d.horarios) && d.horarios.length){
+      reg2State.horarios = d.horarios.map(g => ({
+        dias: Array.isArray(g.dias) ? [...g.dias] : [],
+        apertura: g.apertura || '',
+        cierre: g.cierre || '',
+        es24h: !!g.es24h
+      }));
+    } else if(Array.isArray(d.horarioDias) || d.horarioApertura || d.horarioCierre || d.horario24h){
+      reg2State.horarios = [{
+        dias: Array.isArray(d.horarioDias) ? [...d.horarioDias] : [],
+        apertura: d.horarioApertura || '',
+        cierre: d.horarioCierre || '',
+        es24h: !!d.horario24h
+      }];
+    } else if(d.horario){
+      reg2State.horarios = parseLegacyHorario(d.horario);
+    } else {
+      reg2State.horarios = [{ dias:[], apertura:'', cierre:'', es24h:false }];
+    }
     reg2State.accesoPublico = !!d.accesoPublico;
     reg2State.costo = d.costo || '';
     reg2State.usos = Array.isArray(d.usos) ? [...d.usos] : [];
@@ -7397,8 +7950,9 @@ window.applyEsc08Filters = function(){
     }
     paintDropdown('reg2PropietarioDD', d.propietario, 'Seleccione un tipo');
     paintDropdown('reg2TenenciaDD', d.tenencia, 'Seleccione un tipo');
-    paintDropdown('reg2HorarioDD', d.horario, 'Ej: Lunes a viernes 6 am - 10pm');
     paintDropdown('reg2CostoDD', d.costo, 'Selecciona una opción');
+    // Re-render completo del UI de horarios (grupos dinámicos)
+    if(typeof renderAllGroups === 'function') renderAllGroups();
     // Usuarios ahora es multi-select; los chips se repintan con renderUsuariosChips()
     if(typeof renderUsuariosChips === 'function') renderUsuariosChips();
 
