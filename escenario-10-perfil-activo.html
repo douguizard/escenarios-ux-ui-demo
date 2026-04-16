@@ -334,6 +334,49 @@
   50%{box-shadow:0 0 0 8px rgba(215,64,9,0)}
 }
 
+/* ═══ DIALOG: Solicitud de actualización ═══
+   Usa el patrón DS .dialog-overlay / .dialog + clases custom
+   dlg-solicitud para el layout vertical con hero icon + texto centrado. */
+.dialog .dlg-solicitud__close,
+.dlg-solicitud__close{
+  position:absolute;top:12px;right:12px;
+  width:32px;height:32px;border-radius:8px;
+  border:none;background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-secondary,#646587);cursor:pointer;
+  transition:background .15s,color .15s;
+  z-index:2;
+}
+.dlg-solicitud__close:hover{background:var(--border,#e7e9f3);color:var(--text-primary,#282834)}
+.dlg-solicitud__close svg{width:18px;height:18px}
+.dlg-solicitud{max-width:520px;width:90vw;position:relative;text-align:center;padding:0}
+.dlg-solicitud__body{padding:32px 32px 8px}
+.dlg-solicitud__hero-icon{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+}
+.dlg-solicitud__hero-icon svg{width:28px;height:28px}
+.dlg-solicitud__title{font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 8px}
+.dlg-solicitud__desc{font-size:14px;color:var(--text-secondary);margin:0 0 16px;line-height:20px}
+.dlg-solicitud__hint{
+  display:flex;align-items:flex-start;gap:8px;
+  text-align:left;margin-bottom:16px;
+  font-size:13px;color:var(--text-primary);
+}
+.dlg-solicitud__hint-dot{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.dlg-solicitud__hint-dot svg{width:10px;height:10px}
+.dlg-solicitud__footer{
+  padding:20px 32px 24px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+}
+
 /* ═══ LIGHTBOX (photo viewer fullscreen) ═══ */
 .gallery__item{cursor:zoom-in}
 .lb-overlay{
@@ -521,6 +564,9 @@
             Solicitud de actualización de datos
           </button>
         </div>
+
+        <!-- Banner de estado de solicitud de actualización (dinámico) -->
+        <div id="updateReqBanner" hidden style="margin-top:16px"></div>
 
         <!-- Photo gallery -->
         <div class="gallery">
@@ -738,36 +784,33 @@
 
 </div>
 
-<!-- ═══ MODAL: Solicitud de actualización ═══ -->
-<div class="dialog-overlay" id="dlgSolicitud" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:20px;width:90%;max-width:520px;padding:0;animation:scaleIn .3s cubic-bezier(.4,0,.2,1);position:relative">
-    <!-- Close -->
-    <button type="button" id="dlgSolicitudClose" class="naowee-btn naowee-btn--quiet naowee-btn--icon" style="position:absolute;top:16px;right:16px" aria-label="Cerrar">
+<!-- ═══ MODAL: Solicitud de actualización (patrón DS .dialog) ═══ -->
+<div class="dialog-overlay" id="dlgSolicitud" role="dialog" aria-modal="true" aria-labelledby="dlgSolicitudTitle">
+  <div class="dialog dlg-solicitud">
+    <!-- Close button estándar -->
+    <button type="button" id="dlgSolicitudClose" class="dlg-solicitud__close" aria-label="Cerrar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
-    <div style="padding:32px 32px 24px;text-align:center">
-      <!-- Check icon -->
-      <div style="width:56px;height:56px;border-radius:50%;background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px"><polyline points="20 6 9 17 4 12"/></svg>
+    <div class="dlg-solicitud__body">
+      <div class="dlg-solicitud__hero-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h2 style="font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 8px">Solicitud de actualización</h2>
-      <p style="font-size:14px;color:var(--text-secondary);margin:0 0 16px;line-height:20px">Si tu sede o escenario ya se encuentra registrado y activo en la plataforma, puedes solicitar una actualización de la información cuando se presenten cambios en su infraestructura, documentación o datos generales.</p>
-      <div style="display:flex;align-items:flex-start;gap:8px;text-align:left;margin-bottom:16px">
-        <div style="width:18px;height:18px;border-radius:50%;background:var(--naowee-color-feedback-fill-positive-loud,#1f8923);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <span style="font-size:13px;color:var(--text-primary)">Esto aplica en cualquier modificación relevante del escenario.</span>
+      <h2 id="dlgSolicitudTitle" class="dlg-solicitud__title">Solicitud de actualización</h2>
+      <p class="dlg-solicitud__desc">Si tu sede o escenario ya se encuentra registrado y activo en la plataforma, puedes solicitar una actualización de la información cuando se presenten cambios en su infraestructura, documentación o datos generales.</p>
+      <div class="dlg-solicitud__hint">
+        <span class="dlg-solicitud__hint-dot">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <span>Esto aplica en cualquier modificación relevante del escenario.</span>
       </div>
-      <!-- Info banner -->
       <div class="naowee-message naowee-message--informative" style="text-align:left;margin-bottom:20px">
         <div class="naowee-message__header">
           <div class="naowee-message__icon">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="4" x2="8" y2="8"/><line x1="8" y1="11" x2="8" y2="11.01"/></svg>
           </div>
         </div>
-        <p class="naowee-message__text">La solicitud será revisada por el equipo encargado antes de aprobar los cambios. <strong>Una vez validada, la información se actualizará en la plataforma.</strong></p>
+        <p class="naowee-message__text">La solicitud será revisada por el equipo encargado antes de aprobar los cambios. <strong>Una vez validada, el escenario volverá a modo edición para que puedas actualizar los datos.</strong></p>
       </div>
-      <!-- Textfield -->
       <div class="naowee-textfield naowee-textfield--textarea" style="text-align:left">
         <label class="naowee-textfield__label naowee-textfield__label--required" for="solicitudMotivo">Motivo de actualización</label>
         <div class="naowee-textfield__input-wrap" style="height:auto">
@@ -775,10 +818,9 @@
         </div>
       </div>
     </div>
-    <div style="padding:0 32px 28px">
-      <button type="button" class="naowee-btn naowee-btn--loud naowee-btn--large" id="btnSolicitar" style="width:100%" disabled>
-        Solicitar cambio
-      </button>
+    <div class="dialog__footer dlg-solicitud__footer">
+      <button type="button" class="naowee-btn naowee-btn--link" id="dlgSolicitudCancel" style="color:var(--accent)">Cancelar</button>
+      <button type="button" class="naowee-btn naowee-btn--loud" id="btnSolicitar" disabled>Solicitar cambio</button>
     </div>
   </div>
 </div>
@@ -1340,67 +1382,127 @@
     renderTimeline(pill.dataset.cat);
   });
 
-  // ═══ Modal Solicitud de actualización ═══
+  // ═══ Modal Solicitud de actualización (conectado al EscStore) ═══
   const dlgSol = document.getElementById('dlgSolicitud');
   const btnSolicitar = document.getElementById('btnSolicitar');
   const txtMotivo = document.getElementById('solicitudMotivo');
   const toast = document.getElementById('toastSuccess');
+  const heroSolicitudBtn = document.querySelector('.hero-card .naowee-btn--loud');
 
-  // Open modal
-  document.querySelector('.hero-card .naowee-btn--loud').addEventListener('click', () => {
-    dlgSol.style.display = 'flex';
+  // Refrescar la visibilidad del botón + banner según el estado actual de la
+  // solicitud de actualización. Tres casos:
+  //   - pending: botón deshabilitado con texto "pendiente" + banner caution
+  //   - rejected: botón habilitado + banner rojo con motivo del revisor
+  //   - null/approved: estado normal
+  const banner = document.getElementById('updateReqBanner');
+  function refreshSolicitudButton(){
+    const Store = window.EscStore;
+    if(!Store || !heroSolicitudBtn) return;
+    const rec = Store.get(idx);
+    if(!rec) return;
+    const ur = rec.updateRequest;
+    // Reset al estado base
+    heroSolicitudBtn.disabled = false;
+    heroSolicitudBtn.style.opacity = '';
+    heroSolicitudBtn.style.cursor = '';
+    heroSolicitudBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Solicitud de actualización de datos';
+    if(banner){ banner.hidden = true; banner.innerHTML = ''; }
+
+    if(!ur) return;
+
+    if(ur.status === 'pending'){
+      heroSolicitudBtn.disabled = true;
+      heroSolicitudBtn.style.opacity = '0.55';
+      heroSolicitudBtn.style.cursor = 'not-allowed';
+      heroSolicitudBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Solicitud pendiente';
+      if(banner){
+        banner.hidden = false;
+        banner.innerHTML = `
+          <div class="naowee-message naowee-message--caution">
+            <div class="naowee-message__header">
+              <div class="naowee-message__icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><polyline points="8 4 8 8 10.5 9.5"/></svg>
+              </div>
+              <div class="naowee-message__title">Solicitud de actualización pendiente</div>
+            </div>
+            <p class="naowee-message__text">Creada el ${fmtDate(ur.createdAt)}. <strong>Motivo:</strong> ${ur.motivo || '—'}. El revisor evaluará tu solicitud; cuando la apruebe, el escenario volverá a modo edición.</p>
+          </div>`;
+      }
+    } else if(ur.status === 'rejected'){
+      if(banner){
+        banner.hidden = false;
+        banner.innerHTML = `
+          <div class="naowee-message naowee-message--negative">
+            <div class="naowee-message__header">
+              <div class="naowee-message__icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="12" y2="8"/></svg>
+              </div>
+              <div class="naowee-message__title">Solicitud de actualización rechazada</div>
+            </div>
+            <p class="naowee-message__text"><strong>Motivo del revisor:</strong> ${ur.reviewerNota || '—'}. Rechazada por ${ur.reviewerName || 'Revisor'} el ${fmtDate(ur.reviewedAt)}. Puedes enviar una nueva solicitud si persisten los cambios.</p>
+          </div>`;
+      }
+    }
+  }
+
+  function openSolicitudModal(){
+    const Store = window.EscStore;
+    const rec = Store ? Store.get(idx) : null;
+    if(rec && rec.updateRequest && rec.updateRequest.status === 'pending'){
+      // Ya hay una pendiente — no permitir abrir el modal de creación
+      return;
+    }
     txtMotivo.value = '';
     btnSolicitar.disabled = true;
-  });
+    dlgSol.classList.add('open');
+  }
+  function closeSolicitudModal(){ dlgSol.classList.remove('open'); }
 
-  // Close modal
-  document.getElementById('dlgSolicitudClose').addEventListener('click', () => { dlgSol.style.display = 'none'; });
-  dlgSol.addEventListener('click', e => { if(e.target === dlgSol) dlgSol.style.display = 'none'; });
+  if(heroSolicitudBtn){
+    heroSolicitudBtn.addEventListener('click', openSolicitudModal);
+  }
+  document.getElementById('dlgSolicitudClose').addEventListener('click', closeSolicitudModal);
+  document.getElementById('dlgSolicitudCancel')?.addEventListener('click', closeSolicitudModal);
+  dlgSol.addEventListener('click', e => { if(e.target === dlgSol) closeSolicitudModal(); });
 
-  // Enable/disable button based on textfield
   txtMotivo.addEventListener('input', () => {
     btnSolicitar.disabled = txtMotivo.value.trim().length === 0;
   });
 
-  // Submit
   btnSolicitar.addEventListener('click', () => {
     if(btnSolicitar.disabled) return;
+    const Store = window.EscStore;
+    const motivo = txtMotivo.value.trim();
     btnSolicitar.classList.add('naowee-btn--loading');
     setTimeout(() => {
       btnSolicitar.classList.remove('naowee-btn--loading');
-      dlgSol.style.display = 'none';
-      // Add to timeline
-      const tl = document.getElementById('timeline');
-      if(tl){
-        const now = new Date();
-        const h = now.getHours() % 12 || 12;
-        const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-        const mesesCortos = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.'];
-        const dateStr = `${mesesCortos[now.getMonth()]} ${String(now.getDate()).padStart(2,'0')}, ${now.getFullYear()} ${h}:${String(now.getMinutes()).padStart(2,'0')} ${ampm}`;
-        const newEvent = document.createElement('div');
-        newEvent.className = 'timeline-item';
-        newEvent.style.animation = 'fadeInUp .4s ease';
-        newEvent.innerHTML = `
-          <div class="timeline-dot timeline-dot--active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-          <div class="timeline-content">
-            <div class="timeline-title">Solicitud de actualización enviada <span class="naowee-badge naowee-badge--quiet naowee-badge--caution naowee-badge--small" style="margin-left:8px">Enviada</span></div>
-            <div class="timeline-desc">Motivo: ${txtMotivo.value.trim()}</div>
-            <div class="timeline-date">${dateStr}</div>
-          </div>
-        `;
-        tl.appendChild(newEvent);
+      // Persistir al store
+      if(Store){
+        Store.createUpdateRequest(idx, motivo, d.responsable || Store.GESTOR_NAME);
+        Store.setToast({
+          title: 'Solicitud enviada a revisión',
+          body: 'El revisor evaluará tu solicitud de actualización.',
+          variant: 'positive'
+        });
       }
-      // Show toast
-      toast.classList.remove('hidden');
-      toast.style.animation = 'toastIn .5s cubic-bezier(.34,1.56,.64,1)';
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(12px)';
-        toast.style.transition = 'opacity .3s, transform .3s';
-        setTimeout(() => { toast.classList.add('hidden'); toast.style.cssText = ''; }, 300);
-      }, 6000);
-    }, 800);
+      closeSolicitudModal();
+      refreshSolicitudButton();
+      // Mostrar toast local (además del setToast que se consume al navegar)
+      if(toast){
+        toast.classList.remove('hidden');
+        toast.style.animation = 'toastIn .5s cubic-bezier(.34,1.56,.64,1)';
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(12px)';
+          toast.style.transition = 'opacity .3s, transform .3s';
+          setTimeout(() => { toast.classList.add('hidden'); toast.style.cssText = ''; }, 300);
+        }, 5000);
+      }
+    }, 600);
   });
+
+  // Actualizar el botón del hero según estado al cargar
+  refreshSolicitudButton();
 
   // Toast close
   document.getElementById('toastClose').addEventListener('click', () => {

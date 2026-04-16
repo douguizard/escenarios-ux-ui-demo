@@ -62,6 +62,8 @@
     if(d.sentAt === undefined) d.sentAt = null;
     if(d.reviewedAt === undefined) d.reviewedAt = null;
     if(d.reviewerName === undefined) d.reviewerName = null;
+    // Solicitud de actualización (ciclo: gestor pide cambio a un registro ya activo)
+    if(d.updateRequest === undefined) d.updateRequest = null;
     if(!d.documentacion || typeof d.documentacion !== 'object') d.documentacion = {};
     Object.keys(d.documentacion).forEach(docId => {
       const doc = d.documentacion[docId];
@@ -138,6 +140,9 @@
     const arr = read();
     if(!arr[idx]) return;
     const wasRejected = arr[idx].status === 'rechazado';
+    // Si venimos de una solicitud de actualización aprobada, este reenvío
+    // cierra ese ciclo. El evento de la solicitud ya está en historial.
+    const hadApprovedUpdateReq = arr[idx].updateRequest && arr[idx].updateRequest.status === 'approved';
     arr[idx].status = 'revision';
     arr[idx].sentAt = Date.now();
     if(wasRejected){
@@ -151,13 +156,80 @@
         }
       });
     }
+    if(hadApprovedUpdateReq){
+      // Limpiar la solicitud ya completada (el ciclo se cerró)
+      arr[idx].updateRequest = null;
+    }
+    write(arr);
+    let title, desc;
+    if(hadApprovedUpdateReq){
+      title = 'Reenviado tras actualización';
+      desc = 'El gestor aplicó los cambios solicitados y reenvió el registro a revisión.';
+    } else if(wasRejected){
+      title = 'Reenviado a revisión';
+      desc = 'El gestor reenvió el registro tras aplicar correcciones.';
+    } else {
+      title = 'Enviado a revisión';
+      desc = 'El registro fue enviado al revisor.';
+    }
+    pushEvent(idx, buildEvent('estado', title, desc, 'gestor', actorName || GESTOR_NAME));
+  }
+
+  // ─── Solicitud de actualización (update request) ──────────────────
+  // Ciclo: gestor activo pide cambio → revisor aprueba (→ record a borrador
+  // para editar) o rechaza (→ record sigue activo, con nota del revisor).
+  function createUpdateRequest(idx, motivo, actorName){
+    const arr = read();
+    if(!arr[idx]) return;
+    if(arr[idx].status !== 'activo') return; // precondición
+    if(arr[idx].updateRequest && arr[idx].updateRequest.status === 'pending') return;
+    arr[idx].updateRequest = {
+      status: 'pending',
+      createdAt: Date.now(),
+      motivo: motivo || '',
+      reviewedAt: null,
+      reviewerName: null,
+      reviewerNota: null
+    };
     write(arr);
     pushEvent(idx, buildEvent(
-      'estado',
-      wasRejected ? 'Reenviado a revisión' : 'Enviado a revisión',
-      wasRejected ? 'El gestor reenvió el registro tras aplicar correcciones.' : 'El registro fue enviado al revisor.',
-      'gestor',
-      actorName || GESTOR_NAME
+      'estado', 'Solicitud de actualización creada',
+      motivo || 'El gestor solicitó actualizar el registro.',
+      'gestor', actorName || GESTOR_NAME
+    ));
+  }
+  function approveUpdateRequest(idx, reviewerName){
+    const arr = read();
+    if(!arr[idx]) return;
+    if(!arr[idx].updateRequest || arr[idx].updateRequest.status !== 'pending') return;
+    arr[idx].updateRequest.status = 'approved';
+    arr[idx].updateRequest.reviewedAt = Date.now();
+    arr[idx].updateRequest.reviewerName = reviewerName || REVISOR_NAME;
+    // El registro vuelve a modo edición (borrador) para que el gestor actualice
+    arr[idx].status = 'borrador';
+    // Reseteamos metadata de revisión previa — empieza nuevo ciclo
+    arr[idx].sentAt = null;
+    write(arr);
+    pushEvent(idx, buildEvent(
+      'estado', 'Solicitud de actualización aprobada',
+      'El revisor aprobó la solicitud. El gestor puede actualizar el registro y reenviarlo a revisión.',
+      'revisor', reviewerName || REVISOR_NAME
+    ));
+  }
+  function rejectUpdateRequest(idx, reviewerName, nota){
+    const arr = read();
+    if(!arr[idx]) return;
+    if(!arr[idx].updateRequest || arr[idx].updateRequest.status !== 'pending') return;
+    arr[idx].updateRequest.status = 'rejected';
+    arr[idx].updateRequest.reviewedAt = Date.now();
+    arr[idx].updateRequest.reviewerName = reviewerName || REVISOR_NAME;
+    arr[idx].updateRequest.reviewerNota = nota || '';
+    // El registro sigue activo (no cambia status)
+    write(arr);
+    pushEvent(idx, buildEvent(
+      'estado', 'Solicitud de actualización rechazada',
+      nota || 'El revisor rechazó la solicitud. El registro se mantiene activo sin cambios.',
+      'revisor', reviewerName || REVISOR_NAME
     ));
   }
   function approve(idx, reviewerName){
@@ -396,6 +468,7 @@
     getAll, getAllSorted, setAll, get, update, add, remove,
     // Flujo
     sendToReview, approve, reject, approveDoc, rejectDoc,
+    createUpdateRequest, approveUpdateRequest, rejectUpdateRequest,
     // Historial
     pushEvent, buildEvent,
     // Toasts
