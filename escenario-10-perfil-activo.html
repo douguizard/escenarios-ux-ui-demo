@@ -334,6 +334,21 @@
   50%{box-shadow:0 0 0 8px rgba(215,64,9,0)}
 }
 
+/* ═══ DIALOG OVERLAY (patrón base) ═══ */
+.dialog-overlay{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,43,91,.45);backdrop-filter:blur(2px);
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+.dialog-overlay.open{display:flex}
+.dialog{
+  width:440px;max-width:100%;background:#fff;border-radius:16px;
+  box-shadow:0 24px 48px rgba(0,0,0,.25);
+  display:flex;flex-direction:column;
+  animation:dialogIn .3s cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes dialogIn{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
 /* ═══ DIALOG: Solicitud de actualización ═══
    Usa el patrón DS .dialog-overlay / .dialog + clases custom
    dlg-solicitud para el layout vertical con hero icon + texto centrado. */
