@@ -2113,6 +2113,30 @@
         </div>
       </div>
 
+      <!-- Proyecto de inversión (toggle) -->
+      <div class="reg-toggle-row">
+        <span class="reg-toggle-row__label">¿Es un proyecto de inversión?</span>
+        <div class="naowee-switch" id="reg2InversionToggle" role="switch" aria-checked="false" aria-label="Es un proyecto de inversión" tabindex="0">
+          <div class="naowee-switch__track">
+            <div class="naowee-switch__handle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado del proyecto de inversión (dropdown condicional) -->
+      <div class="naowee-dropdown" id="reg2EstadoInvDD" hidden>
+        <label class="naowee-dropdown__label" for="reg2EstadoInvTrigger">Estado del proyecto <span style="color:var(--naowee-color-text-accent,#d74009)">*</span></label>
+        <button type="button" class="naowee-dropdown__trigger" id="reg2EstadoInvTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="naowee-dropdown__placeholder" id="reg2EstadoInvValue">Selecciona el estado</span>
+          <span class="naowee-dropdown__controls">
+            <span class="naowee-dropdown__chevron">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </span>
+          </span>
+        </button>
+        <div class="naowee-dropdown__menu" role="listbox" id="reg2EstadoInvMenu"></div>
+      </div>
+
       <!-- ══ DATOS ADMINISTRATIVOS ══ -->
       <h3 class="reg-section__title">DATOS ADMINISTRATIVOS</h3>
 
@@ -2657,6 +2681,7 @@ window.applyEsc08Filters = function(){
     entidad:'', propietario:'',
     administradora:'', tenencia:'', vencimiento:'',
     responsable:'', telefono:'', correoResp:'',
+    esProyectoInversion:false, estadoProyecto:'',
     horarios:[ { dias:[], apertura:'', cierre:'', es24h:false } ],
     accesoPublico:false,
     costo:'', usos:[], usuarios:[]
@@ -2673,6 +2698,7 @@ window.applyEsc08Filters = function(){
       (g.dias && g.dias.length) || g.apertura || g.cierre || g.es24h);
     return !!(r.entidad || r.propietario || r.administradora || r.tenencia ||
       r.vencimiento || r.responsable || r.telefono || r.correoResp ||
+      r.esProyectoInversion || r.estadoProyecto ||
       horarioDirty ||
       r.accesoPublico || r.costo || r.usos.length || r.usuarios.length);
   }
@@ -3022,7 +3048,7 @@ window.applyEsc08Filters = function(){
   initDropdown('regMunicipioDD', [], () => {}, true);
 
   // Zona
-  initDropdown('regZonaDD', ['Urbana','Rural'], (val) => {
+  initDropdown('regZonaDD', ['Urbana','Rural','Centro'], (val) => {
     regState.zona = val;
     validate();
   });
@@ -4097,6 +4123,42 @@ window.applyEsc08Filters = function(){
     }
   });
 
+  /* ─── Toggle "¿Es un proyecto de inversión?" + dropdown condicional ─── */
+  const ESTADOS_PROYECTO_INVERSION = [
+    'En ejecución','Incumplimiento','Liquidado','Liquidación anticipada',
+    'Liquidado bilateralmente','Sin iniciar','Sin liquidar','Suspendido',
+    'Terminado','Terminado anticipadamente'
+  ];
+  const inversionToggle = document.getElementById('reg2InversionToggle');
+  const reg2EstadoInvDD = document.getElementById('reg2EstadoInvDD');
+  const reg2EstadoInvValue = document.getElementById('reg2EstadoInvValue');
+
+  function setProyectoInversion(on){
+    inversionToggle.classList.toggle('naowee-switch--on', on);
+    inversionToggle.setAttribute('aria-checked', String(on));
+    reg2State.esProyectoInversion = on;
+    reg2EstadoInvDD.hidden = !on;
+    if(!on){
+      reg2State.estadoProyecto = '';
+      reg2EstadoInvValue.textContent = 'Selecciona el estado';
+      reg2EstadoInvValue.className = 'naowee-dropdown__placeholder';
+      reg2EstadoInvDD.querySelectorAll('.naowee-dropdown__option--selected')
+        .forEach(o => o.classList.remove('naowee-dropdown__option--selected'));
+    }
+    validate2();
+  }
+  inversionToggle.addEventListener('click', () => setProyectoInversion(!inversionToggle.classList.contains('naowee-switch--on')));
+  inversionToggle.addEventListener('keydown', e => {
+    if(e.key === ' ' || e.key === 'Enter'){
+      e.preventDefault();
+      setProyectoInversion(!inversionToggle.classList.contains('naowee-switch--on'));
+    }
+  });
+  initDropdown('reg2EstadoInvDD', ESTADOS_PROYECTO_INVERSION, (val) => {
+    reg2State.estadoProyecto = val;
+    validate2();
+  });
+
   /* ─── Inputs texto modal 2 ─── */
   document.getElementById('reg2Entidad').addEventListener('input', e => {
     reg2State.entidad = e.target.value.trim();
@@ -4543,6 +4605,8 @@ window.applyEsc08Filters = function(){
       responsable: reg2State.responsable,
       telefono: reg2State.telefono,
       correoResp: reg2State.correoResp,
+      esProyectoInversion: reg2State.esProyectoInversion,
+      estadoProyecto: reg2State.estadoProyecto,
       horarios: reg2State.horarios.map(g => ({
         dias: [...(g.dias || [])],
         apertura: g.apertura || '',
@@ -6308,6 +6372,8 @@ window.applyEsc08Filters = function(){
     { id:'bodega', label:'Bodega / cuarto de implementos' },
     { id:'parqueadero', label:'Parqueadero', sub:{id:'capacidadParqueadero', type:'stepper', label:'Capacidad de vehículos', required:true} },
     { id:'accesibilidad', label:'Accesibilidad para personas con discapacidad' },
+    { id:'vestieresAdaptadosPMR', label:'Vestieres adaptados para PMR' },
+    { id:'banosAccesiblesGlobal', label:'Baños accesibles' },
     { id:'cafeteria', label:'Cafetería' },
     { id:'enfermeria', label:'Enfermería / primeros auxilios' }
   ];
@@ -7879,6 +7945,8 @@ window.applyEsc08Filters = function(){
     reg2State.responsable = d.responsable || '';
     reg2State.telefono = d.telefono || '';
     reg2State.correoResp = d.correoResp || '';
+    reg2State.esProyectoInversion = !!d.esProyectoInversion;
+    reg2State.estadoProyecto = d.estadoProyecto || '';
     // Horario de atención: soporta 3 shapes
     // (1) nuevo: d.horarios = [{dias,apertura,cierre,es24h}, ...]
     // (2) intermedio: d.horarioDias + d.horarioApertura + ... (un solo grupo)
@@ -7958,6 +8026,8 @@ window.applyEsc08Filters = function(){
 
     reg2FldVenc.hidden = !TENENCIAS_CON_VENCIMIENTO.has(reg2State.tenencia);
     setAcceso(reg2State.accesoPublico);
+    setProyectoInversion(reg2State.esProyectoInversion);
+    paintDropdown('reg2EstadoInvDD', reg2State.estadoProyecto, 'Selecciona el estado');
     renderMultiChips();
 
     // ID único en el chip del modal 2 (por si el usuario avanza)
