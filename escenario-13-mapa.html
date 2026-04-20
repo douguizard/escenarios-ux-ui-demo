@@ -45,15 +45,19 @@
   .page-head__actions{ display:flex; align-items:center; gap:10px; flex-shrink:0 }
 
   /* ── Filter toolbar (2 rows: primary + active chips) ── */
+  /* Filter toolbar: ahora vive dentro del .map-canvas como primer bloque, sin
+     fondo/borde propios. Mantiene el stacking context alto para que los menús
+     de los dropdowns se muestren sobre el mapa. */
   .filter-toolbar{
     position:relative; z-index:500;
     display:flex; flex-direction:column; gap:10px;
-    margin-bottom:16px;
-    padding:14px 18px; background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding-bottom:18px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--border);
   }
   .filter-row{ display:flex; align-items:center; flex-wrap:wrap; gap:10px }
   .filter-row--primary{ gap:10px }
-  .filter-row--chips{ gap:8px; padding-top:10px; border-top:1px dashed var(--border) }
+  .filter-row--chips{ gap:8px }
   .filter-row--chips[hidden]{ display:none }
 
   /* Search box — usa .naowee-searchbox del DS; solo fijamos el ancho dentro
@@ -179,10 +183,14 @@
   .filter-reset:disabled{ color:var(--text-secondary); cursor:default }
   .filter-reset:disabled:hover{ background:none }
 
-  /* ── Canvas ── */
+  /* ── Canvas: container unificado (filtros + mapa + side panel) ── */
   .map-canvas{
+    display:flex; flex-direction:column;
+    padding:20px 24px 24px;
+    background:#fff; border:1px solid var(--border); border-radius:16px;
+  }
+  .map-body{
     display:grid; grid-template-columns: 1fr 480px; gap:24px;
-    padding:24px 28px; background:#fff; border:1px solid var(--border); border-radius:16px;
   }
 
   /* ── Breadcrumb (usa .naowee-breadcrumb del DS) ── */
@@ -268,10 +276,11 @@
     content:'★';
     position:absolute; top:-6px; right:-6px;
     width:18px; height:18px;
-    background:var(--accent); color:#fff;
+    background:#ffbf00; color:#fff;
     border-radius:9999px; border:2px solid #fff;
     font-size:10px; font-weight:700;
     display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,.2);
   }
   .cluster-pin--large{
     min-width:54px; min-height:54px;
@@ -313,6 +322,43 @@
     0% { transform:translate(-50%,-50%) scale(0); opacity:0 }
     60%{ transform:translate(-50%,-50%) scale(1.12); opacity:1 }
     100%{ transform:translate(-50%,-50%) scale(1); opacity:1 }
+  }
+
+  /* ── Cluster pin de ciudad: pill horizontal + color del tipo dominante ── */
+  .cluster-pin.cluster-pin--combo{
+    flex-direction:row; gap:0;
+    min-width:auto; min-height:40px;
+    padding:6px 14px; border-radius:9999px;
+    border-color:var(--tipo-color, var(--accent));
+  }
+  .cluster-pin--combo .cluster-pin__count{
+    color:var(--tipo-color, var(--accent));
+    font-size:15px; line-height:1; padding-right:10px;
+  }
+  .cluster-pin--combo .cluster-pin__sep{
+    width:1px; height:18px; background:rgba(0,0,0,.08);
+    margin-right:10px;
+  }
+  .cluster-pin--combo .cluster-pin__label{
+    font-size:13px; font-weight:600; color:var(--text-primary);
+    margin:0; line-height:1;
+  }
+  .cluster-pin--combo .cluster-pin__tipo-icon{
+    margin-left:8px; display:inline-flex; align-items:center;
+    color:var(--tipo-color);
+  }
+  .cluster-pin--combo .cluster-pin__tipo-icon svg{
+    width:14px; height:14px; display:block;
+  }
+  /* Anchor dot bajo la burbuja, del color del tipo dominante */
+  .cluster-pin--combo::after{
+    content:''; position:absolute;
+    bottom:-5px; left:50%;
+    width:8px; height:8px;
+    background:var(--tipo-color, var(--accent));
+    border:2px solid #fff;
+    border-radius:9999px;
+    transform:translateX(-50%);
   }
 
   /* ── Leaflet layer (level 3) ── */
@@ -432,9 +478,9 @@
   .esc-popover__car{
     display:inline-flex; align-items:center; gap:3px;
     font-size:10px; font-weight:700;
-    background:#fff3e6; color:var(--accent);
+    background:#fef3c7; color:#a16207;
     padding:2px 8px; border-radius:9999px;
-    border:1px solid #ffbf75;
+    border:1px solid #fcd34d;
   }
   .esc-popover__grid{
     display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;
@@ -506,9 +552,9 @@
   .rank-car-dot{
     display:inline-flex; align-items:center; justify-content:center;
     width:16px; height:16px; border-radius:9999px;
-    background:#fff3e6; color:var(--accent);
+    background:#fef3c7; color:#a16207;
     font-size:10px; font-weight:700; flex-shrink:0;
-    border:1px solid #ffbf75;
+    border:1px solid #fcd34d;
   }
   .rank-bar{ height:3px; background:#f3f4f6; border-radius:3px; overflow:hidden }
   .rank-bar__fill{ height:100%; background:#475569; border-radius:3px; transition:width .3s ease }
@@ -540,8 +586,8 @@
   .legend-car-badge{
     display:inline-flex; align-items:center; justify-content:center;
     width:18px; height:18px; border-radius:9999px;
-    background:#fff3e6; color:var(--accent);
-    font-size:10px; font-weight:700; border:1px solid #ffbf75;
+    background:#fef3c7; color:#a16207;
+    font-size:10px; font-weight:700; border:1px solid #fcd34d;
   }
   .legend-row--muted{
     display:flex; align-items:center; gap:8px; margin-top:8px;
@@ -583,11 +629,11 @@
   }
   .map-tooltip__label{ color:rgba(255,255,255,.7); display:flex; align-items:center; gap:6px }
   .map-tooltip__value{ color:#fff; font-weight:700 }
-  .map-tooltip__value--car{ color:#ff9a4f }
+  .map-tooltip__value--car{ color:#ffbf00 }
   .map-tooltip__car-ico{
     display:inline-flex; align-items:center; justify-content:center;
     width:16px; height:16px; border-radius:9999px;
-    background:rgba(255,154,79,.18); color:#ff9a4f;
+    background:rgba(255,191,0,.22); color:#ffbf00;
     font-size:10px; font-weight:700;
   }
   .map-tooltip__tipos-title{
@@ -676,9 +722,9 @@
   .detail-panel__car-chip{
     display:inline-flex; align-items:center; gap:3px;
     font-size:10px; font-weight:700;
-    color:var(--accent); background:#fff3e6;
+    color:#a16207; background:#fef3c7;
     padding:2px 8px; border-radius:9999px;
-    border:1px solid #ffbf75;
+    border:1px solid #fcd34d;
   }
 
   /* Tabs DS (.naowee-tabs) con border-radius 0 y 12px de respiro contra el
@@ -898,7 +944,7 @@
   .lb-thumb img{ width:100%; height:100%; object-fit:cover; display:block; user-select:none; -webkit-user-drag:none }
 
   @media (max-width: 900px){
-    .map-canvas{ grid-template-columns: 1fr }
+    .map-body{ grid-template-columns: 1fr }
   }
 </style>
 </head>
@@ -988,6 +1034,8 @@
         </div>
       </div>
 
+      <div class="map-canvas">
+
       <div class="filter-toolbar" id="filterBar">
         <div class="filter-row filter-row--primary">
           <div class="naowee-searchbox naowee-searchbox--medium naowee-searchbox--squared filter-search" id="searchWrap">
@@ -1028,6 +1076,7 @@
           </div>
 
           <div class="naowee-segment naowee-segment--small" id="carSegment" role="tablist">
+            <span class="naowee-segment__pill naowee-segment__pill--no-anim" aria-hidden="true"></span>
             <button type="button" class="naowee-segment__item naowee-segment__item--active" data-car="all" role="tab" aria-selected="true">Todos</button>
             <button type="button" class="naowee-segment__item" data-car="only" role="tab" aria-selected="false">Solo CAR</button>
           </div>
@@ -1038,7 +1087,7 @@
         <div class="filter-row filter-row--chips" id="activeChips" hidden></div>
       </div>
 
-      <div class="map-canvas">
+      <div class="map-body">
         <div>
           <nav class="naowee-breadcrumb map-breadcrumb" id="breadcrumbBar" aria-label="Navegación del mapa">
             <span class="naowee-breadcrumb__current">Colombia</span>
@@ -1069,6 +1118,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
               </button>
             </div>
+
           </div>
         </div>
 
@@ -1096,7 +1146,9 @@
             </div>
           </div>
         </aside>
-      </div>
+      </div><!-- /.map-body -->
+
+      </div><!-- /.map-canvas -->
 
     </div>
   </div>
@@ -1617,10 +1669,16 @@
       max = Math.max(max, valueFor(d));
     });
 
+    // Cuando hay un depto activo (nivel depto o ciudad), los demás se pintan
+    // blanco para dar foco al seleccionado.
+    const focusedDepto = (nav.level === 'depto' || nav.level === 'city') ? nav.depto : null;
+
     Object.entries(DEPTO_NAMES).forEach(([id, depto]) => {
       const paths = container.querySelectorAll(`path[id="${CSS.escape(id)}"]`);
       let fill;
-      if (!passesRegion(depto)) {
+      if (focusedDepto){
+        fill = (depto === focusedDepto) ? heatColor(valueFor(depto), max) : '#ffffff';
+      } else if (!passesRegion(depto)) {
         fill = '#ecedf5';
       } else {
         fill = heatColor(valueFor(depto), max);
@@ -1639,10 +1697,33 @@
       const styleEl = document.createElement('style');
       styleEl.id = 'mapSvgScopedStyles';
       styleEl.textContent = `
-        #mapContainer svg path { stroke:#fff; stroke-width:0.6; transition: fill .25s ease, filter .18s; vector-effect:non-scaling-stroke }
+        #mapContainer svg path {
+          stroke:#fff; stroke-width:0.6;
+          transition: fill .25s ease, filter .35s cubic-bezier(.4,0,.2,1), stroke-width .25s;
+          vector-effect:non-scaling-stroke;
+        }
         #mapContainer svg path[id^="CO"]:hover,
-        #mapContainer svg path[id^="CO"].is-active { cursor: pointer; filter: brightness(1.05) drop-shadow(0 2px 6px rgba(0,0,0,.18)) }
-        #mapContainer svg path[id^="CO"].is-depto-active { filter: brightness(1.08) drop-shadow(0 4px 10px rgba(215,64,9,.35)); stroke:var(--accent); stroke-width:1.2 }
+        #mapContainer svg path[id^="CO"].is-active {
+          cursor: pointer;
+          filter: brightness(1.05) drop-shadow(0 2px 6px rgba(0,0,0,.18));
+        }
+        /* Depto activo: efecto "escalón" (step up). Simulamos un bloque 3D
+           usando drop-shadows CON 0 blur que dibujan el costado del escalón,
+           + una sombra ambient sutil que asienta el bloque sobre el piso. */
+        #mapContainer svg path[id^="CO"].is-depto-active {
+          filter:
+            drop-shadow(0 3px 0 rgba(0,0,0,.18))   /* lateral/ribete plano (step side) */
+            drop-shadow(0 5px 0 rgba(0,0,0,.12))   /* segunda capa de espesor */
+            drop-shadow(0 7px 6px rgba(0,0,0,.18)); /* ambient blur muy suave al pie */
+          stroke:#ffffff;
+          stroke-width:2.4;
+          animation: deptoLift .35s cubic-bezier(.34,1.4,.64,1) both;
+        }
+        /* Animación: el "escalón" aparece subiendo — el espesor crece hasta su valor final */
+        @keyframes deptoLift {
+          0%   { filter: drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 0 rgba(0,0,0,0)); }
+          100% { filter: drop-shadow(0 3px 0 rgba(0,0,0,.18)) drop-shadow(0 5px 0 rgba(0,0,0,.12)) drop-shadow(0 7px 6px rgba(0,0,0,.18)); }
+        }
       `;
       document.head.appendChild(styleEl);
     }
@@ -1671,8 +1752,8 @@
   }
 
   // ═══ ZOOM via viewBox (vector puro, sin rasterización) ═══
+  // Retorna el bbox del depto YA transformado (en el espacio final del SVG).
   function bboxForDepto(deptoName){
-    // Puede haber múltiples paths con el mismo nombre (San Andrés tiene fragmento)
     const container = document.getElementById('mapContainer');
     let combined = null;
     Object.entries(DEPTO_NAMES).forEach(([id, d]) => {
@@ -1689,7 +1770,12 @@
       }
     });
     if (!combined) return null;
-    return { x:combined.x, y:combined.y, width:combined.x2-combined.x, height:combined.y2-combined.y };
+    return {
+      x: combined.x,
+      y: combined.y,
+      width:  combined.x2 - combined.x,
+      height: combined.y2 - combined.y
+    };
   }
 
   // Ajusta un viewBox a la relación de aspecto del stage para evitar letterboxing
@@ -1866,6 +1952,54 @@
     return true;
   }
 
+  // Cuenta escenarios por tipo en una ciudad (aplicando filtros)
+  function getTipoCountsForCity(cityName){
+    const counts = {};
+    ESCENARIOS.forEach(e => {
+      if (e.cityName !== cityName || !matchEscFilters(e)) return;
+      counts[e.tipo] = (counts[e.tipo] || 0) + 1;
+    });
+    return counts;
+  }
+  function getDominantTipo(cityName){
+    const counts = getTipoCountsForCity(cityName);
+    const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+    return sorted[0]?.[0] || null;
+  }
+  function getTopTipos(cityName, n = 4){
+    const counts = getTipoCountsForCity(cityName);
+    return Object.entries(counts)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, n)
+      .map(([t]) => t);
+  }
+
+  // Construye un cluster pin de ciudad (estilo pill horizontal con color del tipo
+  // dominante + icono). La variante se decidió tras comparar 5 opciones.
+  function buildCityClusterPin(city, escs, hasCar, isZoomed){
+    const pin = document.createElement('button');
+    pin.type = 'button';
+    pin.title = isZoomed
+      ? `Clic de nuevo para ver los ${escs.length} escenarios`
+      : `${city.name} · ${escs.length} escenarios`;
+
+    const dominant = getDominantTipo(city.name);
+    const tColor = dominant ? tipoColor(dominant) : 'var(--accent)';
+    const tIcon = dominant ? tipoIcon(dominant) : '';
+
+    pin.className = 'cluster-pin cluster-pin--combo'
+      + (hasCar ? ' cluster-pin--car' : '')
+      + (isZoomed ? ' cluster-pin--zoomed' : '');
+    pin.style.cssText = `--tipo-color:${tColor}`;
+    pin.innerHTML = `
+      <span class="cluster-pin__count">${escs.length}</span>
+      <span class="cluster-pin__sep"></span>
+      <span class="cluster-pin__label">${city.name}</span>
+      ${tIcon ? `<span class="cluster-pin__tipo-icon">${tIcon}</span>` : ''}
+    `;
+    return pin;
+  }
+
   // ═══ PIN RENDER (niveles country + depto) ═══
   function renderPins(){
     const layer = document.getElementById('pinLayer');
@@ -1886,20 +2020,9 @@
         const svg = projectCityPin(city);
         const pos = pinPixel(svg.x, svg.y);
 
-        const pin = document.createElement('button');
-        pin.type = 'button';
-        pin.className = 'cluster-pin cluster-pin--large'
-          + (hasCar ? ' cluster-pin--car' : '')
-          + (isZoomed ? ' cluster-pin--zoomed' : '');
+        const pin = buildCityClusterPin(city, escs, hasCar, isZoomed);
         pin.style.left = pos.x + 'px';
         pin.style.top = pos.y + 'px';
-        pin.title = isZoomed
-          ? `Clic de nuevo para ver los ${escs.length} escenarios`
-          : city.name + ' · ' + escs.length + ' escenarios';
-        pin.innerHTML = `
-          <span class="cluster-pin__count">${escs.length}</span>
-          <span class="cluster-pin__label">${city.name}</span>
-        `;
         pin.addEventListener('click', (e) => { e.stopPropagation(); tryEnterCity(city) });
         layer.appendChild(pin);
       });
@@ -1959,6 +2082,7 @@
     hideLeafletLayer();
     showSvgLayer();
     clearDeptoActive();
+    applyColors(); // restaura heatmap de todos los deptos
     resetZoom();
     setTimeout(renderPins, 40); // después de que aplique el zoom
     renderBreadcrumb();
@@ -1970,6 +2094,7 @@
     showSvgLayer();
     clearDeptoActive();
     markDeptoActive(deptoName);
+    applyColors(); // resto de deptos a blanco, solo el activo mantiene color
     zoomToDepto(deptoName);
     setTimeout(renderPins, 40);
     renderBreadcrumb();
@@ -2892,6 +3017,33 @@
     });
   }
 
+  // Posiciona el sliding pill sobre el item activo del segment.
+  // El pill está absolute con left:0 dentro del padding-box del segment
+  // (borde interior del border), por lo que solo debemos compensar el border-left.
+  function positionSegmentPill(seg, animate = true){
+    const pill = seg.querySelector('.naowee-segment__pill');
+    const active = seg.querySelector('.naowee-segment__item--active');
+    if (!pill || !active) return;
+    const segRect = seg.getBoundingClientRect();
+    const actRect = active.getBoundingClientRect();
+    const segStyle = getComputedStyle(seg);
+    const borderL = parseFloat(segStyle.borderLeftWidth) || 0;
+    const x = actRect.left - segRect.left - borderL;
+    if (animate){
+      pill.classList.remove('naowee-segment__pill--no-anim');
+      pill.style.setProperty('--segment-pill-x', x + 'px');
+      pill.style.width = actRect.width + 'px';
+    } else {
+      pill.classList.add('naowee-segment__pill--no-anim');
+      pill.style.setProperty('--segment-pill-x', x + 'px');
+      pill.style.width = actRect.width + 'px';
+      // Re-enable transitions after this frame
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        pill.classList.remove('naowee-segment__pill--no-anim');
+      }));
+    }
+  }
+
   function wireCarSegment(){
     const seg = document.getElementById('carSegment');
     seg.querySelectorAll('[data-car]').forEach(btn => {
@@ -2903,9 +3055,16 @@
         btn.classList.add('naowee-segment__item--active');
         btn.setAttribute('aria-selected','true');
         state.carOnly = btn.dataset.car === 'only';
+        positionSegmentPill(seg, true);
         applyAll();
       });
     });
+    // Primera posición (sin animación) una vez que el layout esté listo.
+    // Usamos setTimeout 0 + rAF para cubrir casos donde rAF está throttled.
+    setTimeout(() => positionSegmentPill(seg, false), 0);
+    requestAnimationFrame(() => positionSegmentPill(seg, false));
+    // Reposicionar al resize
+    window.addEventListener('resize', () => positionSegmentPill(seg, false));
   }
 
   function isDefaultFilters(){
@@ -2932,6 +3091,7 @@
       b.classList.toggle('naowee-segment__item--active', b.dataset.car === 'all');
       b.setAttribute('aria-selected', b.dataset.car === 'all' ? 'true' : 'false');
     });
+    positionSegmentPill(seg, true);
     renderRegionMenu();
     renderTipoMenu();
     updateTipoLabel();
@@ -3137,10 +3297,10 @@
   // ═══ Load SVG + bind events ═══
   function init(){
     fetch('shared/colombia-hc.svg')
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-      .then(rawSvg => {
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text() })
+      .then(rawCo => {
         const container = document.getElementById('mapContainer');
-        container.innerHTML = rawSvg;
+        container.innerHTML = rawCo;
         svgLoaded = true;
         injectBaseSvgStyle();
         applyColors();
@@ -3280,6 +3440,7 @@
   document.getElementById('btnResetFilters').addEventListener('click', resetFilters);
   document.getElementById('btnZoomOut').addEventListener('click', goUp);
   document.getElementById('btnZoomIn').addEventListener('click', zoomIn);
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape'){
       if (activeEsc) { closeDetailPanel(); return; }
