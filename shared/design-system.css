@@ -960,6 +960,31 @@
   z-index: 2;
 }
 
+/* ── Animated variant: shared sliding pipe ──────────────────────
+   Opt-in: add .naowee-tabs--animated al contenedor y un
+   <span class="naowee-tabs__indicator"></span> como último hijo.
+   El JS en shared/tabs.js posiciona el indicador con transform+width.
+   Misma curva de easing que el segmented control.              */
+.naowee-tabs--animated { position: relative; }
+.naowee-tabs--animated .naowee-tab::after { display: none; }
+.naowee-tabs__indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: var(--naowee-tabs-pipe-height, 3px);
+  width: 0;
+  border-radius: var(--naowee-tabs-pipe-radius, 3px) var(--naowee-tabs-pipe-radius, 3px) 0 0;
+  background: var(--naowee-color-selected-fill-idle, var(--naowee-color-brand-fill-loud));
+  transform: translateX(0);
+  pointer-events: none;
+  transition: transform 320ms cubic-bezier(.22,1,.36,1),
+              width     320ms cubic-bezier(.22,1,.36,1);
+  will-change: transform, width;
+}
+@media (prefers-reduced-motion: reduce) {
+  .naowee-tabs__indicator { transition: none; }
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: BADGE

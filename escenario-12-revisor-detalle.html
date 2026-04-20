@@ -588,11 +588,12 @@
       <!-- Card container for tabs + content -->
       <div class="detail-card">
 
-        <!-- Tab bar (DS naowee-tabs) -->
-        <div class="naowee-tabs naowee-tabs--proportional">
-          <button class="naowee-tab naowee-tab--selected" data-tab="general">Informacion general</button>
-          <button class="naowee-tab" data-tab="docs">Documentación</button>
-          <button class="naowee-tab" data-tab="historial">Historial</button>
+        <!-- Tab bar (DS naowee-tabs + animated indicator) -->
+        <div class="naowee-tabs naowee-tabs--proportional naowee-tabs--animated" data-naowee-tabs>
+          <button class="naowee-tab naowee-tab--selected" data-naowee-tab data-tab="general">Informacion general</button>
+          <button class="naowee-tab" data-naowee-tab data-tab="docs">Documentación</button>
+          <button class="naowee-tab" data-naowee-tab data-tab="historial">Historial</button>
+          <span class="naowee-tabs__indicator" aria-hidden="true"></span>
         </div>
 
         <!-- ═══ TAB 1: Informacion general ═══ -->
@@ -1119,6 +1120,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="shared/escenarios-store.js"></script>
+<script src="shared/tabs.js"></script>
 <script>
 (function(){
   'use strict';
@@ -1288,16 +1290,15 @@
     statusBannerText.textContent = 'Este escenario ha sido desactivado.';
   });
 
-  // ═══ Tab switcher ═══
-  document.querySelectorAll('.naowee-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.naowee-tab').forEach(b => b.classList.remove('naowee-tab--selected'));
+  // ═══ Tab switcher (shared/tabs.js maneja --selected + indicator) ═══
+  document.querySelectorAll('[data-naowee-tabs]').forEach(tabsEl => {
+    tabsEl.addEventListener('naowee-tab:change', (e) => {
+      const tab = e.detail.tab.dataset.tab;
+      if (!tab) return;
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('naowee-tab--selected');
-      const tab = btn.dataset.tab;
       const panelId = 'panel' + tab.charAt(0).toUpperCase() + tab.slice(1);
       const panel = document.getElementById(panelId);
-      if(panel) panel.classList.add('active');
+      if (panel) panel.classList.add('active');
     });
   });
 
