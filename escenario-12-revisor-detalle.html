@@ -259,6 +259,86 @@
   z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.25);
 }
 
+/* ═══ NOTA DE RECHAZO — card estilo comentario (read-only + edit modal) ═══ */
+.rev-nota-card{
+  background:#fff;
+  border:1px solid var(--border,#e7e9f3);
+  border-radius:var(--radius-lg,12px);
+  padding:14px 16px;
+  margin-bottom:16px;
+  display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+.rev-nota-card[hidden]{display:none}
+.rev-nota-card__head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.rev-nota-card__label{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;color:var(--text-primary);
+}
+.rev-nota-card__ico{
+  width:22px;height:22px;border-radius:9999px;flex-shrink:0;
+  background:var(--red-bg,#fff0ee);color:var(--accent,#d74009);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.rev-nota-card__ico svg{width:13px;height:13px}
+.rev-nota-card__edit{
+  padding:4px 10px;font-size:12px;height:28px;flex-shrink:0;
+  display:inline-flex;align-items:center;gap:4px;
+}
+.rev-nota-card__quote{
+  margin:0;padding:10px 14px;
+  background:#f8f8fb;
+  border-left:3px solid var(--accent,#d74009);
+  border-radius:0 var(--radius-md,8px) var(--radius-md,8px) 0;
+  font-size:13px;line-height:1.5;color:var(--text-primary);
+  white-space:pre-wrap;word-break:break-word;font-style:normal;
+}
+.rev-nota-card__foot{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--text-secondary);
+}
+.rev-nota-card__avatar{
+  width:20px;height:20px;border-radius:9999px;flex-shrink:0;
+  background:var(--accent,#d74009);color:#fff;
+  font-size:10px;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.rev-nota-card__who{font-weight:600;color:var(--text-primary)}
+.rev-nota-card__sep{color:var(--border-dark,#d0d4e6);margin:0 2px}
+.rev-nota-card__log{margin-top:4px}
+.rev-nota-card__log[hidden]{display:none}
+.rev-nota-card__log-toggle{
+  display:inline-flex;align-items:center;gap:4px;
+  list-style:none;cursor:pointer;
+  font-size:11px;font-weight:600;color:var(--text-secondary);
+  padding:4px 8px;border-radius:var(--radius-sm,6px);
+  user-select:none;transition:background .12s,color .12s;
+}
+.rev-nota-card__log-toggle::-webkit-details-marker{display:none}
+.rev-nota-card__log-toggle:hover{background:#f5f6fa;color:var(--text-primary)}
+.rev-nota-card__log-toggle svg{
+  width:12px;height:12px;transition:transform .2s cubic-bezier(.4,0,.2,1);
+}
+.rev-nota-card__log[open] .rev-nota-card__log-toggle svg{transform:rotate(180deg)}
+.rev-nota-card__log-list{
+  margin-top:6px;padding:8px 10px;
+  background:#f8f8fb;border-radius:var(--radius-md,8px);
+  display:flex;flex-direction:column;gap:6px;
+}
+.rev-nota-card__log-item{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:11px;line-height:1.45;color:var(--text-secondary);
+}
+.rev-nota-card__log-item::before{
+  content:'';flex-shrink:0;margin-top:6px;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--border-dark,#d0d4e6);
+}
+.rev-nota-card__log-item strong{color:var(--text-primary);font-weight:600}
+.rev-nota-card__log-item em{color:var(--text-secondary);font-style:normal;opacity:.85}
+
 /* ═══ TIMELINE — unificado con esc-10 (perfil activo) ═══ */
 .timeline{position:relative;padding-left:36px}
 .timeline-item{
@@ -748,12 +828,34 @@
                 </div>
               </div>
 
-              <!-- Nota (solo visible al rechazar) -->
-              <div class="naowee-textfield naowee-textfield--textarea" style="margin-bottom:16px;display:none" id="revNotaWrap">
-                <label class="naowee-textfield__label naowee-textfield__label--required">Motivo del rechazo</label>
-                <div class="naowee-textfield__input-wrap">
-                  <textarea class="naowee-textfield__input" rows="3" id="revNotaTextarea" placeholder="Describa el motivo del rechazo..."></textarea>
+              <!-- Nota de rechazo (read-only · visible solo cuando el doc está rechazado) -->
+              <div class="rev-nota-card" id="revNotaWrap" hidden>
+                <div class="rev-nota-card__head">
+                  <div class="rev-nota-card__label">
+                    <span class="rev-nota-card__ico" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    </span>
+                    <span>Motivo del rechazo</span>
+                  </div>
+                  <button type="button" class="naowee-btn naowee-btn--mute naowee-btn--small rev-nota-card__edit" id="revNotaEditBtn" aria-label="Editar motivo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Editar
+                  </button>
                 </div>
+                <blockquote class="rev-nota-card__quote" id="revNotaText">—</blockquote>
+                <div class="rev-nota-card__foot">
+                  <span class="rev-nota-card__avatar" id="revNotaAvatar" aria-hidden="true">R</span>
+                  <span class="rev-nota-card__who" id="revNotaWho">—</span>
+                  <span class="rev-nota-card__sep" aria-hidden="true">·</span>
+                  <span class="rev-nota-card__when" id="revNotaWhen" title=""></span>
+                </div>
+                <details class="rev-nota-card__log" id="revNotaLog" hidden>
+                  <summary class="rev-nota-card__log-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    <span id="revNotaLogSummary">Ver historial</span>
+                  </summary>
+                  <div class="rev-nota-card__log-list" id="revNotaLogList"></div>
+                </details>
               </div>
 
               <!-- Preview -->
@@ -913,6 +1015,32 @@
       <button class="naowee-btn naowee-btn--link" type="button" id="dialogAprobarCancel" style="color:var(--accent)">Cancelar</button>
       <button class="naowee-btn naowee-btn--loud" type="button" id="dialogAprobarConfirm" style="background:var(--green,#1f8923);border-color:var(--green,#1f8923);min-width:160px">
         Confirmar aprobación
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: Rechazar / Editar motivo de un documento ═══ -->
+<div class="dialog-overlay" id="dialogRechazarDoc">
+  <div class="dialog" style="text-align:center">
+    <div style="padding:36px 32px 0;display:flex;flex-direction:column;align-items:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--red-bg,#fff0ee);display:flex;align-items:center;justify-content:center;margin-bottom:24px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent,#d74009)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <h3 style="font-size:22px;font-weight:700;color:var(--text-primary);margin:0 0 12px" id="dialogRechazarDocTitle">Rechazar documento</h3>
+      <p style="font-size:15px;font-weight:600;color:var(--text-primary);margin:0 0 8px" id="dialogRechazarDocName">Documento</p>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:20px;margin:0 0 20px" id="dialogRechazarDocCopy">Estás a punto de rechazar este documento. Ingresa el motivo para que el gestor pueda corregirlo.</p>
+      <div class="naowee-textfield naowee-textfield--textarea" style="width:100%;text-align:left" id="dialogRechazarDocField">
+        <label class="naowee-textfield__label naowee-textfield__label--required">Motivo del rechazo</label>
+        <div class="naowee-textfield__input-wrap">
+          <textarea class="naowee-textfield__input" rows="3" id="dialogRechazarDocMotivo" placeholder="Ej.: la foto no corresponde al escenario de la ubicación registrada."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__footer" style="justify-content:space-between;padding:28px 32px">
+      <button class="naowee-btn naowee-btn--link" type="button" id="dialogRechazarDocCancel" style="color:var(--accent)">Cancelar</button>
+      <button class="naowee-btn naowee-btn--loud" type="button" id="dialogRechazarDocConfirm" style="min-width:160px" disabled>
+        Rechazar documento
       </button>
     </div>
   </div>
@@ -1392,8 +1520,70 @@
   const revPreviewImg = document.getElementById('revPreviewImg');
   const revDetailBadge = document.getElementById('revDetailBadge');
   const revNotaWrap = document.getElementById('revNotaWrap');
-  const revNotaTextarea = document.getElementById('revNotaTextarea');
+  const revNotaText = document.getElementById('revNotaText');
+  const revNotaAvatar = document.getElementById('revNotaAvatar');
+  const revNotaWho = document.getElementById('revNotaWho');
+  const revNotaWhen = document.getElementById('revNotaWhen');
+  const revNotaLog = document.getElementById('revNotaLog');
+  const revNotaLogList = document.getElementById('revNotaLogList');
+  const revNotaLogSummary = document.getElementById('revNotaLogSummary');
+  const revNotaEditBtn = document.getElementById('revNotaEditBtn');
   let selectedRow = null;
+
+  // ═══ Changelog del motivo por doc (memoria de sesión) ═══
+  // { [docKey]: [{ts, by, action, text}] }  action ∈ 'creado' | 'editado'
+  const DOC_NOTA_LOG = {};
+  function pushNotaLog(key, entry){
+    if(!DOC_NOTA_LOG[key]) DOC_NOTA_LOG[key] = [];
+    DOC_NOTA_LOG[key].push(entry);
+  }
+  function relTime(ts){
+    const diff = Date.now() - ts;
+    const m = Math.round(diff/60000);
+    if(m < 1) return 'hace instantes';
+    if(m < 60) return `hace ${m} min`;
+    const h = Math.round(m/60);
+    if(h < 24) return `hace ${h} h`;
+    const d = Math.round(h/24);
+    if(d < 7) return `hace ${d} d`;
+    const mm = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const date = new Date(ts);
+    return `${mm[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  }
+  function absTime(ts){
+    const d = new Date(ts);
+    const mm = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mi = String(d.getMinutes()).padStart(2,'0');
+    return `${mm[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · ${hh}:${mi}`;
+  }
+  function initials(name){
+    return (name || 'R').split(' ').map(p => p[0]).filter(Boolean).slice(0,2).join('').toUpperCase();
+  }
+
+  function renderNotaCard(key, data){
+    revNotaText.textContent = data.nota || '—';
+    const log = DOC_NOTA_LOG[key] || [];
+    const last = log[log.length - 1];
+    const by = (last && last.by) || (Store && Store.REVISOR_NAME) || 'Revisor';
+    const ts = last ? last.ts : Date.now();
+    revNotaAvatar.textContent = initials(by);
+    revNotaWho.textContent = by;
+    revNotaWhen.textContent = (last && last.action === 'editado' ? 'Editado ' : '') + relTime(ts);
+    revNotaWhen.title = absTime(ts);
+    // Changelog: solo se muestra si hay más de 1 entrada
+    if(log.length > 1){
+      revNotaLog.hidden = false;
+      revNotaLogSummary.textContent = `Ver historial (${log.length - 1})`;
+      revNotaLogList.innerHTML = log.slice(0, -1).reverse().map(e =>
+        `<div class="rev-nota-card__log-item"><span><strong>${e.by}</strong> ${e.action === 'editado' ? 'editó' : 'creó'} el motivo <em>· ${absTime(e.ts)}</em></span></div>`
+      ).join('');
+    } else {
+      revNotaLog.hidden = true;
+      revNotaLog.open = false;
+      revNotaLogList.innerHTML = '';
+    }
+  }
 
   function selectDocRow(row) {
     docRows.forEach(r => r.classList.remove('doc-row--selected'));
@@ -1412,13 +1602,12 @@
     revDetailBadge.className = 'naowee-badge naowee-badge--quiet naowee-badge--small ' + statusInfo.cls;
     revDetailBadge.textContent = statusInfo.text;
 
-    // Show nota only if rechazado
+    // Card read-only solo si el doc está rechazado
     if (status === 'rechazado') {
-      revNotaWrap.style.display = '';
-      revNotaTextarea.value = data.nota;
+      revNotaWrap.hidden = false;
+      renderNotaCard(key, data);
     } else {
-      revNotaWrap.style.display = 'none';
-      revNotaTextarea.value = '';
+      revNotaWrap.hidden = true;
     }
 
     // Update preview image
@@ -1475,35 +1664,109 @@
     showToast('Documento aprobado', 'success');
   });
 
-  document.querySelector('.rev-action-reject')?.addEventListener('click', () => {
-    if (!selectedRow) return;
-    selectedRow.dataset.docStatus = 'rechazado';
-    const leftBadge = selectedRow.querySelector('.naowee-badge');
-    if (leftBadge) {
-      leftBadge.className = 'naowee-badge naowee-badge--quiet naowee-badge--negative naowee-badge--small';
-      leftBadge.textContent = 'Rechazado';
+  // ═══ Dialog Rechazar/Editar motivo ═══
+  const dlgRechazarDoc = document.getElementById('dialogRechazarDoc');
+  const dlgRechazarDocTitle = document.getElementById('dialogRechazarDocTitle');
+  const dlgRechazarDocName = document.getElementById('dialogRechazarDocName');
+  const dlgRechazarDocCopy = document.getElementById('dialogRechazarDocCopy');
+  const dlgRechazarDocMotivo = document.getElementById('dialogRechazarDocMotivo');
+  const dlgRechazarDocField = document.getElementById('dialogRechazarDocField');
+  const dlgRechazarDocConfirm = document.getElementById('dialogRechazarDocConfirm');
+  const dlgRechazarDocCancel = document.getElementById('dialogRechazarDocCancel');
+  let dlgRechazarDocRow = null;
+
+  function openRechazarDocDialog(row, mode){
+    dlgRechazarDocRow = row;
+    const key = row.dataset.docRow;
+    const data = DOC_DATA[key];
+    const isEdit = mode === 'edit';
+    dlgRechazarDocTitle.textContent = isEdit ? 'Editar motivo del rechazo' : 'Rechazar documento';
+    dlgRechazarDocName.textContent = (data && data.nombre) || 'Documento';
+    dlgRechazarDocCopy.textContent = isEdit
+      ? 'Actualiza el motivo del rechazo. El cambio quedará registrado en el historial.'
+      : 'Estás a punto de rechazar este documento. Ingresa el motivo para que el gestor pueda corregirlo.';
+    dlgRechazarDocConfirm.textContent = isEdit ? 'Guardar cambios' : 'Rechazar documento';
+    dlgRechazarDocMotivo.value = (data && data.nota) || '';
+    dlgRechazarDocField.classList.remove('naowee-textfield--error');
+    dlgRechazarDocConfirm.disabled = dlgRechazarDocMotivo.value.trim().length === 0;
+    dlgRechazarDoc.dataset.mode = isEdit ? 'edit' : 'create';
+    dlgRechazarDoc.classList.add('open');
+    setTimeout(() => { dlgRechazarDocMotivo.focus(); dlgRechazarDocMotivo.select(); }, 100);
+  }
+  function closeRechazarDocDialog(){
+    dlgRechazarDoc.classList.remove('open');
+    dlgRechazarDocRow = null;
+  }
+
+  dlgRechazarDocMotivo.addEventListener('input', () => {
+    const empty = dlgRechazarDocMotivo.value.trim().length === 0;
+    dlgRechazarDocConfirm.disabled = empty;
+    if(!empty) dlgRechazarDocField.classList.remove('naowee-textfield--error');
+  });
+  dlgRechazarDocCancel.addEventListener('click', closeRechazarDocDialog);
+  dlgRechazarDoc.addEventListener('click', (e) => {
+    if(e.target === dlgRechazarDoc) closeRechazarDocDialog();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && dlgRechazarDoc.classList.contains('open')) closeRechazarDocDialog();
+  });
+
+  dlgRechazarDocConfirm.addEventListener('click', () => {
+    const motivo = dlgRechazarDocMotivo.value.trim();
+    if(!motivo){
+      dlgRechazarDocField.classList.add('naowee-textfield--error');
+      dlgRechazarDocMotivo.focus();
+      return;
     }
-    selectDocRow(selectedRow); // refresh panel — will show nota textarea
-    revNotaTextarea.focus();
-    // Capturar la nota cuando el revisor la escriba (on blur o on input)
-    if(Store){
-      const storeDocId = DOC_KEY_MAP[selectedRow.dataset.docRow] || selectedRow.dataset.docRow;
-      const initialNota = revNotaTextarea.value || 'Documento rechazado por el revisor.';
-      Store.rejectDoc(revIdxInt, storeDocId, Store.REVISOR_NAME, initialNota);
-      // Actualizar la nota en el store cada vez que el revisor edite el textarea
-      const onChange = () => {
+    const row = dlgRechazarDocRow;
+    if(!row){ closeRechazarDocDialog(); return; }
+    const mode = dlgRechazarDoc.dataset.mode || 'create';
+    const key = row.dataset.docRow;
+    const by = (Store && Store.REVISOR_NAME) || 'Revisor';
+    const now = Date.now();
+
+    if(mode === 'create'){
+      row.dataset.docStatus = 'rechazado';
+      const leftBadge = row.querySelector('.naowee-badge');
+      if (leftBadge){
+        leftBadge.className = 'naowee-badge naowee-badge--quiet naowee-badge--negative naowee-badge--small';
+        leftBadge.textContent = 'Rechazado';
+      }
+      if(DOC_DATA[key]) DOC_DATA[key].nota = motivo;
+      if(Store){
+        const storeDocId = DOC_KEY_MAP[key] || key;
+        Store.rejectDoc(revIdxInt, storeDocId, Store.REVISOR_NAME, motivo);
+      }
+      pushNotaLog(key, { ts: now, by, action: 'creado', text: motivo });
+      updateBulkActions();
+      showToast('Documento rechazado', 'error');
+    } else {
+      if(DOC_DATA[key]) DOC_DATA[key].nota = motivo;
+      if(Store){
+        const storeDocId = DOC_KEY_MAP[key] || key;
         Store.update(revIdxInt, (() => {
           const rec = Store.get(revIdxInt);
           if(!rec.documentacion) rec.documentacion = {};
           if(!rec.documentacion[storeDocId]) rec.documentacion[storeDocId] = { file: null };
-          rec.documentacion[storeDocId].notaRechazo = revNotaTextarea.value || initialNota;
+          rec.documentacion[storeDocId].notaRechazo = motivo;
           return { documentacion: rec.documentacion };
         })());
-      };
-      revNotaTextarea.addEventListener('blur', onChange, { once: true });
+      }
+      pushNotaLog(key, { ts: now, by, action: 'editado', text: motivo });
+      showToast('Motivo actualizado', 'success');
     }
-    updateBulkActions();
-    showToast('Documento rechazado', 'error');
+    selectDocRow(row);
+    closeRechazarDocDialog();
+  });
+
+  document.querySelector('.rev-action-reject')?.addEventListener('click', () => {
+    if (!selectedRow) return;
+    openRechazarDocDialog(selectedRow, 'create');
+  });
+
+  revNotaEditBtn?.addEventListener('click', () => {
+    if (!selectedRow) return;
+    openRechazarDocDialog(selectedRow, 'edit');
   });
 
   // ═══ Checkbox toggle + smart bulk actions ═══
