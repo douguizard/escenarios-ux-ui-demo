@@ -4424,6 +4424,8 @@ window.applyEsc08Filters = function(){
       wrap.classList.add('naowee-input-stepper--error');
     else if(wrap.classList.contains('naowee-datepicker-field'))
       wrap.classList.add('naowee-datepicker-field--error');
+    else if(wrap.classList.contains('naowee-timepicker'))
+      wrap.classList.add('naowee-timepicker--error');
     else if(wrap.classList.contains('reg-multi'))
       wrap.classList.add('naowee-textfield--error'); // fallback visual
 
@@ -4442,7 +4444,7 @@ window.applyEsc08Filters = function(){
 
   function clearFieldError(wrap){
     if(!wrap) return;
-    wrap.classList.remove('naowee-textfield--error','naowee-dropdown--error','naowee-input-stepper--error','naowee-datepicker-field--error');
+    wrap.classList.remove('naowee-textfield--error','naowee-dropdown--error','naowee-input-stepper--error','naowee-datepicker-field--error','naowee-timepicker--error');
     const h = wrap.querySelector('.field-req-helper');
     if(h) h.remove();
   }
@@ -4475,19 +4477,34 @@ window.applyEsc08Filters = function(){
       });
       obs.observe(m, { childList:true, subtree:true });
     });
+    // Timepickers con error: limpiar cuando el usuario selecciona un valor
+    // (paintGroup agrega la clase --has-value al timepicker al elegir una hora).
+    container.querySelectorAll('.naowee-timepicker--error').forEach(tp => {
+      const obs = new MutationObserver(() => {
+        if(tp.classList.contains('naowee-timepicker--has-value')){
+          clearFieldError(tp);
+          obs.disconnect();
+        }
+      });
+      obs.observe(tp, { attributes:true, attributeFilter:['class'] });
+    });
   }
 
   // Scroll al primer campo con error dentro de un modal body
   function scrollToFirstError(modalBody){
-    const first = modalBody.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error, .naowee-datepicker-field--error, .field-error-wiggle');
+    const first = modalBody.querySelector('.naowee-textfield--error, .naowee-dropdown--error, .naowee-input-stepper--error, .naowee-datepicker-field--error, .naowee-timepicker--error, .field-error-wiggle');
     if(first) setTimeout(() => first.scrollIntoView({ behavior:'smooth', block:'center' }), 120);
   }
 
   /* ─── Highlight errores modal 2 ─── */
   function highlightReg2Errors(){
     const r = reg2State;
-    // Limpiar errores previos
-    document.querySelectorAll('#regModal2Overlay .naowee-textfield--error, #regModal2Overlay .naowee-dropdown--error, #regModal2Overlay .naowee-datepicker-field--error').forEach(el => clearFieldError(el));
+    // Limpiar errores previos (incluye timepickers)
+    document.querySelectorAll('#regModal2Overlay .naowee-textfield--error, #regModal2Overlay .naowee-dropdown--error, #regModal2Overlay .naowee-datepicker-field--error, #regModal2Overlay .naowee-timepicker--error').forEach(el => clearFieldError(el));
+    // También limpiar wiggle previo del wrapper del horario
+    const horarioWrap = document.getElementById('reg2HorarioWrap');
+    if(horarioWrap) horarioWrap.classList.remove('field-error-wiggle');
+    document.querySelectorAll('#reg2HorarioGroups .reg-horario__group').forEach(g => g.classList.remove('field-error-wiggle'));
     // Campos required: id del wrapper → condición de vacío
     const checks = [
       { id:'reg2FldEntidad', empty: !r.entidad },
@@ -4503,6 +4520,34 @@ window.applyEsc08Filters = function(){
     checks.forEach(c => {
       if(c.empty) showFieldError(document.getElementById(c.id));
     });
+
+    // ─── HORARIO DE ATENCIÓN ───
+    // Reglas: al menos un grupo con días; cada grupo con días debe tener
+    // apertura+cierre (si no es 24h) con apertura<cierre.
+    const horarios = Array.isArray(r.horarios) ? r.horarios : [];
+    const atLeastOne = horarios.some(g => g.dias && g.dias.length);
+    if(!atLeastOne && horarioWrap){
+      // Wiggle del bloque completo cuando no hay ni un día seleccionado
+      horarioWrap.classList.add('field-error-wiggle');
+      horarioWrap.addEventListener('animationend', () => horarioWrap.classList.remove('field-error-wiggle'), { once: true });
+    }
+    horarios.forEach((g, idx) => {
+      const groupRoot = document.querySelector(`#reg2HorarioGroups [data-group="${idx}"]`);
+      if(!groupRoot) return;
+      const hasDias = Array.isArray(g.dias) && g.dias.length > 0;
+      if(!hasDias) return; // grupos sin días no se validan en timepickers
+      if(g.es24h) return;  // 24h → no hay que validar horas
+      const tpApertura = groupRoot.querySelector('[data-tp="apertura"]');
+      const tpCierre = groupRoot.querySelector('[data-tp="cierre"]');
+      if(!g.apertura && tpApertura) showFieldError(tpApertura);
+      if(!g.cierre && tpCierre) showFieldError(tpCierre);
+      // Apertura >= cierre → marca ambos como error
+      if(g.apertura && g.cierre && g.apertura >= g.cierre){
+        if(tpApertura) showFieldError(tpApertura);
+        if(tpCierre) showFieldError(tpCierre);
+      }
+    });
+
     autoCleanErrors(document.getElementById('regModal2Overlay'));
     // Scroll al primer error
     scrollToFirstError(document.querySelector('#regModal2Overlay .reg-modal__body'));

@@ -205,27 +205,36 @@
   transition:transform .2s ease;
 }
 
-/* ═══ TIMELINE ═══ */
-.timeline{position:relative;padding-left:44px}
-.timeline::before{content:'';position:absolute;left:15px;top:8px;bottom:8px;width:1.5px;background:var(--border)}
-.timeline-item{position:relative;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-radius:var(--radius-md);transition:background .15s;animation:fadeIn .3s cubic-bezier(.4,0,.2,1) both}
-.timeline-item:hover{background:var(--bg,#f5f6fa)}
-.timeline-item::before{display:none}
+/* ═══ TIMELINE — unificado con esc-10 (perfil activo) ═══ */
+.timeline{position:relative;padding-left:36px}
+.timeline-item{
+  position:relative;
+  padding-bottom:28px;
+  animation:fadeIn .3s cubic-bezier(.4,0,.2,1) both;
+}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-item::before{
+  content:'';position:absolute;
+  left:-28px;top:24px;
+  width:2px;height:calc(100% - 12px);
+  background:var(--border-dark);
+}
 .timeline-item:last-child::before{display:none}
 .timeline-dot{
-  position:absolute;left:-44px;top:12px;
-  width:30px;height:30px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  position:absolute;left:-36px;top:2px;
+  width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
 }
 .timeline-dot.green{background:var(--green);color:#fff}
 .timeline-dot.blue{background:var(--blue-info,#1f78d1);color:#fff}
 .timeline-dot.orange{background:var(--naranja);color:#fff}
 .timeline-dot.gray{background:#a0a3bd;color:#fff}
-.timeline-dot svg{width:14px;height:14px;color:#fff;stroke:#fff}
-.timeline-content{flex:1;min-width:0}
-.timeline-title{font-size:13px;font-weight:600;color:var(--text-primary)}
-.timeline-desc{font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.4}
-.timeline-date{font-size:10px;color:var(--text-secondary);flex-shrink:0;display:flex;align-items:center;gap:4px;white-space:nowrap;margin-top:2px}
+.timeline-dot svg{width:10px;height:10px;color:#fff;stroke:#fff}
+.timeline-content{display:flex;flex-direction:column;gap:2px}
+.timeline-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.timeline-desc{font-size:13px;font-weight:400;color:var(--text-secondary);line-height:1.4}
+.timeline-date{font-size:12px;font-weight:400;color:#9c9ebf;margin-top:2px;display:flex;align-items:center;gap:4px}
 /* Historial filter count badge (DS segmented toggle) */
 .hist-filters{margin-bottom:20px;height:auto;padding:6px;max-width:100%}
 .hist-filters .naowee-segment__item{height:32px}

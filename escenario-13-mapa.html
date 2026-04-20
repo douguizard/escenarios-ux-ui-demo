@@ -2509,9 +2509,15 @@
     `;
   }
 
+  // Lookup de escenarios actualmente visibles en Leaflet (real + sintéticos).
+  // Usado por el handler de "Ver perfil completo" para resolver por id (que en
+  // los sintéticos es string, ej. 'synth-Bello-estadio-0', y no está en ESCENARIOS).
+  const leafletEscIndex = new Map();
+
   function renderLeafletMarkers(city){
     if (!lmap) return;
     clearLeafletMarkers();
+    leafletEscIndex.clear();
     let escs = ESCENARIOS.filter(e => e.cityName === city.name && matchEscFilters(e));
     // Si la muestra de 200 no cubre este combo de filtros pero el agregado del
     // depto dice que hay escenarios, sintetizamos un grupo representativo para
@@ -2521,6 +2527,7 @@
       if (agg > 0) escs = synthesizeEscenarios(city, Math.min(6, Math.max(2, Math.round(agg / 8))));
     }
     if (escs.length === 0) return;
+    escs.forEach(e => leafletEscIndex.set(String(e.id), e));
     const latlngs = [];
     escs.forEach(esc => {
       const color = tipoColor(esc.tipo);
@@ -3285,8 +3292,15 @@
     const btn = e.target.closest('[data-esc-open]');
     if (btn){
       e.preventDefault();
-      const id = parseInt(btn.dataset.escOpen, 10);
-      const esc = ESCENARIOS.find(x => x.id === id);
+      const rawId = btn.dataset.escOpen;
+      // Los sintéticos tienen id string (ej 'synth-Bello-estadio-0'); los reales
+      // son numéricos. Probamos primero el lookup de Leaflet (incluye ambos),
+      // luego caemos a ESCENARIOS por id numérico.
+      let esc = leafletEscIndex.get(String(rawId));
+      if (!esc){
+        const numId = parseInt(rawId, 10);
+        if (!isNaN(numId)) esc = ESCENARIOS.find(x => x.id === numId);
+      }
       if (esc) openDetailPanel(esc);
     }
     const dismiss = e.target.closest('[data-esc-dismiss]');

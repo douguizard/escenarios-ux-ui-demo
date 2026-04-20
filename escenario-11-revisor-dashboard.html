@@ -572,8 +572,18 @@
     const tbody = document.getElementById('tbodyRev');
     if(!tbody) return;
     const all = Store ? Store.getAll() : [];
-    // Mantener índice global del store (no reindexar) para que el detalle reciba el idx correcto
-    const visible = all.map((d, i) => ({ d, i })).filter(x => x.d.status !== 'borrador');
+    // Mantener índice global del store (no reindexar) para que el detalle reciba el idx correcto.
+    // Ordenamos por el timestamp más reciente del registro (solicitud pendiente, revisión,
+    // envío o guardado) DESC para que los nuevos envíos del gestor aparezcan primero.
+    const visible = all.map((d, i) => ({ d, i }))
+      .filter(x => x.d.status !== 'borrador')
+      .sort((a, b) => {
+        const ta = (a.d.updateRequest && a.d.updateRequest.status === 'pending' ? a.d.updateRequest.createdAt : 0)
+          || a.d.reviewedAt || a.d.sentAt || a.d.savedAt || 0;
+        const tb = (b.d.updateRequest && b.d.updateRequest.status === 'pending' ? b.d.updateRequest.createdAt : 0)
+          || b.d.reviewedAt || b.d.sentAt || b.d.savedAt || 0;
+        return tb - ta;
+      });
     if(visible.length === 0){
       tbody.innerHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:var(--text-secondary)">No hay registros para revisión.</td></tr>';
       return;
