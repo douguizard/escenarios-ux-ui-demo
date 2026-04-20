@@ -193,6 +193,38 @@
     display:grid; grid-template-columns: 1fr 480px; gap:24px;
   }
 
+  /* ── Skeleton loader (mientras carga el SVG del mapa) ── */
+  .skeleton{
+    background:linear-gradient(90deg, #f1f2f7 0%, #e4e7ef 50%, #f1f2f7 100%);
+    background-size:200% 100%;
+    animation: skelShimmer 1.4s linear infinite;
+    border-radius:8px;
+  }
+  @keyframes skelShimmer{
+    0%   { background-position: 200% 0 }
+    100% { background-position: -200% 0 }
+  }
+  .map-skeleton{
+    position:absolute; inset:0; z-index:50;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff;
+    transition: opacity .35s ease;
+  }
+  .map-skeleton[hidden]{ display:none }
+  .map-skeleton.is-fading{ opacity:0; pointer-events:none }
+  .map-skeleton__shape{
+    /* Silhueta orgánica que evoca la forma alargada de Colombia */
+    width:52%; height:72%;
+    border-radius:42% 58% 50% 50% / 35% 40% 60% 65%;
+    transform:rotate(-4deg);
+  }
+  .map-skeleton__hint{
+    position:absolute; bottom:32px; left:50%;
+    transform:translateX(-50%);
+    font-size:12px; color:var(--text-secondary);
+    letter-spacing:.3px;
+  }
+
   /* ── Breadcrumb (usa .naowee-breadcrumb del DS) ── */
   .map-breadcrumb{
     margin-bottom:14px; min-height:28px;
@@ -557,8 +589,17 @@
     border:1px solid #fcd34d;
   }
   .rank-bar{ height:3px; background:#f3f4f6; border-radius:3px; overflow:hidden }
-  .rank-bar__fill{ height:100%; background:#475569; border-radius:3px; transition:width .3s ease }
+  .rank-bar__fill{
+    height:100%; background:#475569; border-radius:3px;
+    width:0;
+    animation: rankBarGrow .7s cubic-bezier(.25,.1,.25,1) var(--bar-delay, 0ms) forwards;
+    transition: background .2s ease;
+  }
   .rank-row:hover .rank-bar__fill{ background:var(--accent) }
+  @keyframes rankBarGrow {
+    from { width: 0 }
+    to   { width: var(--bar-pct, 0%) }
+  }
   .rank-value{ font-size:12px; font-weight:600; color:var(--text-secondary); min-width:40px; text-align:right }
   .rank-empty{ font-size:12px; color:var(--text-secondary); font-style:italic; padding:14px 0 }
 
@@ -1094,12 +1135,16 @@
           </nav>
 
           <div class="map-stage" id="mapStage">
+            <!-- Skeleton loader visible mientras carga el SVG del mapa -->
+            <div class="map-skeleton" id="mapSkeleton" aria-hidden="true">
+              <div class="map-skeleton__shape skeleton"></div>
+              <div class="map-skeleton__hint">Cargando mapa…</div>
+            </div>
+
             <!-- Nivel 1 + 2: SVG coroplético con pines cluster -->
             <div class="map-layer" id="svgLayer">
               <div class="map-svg-area">
-                <div id="mapContainer">
-                  <div style="color:var(--text-secondary);font-size:13px;position:absolute;inset:0;display:flex;align-items:center;justify-content:center">Cargando mapa…</div>
-                </div>
+                <div id="mapContainer"></div>
               </div>
               <div class="pin-layer" id="pinLayer"></div>
             </div>
@@ -1176,6 +1221,13 @@
   <div class="lb-thumbs">
     <div class="lb-thumbs__track" id="lbThumbs"></div>
   </div>
+</div>
+
+<!-- ═══ FOOTER Naowee ═══ -->
+<div class="naowee-floating-footer" role="contentinfo" aria-label="Pie de página Naowee">
+  <img src="shared/logos/naowee.svg" alt="Naowee" class="naowee-floating-footer__logo"/>
+  <div class="naowee-floating-footer__sep"></div>
+  <span class="naowee-floating-footer__text">Todos los derechos reservados <strong>&copy; 2026</strong></span>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -2936,7 +2988,7 @@
             <span class="rank-name">${d.name}</span>
             ${carBadge}
           </div>
-          <div class="rank-bar"><div class="rank-bar__fill" style="width:${pct}%"></div></div>
+          <div class="rank-bar"><div class="rank-bar__fill" style="--bar-pct:${pct}%; --bar-delay:${i * 55}ms"></div></div>
         </div>
         <span class="rank-value">${display}</span>
       `;
@@ -3464,6 +3516,12 @@
         applyColors();
         resetZoom();
         renderPins();
+        // Ocultar skeleton con fade-out suave
+        const skel = document.getElementById('mapSkeleton');
+        if (skel){
+          skel.classList.add('is-fading');
+          setTimeout(() => { skel.hidden = true }, 380);
+        }
 
         let activePath = null;
 
