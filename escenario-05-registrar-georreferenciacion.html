@@ -552,7 +552,7 @@ function initDropdown(ddId, options, onSelect){
   }
 }
 
-initDropdown('zonaDD', ['Urbana','Rural'], (val) => {
+initDropdown('zonaDD', ['Urbana','Rural','Centro'], (val) => {
   state.zona = val;
   hideHelperError('helpZona','zonaDD');
   validate();
