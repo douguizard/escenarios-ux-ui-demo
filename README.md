@@ -53,13 +53,13 @@ Ver [`ACTA-MVP.md`](./ACTA-MVP.md) para historias de usuario, criterios de acept
 
 ## Demo en vivo
 
-**https://douguizard.github.io/escenarios-ux-ui-demo/escenario-01-login.html**
+**https://naowee-tech.github.io/naowee-test-escenarios/escenario-01-login.html**
 
 ## Repos relacionados
 
 | Repo | Qué contiene |
 |---|---|
-| [`douguizard/digitacion-ui-ux-demo`](https://github.com/douguizard/digitacion-ui-ux-demo) | Prototipo del módulo Digitación (Coordinador + Digitador, 30+ deportes) |
+| [`naowee-tech/naowee-test-digitacion`](https://github.com/naowee-tech/naowee-test-digitacion) | Prototipo del módulo Digitación (Coordinador + Digitador, 30+ deportes) |
 | [`naowee-tech/parametrizacion-deportes`](https://github.com/naowee-tech/parametrizacion-deportes) | CSVs fuente de verdad de reglas deportivas |
 | [`naowee-tech/handoff-engines`](https://github.com/naowee-tech/handoff-engines) | Motores de scoring y modelos TypeScript para integración Angular |
 

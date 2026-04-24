@@ -803,7 +803,7 @@ CIUDADANO (Gestor)                                    REVISOR
 - Botón "Resetear demo" para repetir flujos
 - Repositorios:
   - `naowee-tech/digitacion-ui-ux-demo` (carpeta `escenarios/`)
-  - `douguizard/escenarios-ux-ui-demo` (GitHub Pages)
+  - `naowee-tech/naowee-test-escenarios` (GitHub Pages)
 
 ### Entregables de Documentación
 - Acta de alcance MVP (este documento)
@@ -866,7 +866,7 @@ Para considerar el MVP de Escenarios completado:
 - **Responsive:** Breakpoint principal 900px (sidebar colapsa); breakpoint secundario 640px (oculta logos secundarios del header)
 - **Animaciones:** fadeInUp, scaleIn, slideInLeft/Right con cubic-bezier, transición de chevron 0.2s
 - **Compatibilidad:** Chrome / Edge / Firefox modernos (uso de `:has()`, `?.`, template strings, async-friendly)
-- **Hosting actual:** GitHub Pages en `https://douguizard.github.io/escenarios-ux-ui-demo/`
+- **Hosting actual:** GitHub Pages en `https://naowee-tech.github.io/naowee-test-escenarios/`
 - **Repositorio principal:** `naowee-tech/digitacion-ui-ux-demo` (carpeta `escenarios/`)
 - **Versionado:** semver, último tag `v1.23.0` (las versiones futuras documentarán cambios visibles para el usuario)
 - **Slack:** notificaciones de deploy a `#digitacionui` vía webhook configurado
